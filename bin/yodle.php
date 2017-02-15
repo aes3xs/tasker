@@ -18,6 +18,9 @@ if (!$autoloader) {
 }
 
 use Aes3xs\Yodler\Kernel;
+use Symfony\Component\Console\Application;
 
 $kernel = new Kernel();
 $kernel->boot();
+$application = new Application();
+$application->run();
