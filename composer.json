@@ -1,0 +1,12 @@
+{
+    "name": "aes3xs/yodler",
+    "description": "Deploy tool",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "aes3xs",
+            "email": "aes3xs@gmail.com"
+        }
+    ],
+    "require": {}
+}
