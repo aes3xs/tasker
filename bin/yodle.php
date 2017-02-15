@@ -18,7 +18,6 @@ if (!$autoloader) {
 }
 
 use Aes3xs\Yodler\Kernel;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 
 $input = new ArgvInput();
@@ -26,5 +25,4 @@ $file = $input->getParameterOption(['--file'], 'deploy.yml');
 
 $kernel = new Kernel($file);
 $kernel->boot();
-$application = new Application();
-$application->run($input);
+$kernel->getContainer()->get('application')->run($input);

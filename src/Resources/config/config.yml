@@ -1,0 +1,6 @@
+parameters:
+    application.class: Aes3xs\Yodler\Console\Application
+
+services:
+    application:
+        class: '%application.class%'
