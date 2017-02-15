@@ -16,6 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 
 /**
  * Kernel.
@@ -65,6 +66,8 @@ class Kernel
 
         $loader->load('Resources/config/config.yml');
         $loader->load($configFile);
+
+        $containerBuilder->addCompilerPass(new RegisterListenersPass());
 
         $configPath = dirname($loader->getLocator()->locate($configFile));
         $containerBuilder->setParameter('config_path', $configPath);

@@ -1,13 +1,9 @@
 parameters:
-    application.class: Aes3xs\Yodler\Console\Application
+    command_builder.class: Aes3xs\Yodler\Console\CommandBuilder
     event_dispatcher.class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
 
 services:
-    application:
-        class: '%application.class%'
-        calls:
-            - [setDispatcher, ['@event_dispatcher']]
+
     event_dispatcher:
         class: '%event_dispatcher.class%'
-        public: false
         arguments: ['@service_container']
