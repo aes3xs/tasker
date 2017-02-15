@@ -12,7 +12,8 @@
         "php": ">=5.6.0",
         "symfony/dependency-injection": "^3.1",
         "symfony/config": "^3.2",
-        "symfony/console": "^3.2"
+        "symfony/console": "^3.2",
+        "symfony/yaml": "^3.2"
     },
     "autoload": {
         "psr-4": {
