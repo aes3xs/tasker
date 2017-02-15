@@ -7,3 +7,8 @@ services:
     event_dispatcher:
         class: '%event_dispatcher.class%'
         arguments: ['@service_container']
+
+    command_builder:
+        class: '%command_builder.class%'
+        tags:
+            - { name: kernel.event_subscriber}
