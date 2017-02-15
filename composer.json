@@ -13,6 +13,7 @@
         "symfony/dependency-injection": "^3.1",
         "symfony/config": "^3.2",
         "symfony/console": "^3.2",
+        "symfony/event-dispatcher": "^3.2",
         "symfony/yaml": "^3.2"
     },
     "autoload": {
