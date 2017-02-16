@@ -14,6 +14,8 @@ namespace Aes3xs\Yodler\Console;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -21,7 +23,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class CommandBuilder implements EventSubscriberInterface
 {
+    /**
+     * @var InputInterface
+     */
     protected $input;
+
+    /**
+     * @var OutputInterface
+     */
     protected $output;
 
     /**

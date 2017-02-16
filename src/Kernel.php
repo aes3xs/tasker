@@ -23,7 +23,14 @@ use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
  */
 class Kernel
 {
+    /**
+     * @var string
+     */
     protected $configFile;
+
+    /**
+     * @var ContainerInterface
+     */
     protected $container;
 
     /**
