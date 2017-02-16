@@ -33,6 +33,7 @@ interface VariableListInterface
      * Add variable to a list.
      *
      * @param VariableInterface $variable
+     *
      * @throws VariableAlreadyExistsException
      */
     public function add(VariableInterface $variable);
@@ -41,7 +42,9 @@ interface VariableListInterface
      * Get variable from a list by name.
      *
      * @param string $name
+     *
      * @return VariableInterface
+     *
      * @throws VariableNotFoundException
      */
     public function get($name);
@@ -50,6 +53,7 @@ interface VariableListInterface
      * Check if list contains variable with specified name.
      *
      * @param $name
+     *
      * @return bool
      */
     public function has($name);
