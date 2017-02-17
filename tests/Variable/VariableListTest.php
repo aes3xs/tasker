@@ -48,7 +48,7 @@ class VariableListTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($list->has('test'));
     }
 
-    public function testGetNotFound()
+    public function testNotFoundException()
     {
         $this->expectException(VariableNotFoundException::class);
 
