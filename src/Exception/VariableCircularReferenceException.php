@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when variables depends on itselves directly or through it's variable dependencies.
  */
-class VariableCircularDependencyException extends RuntimeException
+class VariableCircularReferenceException extends RuntimeException
 {
     /**
      * @var string
@@ -34,7 +34,7 @@ class VariableCircularDependencyException extends RuntimeException
      */
     public function __construct($variableName, array $variableCallStack)
     {
-        parent::__construct(sprintf('Circular variable dependency detected %s. Callstack: %s', $variableName, var_export($variableCallStack, true)));
+        parent::__construct(sprintf('Variable circular reference detected %s. Callstack: %s', $variableName, var_export($variableCallStack, true)));
 
         $this->variableName = $variableName;
         $this->variableCallStack = $variableCallStack;

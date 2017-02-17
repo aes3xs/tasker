@@ -12,7 +12,7 @@
 namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Exception\VariableCircularDependencyException;
+use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
 use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Common\CallableHelper;
 use Aes3xs\Yodler\Variable\VariableInterface;
@@ -171,7 +171,7 @@ class Heap implements HeapInterface
      *
      * @return mixed
      *
-     * @throws VariableCircularDependencyException
+     * @throws VariableCircularReferenceException
      */
     protected function resolveCallbackWithCallstack(callable $callback, &$callstack = [])
     {
@@ -186,7 +186,7 @@ class Heap implements HeapInterface
             if (is_callable($value)) {
 
                 if (in_array($name, $callstack)) {
-                    throw new VariableCircularDependencyException($name, $callstack);
+                    throw new VariableCircularReferenceException($name, $callstack);
                 }
 
                 $callstack[] = $name;
@@ -216,7 +216,7 @@ class Heap implements HeapInterface
      *
      * @return array
      *
-     * @throws VariableCircularDependencyException
+     * @throws VariableCircularReferenceException
      */
     protected function getDependenciesWithCallstack(callable $callback, &$callstack = [])
     {
@@ -235,7 +235,7 @@ class Heap implements HeapInterface
             if (is_callable($value)) {
 
                 if (in_array($name, $callstack)) {
-                    throw new VariableCircularDependencyException($name, $callstack);
+                    throw new VariableCircularReferenceException($name, $callstack);
                 }
 
                 $callstack[] = $name;
