@@ -15,7 +15,6 @@ use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Connection\ConnectionFactory;
 use Aes3xs\Yodler\Connection\Server;
 use Aes3xs\Yodler\Connection\User;
-use Aes3xs\Yodler\Exception\FileReadException;
 use Aes3xs\Yodler\Variable\VariableFactory;
 
 class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
