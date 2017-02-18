@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler\Tests\Variable;
 
+use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
 use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Variable\Variable;
 use Aes3xs\Yodler\Variable\VariableInterface;
@@ -55,5 +56,15 @@ class VariableListTest extends \PHPUnit_Framework_TestCase
         $list = new VariableList();
 
         $list->get('test');
+    }
+
+    public function testAlreadyExistException()
+    {
+        $this->expectException(VariableAlreadyExistsException::class);
+
+        $list = new VariableList();
+
+        $list->add(new Variable('test', 'value'));
+        $list->add(new Variable('test', 'value'));
     }
 }
