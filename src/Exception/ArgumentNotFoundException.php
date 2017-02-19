@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when method argument cannot be found.
  */
-class ArgumentNotFoundException extends RuntimeException
+class ArgumentNotFoundException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

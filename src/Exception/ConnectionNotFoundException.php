@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when connection with the provided name doesn't exist in the list.
  */
-class ConnectionNotFoundException extends RuntimeException
+class ConnectionNotFoundException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

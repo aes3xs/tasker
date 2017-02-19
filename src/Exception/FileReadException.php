@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when file contents cannot be read.
  */
-class FileReadException extends RuntimeException
+class FileReadException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

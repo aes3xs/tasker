@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when connection with the same name already exists in the list.
  */
-class ConnectionAlreadyExistsException extends RuntimeException
+class ConnectionAlreadyExistsException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string
