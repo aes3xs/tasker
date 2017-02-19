@@ -17,7 +17,7 @@ use Aes3xs\Yodler\Exception\TimeoutInterruptException;
 /**
  * Interface to semaphore manager.
  *
- * Semaphore is used to control parallel deploy execution.
+ * Semaphore is used to coordinate and synchronize parallel deploy builds.
  * It's work based on checkpoint reporting.
  */
 interface SemaphoreInterface
