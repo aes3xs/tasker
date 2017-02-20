@@ -11,31 +11,20 @@
 
 namespace Aes3xs\Yodler\Tests\Connection;
 
-use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Connection\ConnectionList;
-use Aes3xs\Yodler\Connection\ServerInterface;
-use Aes3xs\Yodler\Connection\UserInterface;
 use Aes3xs\Yodler\Exception\ConnectionAlreadyExistsException;
 use Aes3xs\Yodler\Exception\ConnectionNotFoundException;
-use Aes3xs\Yodler\Variable\VariableListInterface;
 
 class ConnectionListTest extends \PHPUnit_Framework_TestCase
 {
-    protected function createConnection($name)
-    {
-        $serverMock = $this->createMock(ServerInterface::class);
-        $userMock = $this->createMock(UserInterface::class);
-        $variablesMock = $this->createMock(VariableListInterface::class);
-
-        return new Connection($name, $serverMock, $userMock, $variablesMock);
-    }
-
     public function testAll()
     {
         $list = new ConnectionList();
-        $connection1 = $this->createConnection('test1');
-        $connection2 = $this->createConnection('test2');
+        $connection1 = $this->createMock(ConnectionInterface::class);
+        $connection1->method('getName')->willReturn('test1');
+        $connection2 = $this->createMock(ConnectionInterface::class);
+        $connection2->method('getName')->willReturn('test2');
         $list->add($connection1);
         $list->add($connection2);
 
@@ -45,7 +34,8 @@ class ConnectionListTest extends \PHPUnit_Framework_TestCase
     public function testAdd()
     {
         $list = new ConnectionList();
-        $connection = $this->createConnection('test');
+        $connection = $this->createMock(ConnectionInterface::class);
+        $connection->method('getName')->willReturn('test');
         $list->add($connection);
 
         $this->assertInstanceOf(ConnectionInterface::class, $list->get('test'));
@@ -67,7 +57,11 @@ class ConnectionListTest extends \PHPUnit_Framework_TestCase
 
         $list = new ConnectionList();
 
-        $list->add($this->createConnection('test'));
-        $list->add($this->createConnection('test'));
+        $connection1 = $this->createMock(ConnectionInterface::class);
+        $connection1->method('getName')->willReturn('test');
+        $connection2 = $this->createMock(ConnectionInterface::class);
+        $connection2->method('getName')->willReturn('test');
+        $list->add($connection1);
+        $list->add($connection2);
     }
 }
