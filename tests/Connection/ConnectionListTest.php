@@ -14,21 +14,21 @@ namespace Aes3xs\Yodler\Tests\Connection;
 use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Connection\ConnectionList;
-use Aes3xs\Yodler\Connection\Server;
-use Aes3xs\Yodler\Connection\User;
+use Aes3xs\Yodler\Connection\ServerInterface;
+use Aes3xs\Yodler\Connection\UserInterface;
 use Aes3xs\Yodler\Exception\ConnectionAlreadyExistsException;
 use Aes3xs\Yodler\Exception\ConnectionNotFoundException;
-use Aes3xs\Yodler\Variable\VariableList;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 
 class ConnectionListTest extends \PHPUnit_Framework_TestCase
 {
     protected function createConnection($name)
     {
-        $server = new Server(null, null);
-        $user = new User(null);
-        $variables = new VariableList();
-        
-        return new Connection($name, $server, $user, $variables);
+        $serverMock = $this->createMock(ServerInterface::class);
+        $userMock = $this->createMock(UserInterface::class);
+        $variablesMock = $this->createMock(VariableListInterface::class);
+
+        return new Connection($name, $serverMock, $userMock, $variablesMock);
     }
 
     public function testAll()
