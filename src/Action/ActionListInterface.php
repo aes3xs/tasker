@@ -17,7 +17,7 @@ namespace Aes3xs\Yodler\Action;
 interface ActionListInterface
 {
     /**
-     * Return all actions in key-indexed array.
+     * Return all actions in array.
      *
      * @return ActionInterface[]
      */
