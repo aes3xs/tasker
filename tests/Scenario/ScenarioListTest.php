@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Connection;
+namespace Aes3xs\Yodler\Tests\Scenario;
 
 use Aes3xs\Yodler\Exception\ScenarioAlreadyExistsException;
 use Aes3xs\Yodler\Exception\ScenarioNotFoundException;

@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\DependencyInjection;
+namespace Aes3xs\Yodler\Tests\Scenario;
 
 use Aes3xs\Yodler\Action\ActionFactoryInterface;
 use Aes3xs\Yodler\Action\ActionListInterface;
