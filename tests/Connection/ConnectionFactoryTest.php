@@ -50,11 +50,9 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
         $connection = $connectionList->get('test');
         $expectedServer = new Server('host', 1122);
         $expectedUser = new User('login', 'password', 'key', 'passphrase', true);
+        $expectedConnection = new Connection('test', $expectedServer, $expectedUser, $variablesMock);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertSame($variablesMock, $connection->getVariables());
-        $this->assertEquals($expectedServer, $connection->getServer());
-        $this->assertEquals($expectedUser, $connection->getUser());
+        $this->assertEquals($expectedConnection, $connection);
     }
 
     public function testConfigurationDefaults()
@@ -75,11 +73,9 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
         $connection = $connectionList->get('test');
         $expectedServer = new Server(null, null);
         $expectedUser = new User(null, null, null, null, false);
+        $expectedConnection = new Connection('test', $expectedServer, $expectedUser, $variablesMock);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertSame($variablesMock, $connection->getVariables());
-        $this->assertEquals($expectedServer, $connection->getServer());
-        $this->assertEquals($expectedUser, $connection->getUser());
+        $this->assertEquals($expectedConnection, $connection);
     }
 
     public function testEmptyConfiguration()
@@ -99,11 +95,9 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
         $connection = $connectionList->get('test');
         $expectedServer = new Server(null, null);
         $expectedUser = new User(null, null, null, null, false);
+        $expectedConnection = new Connection('test', $expectedServer, $expectedUser, $variablesMock);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertSame($variablesMock, $connection->getVariables());
-        $this->assertEquals($expectedServer, $connection->getServer());
-        $this->assertEquals($expectedUser, $connection->getUser());
+        $this->assertEquals($expectedConnection, $connection);
     }
 
     public function testMultiple()
@@ -189,10 +183,8 @@ EOF;
 
         $expectedServer = new Server(null, null);
         $expectedUser = new User(null, null, null, null, false);
+        $expectedConnection = new Connection(null, $expectedServer, $expectedUser, $variablesMock);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertSame($variablesMock, $connection->getVariables());
-        $this->assertEquals($expectedServer, $connection->getServer());
-        $this->assertEquals($expectedUser, $connection->getUser());
+        $this->assertEquals($expectedConnection, $connection);
     }
 }
