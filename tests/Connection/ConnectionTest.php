@@ -12,22 +12,22 @@
 namespace Aes3xs\Yodler\Tests\Connection;
 
 use Aes3xs\Yodler\Connection\Connection;
-use Aes3xs\Yodler\Connection\Server;
-use Aes3xs\Yodler\Connection\User;
-use Aes3xs\Yodler\Variable\VariableList;
+use Aes3xs\Yodler\Connection\ServerInterface;
+use Aes3xs\Yodler\Connection\UserInterface;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 
 class ConnectionTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstruct()
     {
-        $server = new Server(null, null);
-        $user = new User(null);
-        $variables = new VariableList();
-        $connection = new Connection('test', $server, $user, $variables);
+        $serverMock = $this->createMock(ServerInterface::class);
+        $userMock = $this->createMock(UserInterface::class);
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $connection = new Connection('test', $serverMock, $userMock, $variablesMock);
 
         $this->assertEquals('test', $connection->getName());
-        $this->assertSame($server, $connection->getServer());
-        $this->assertSame($user, $connection->getUser());
-        $this->assertSame($variables, $connection->getVariables());
+        $this->assertSame($serverMock, $connection->getServer());
+        $this->assertSame($userMock, $connection->getUser());
+        $this->assertSame($variablesMock, $connection->getVariables());
     }
 }
