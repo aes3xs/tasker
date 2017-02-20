@@ -16,11 +16,19 @@ use Aes3xs\Yodler\Connection\ConnectionFactory;
 use Aes3xs\Yodler\Connection\Server;
 use Aes3xs\Yodler\Connection\User;
 use Aes3xs\Yodler\Variable\VariableFactory;
+use Aes3xs\Yodler\Variable\VariableFactoryInterface;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 
 class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreateListFromConfiguration()
     {
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+        $variableFactoryMock->method('createList')->with(['test' => 'value'])->willReturn($variablesMock);
+
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
+
         $configuration = [
             'test' => [
                 'host'       => 'host',
@@ -36,65 +44,41 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
             ],
         ];
 
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
-
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
         $this->assertCount(1, $connectionList->all());
 
         /** @var Connection $connection */
         $connection = $connectionList->get('test');
-        $server = $connection->getServer();
-        $user = $connection->getUser();
+        $expectedServer = new Server('host', 1122);
+        $expectedUser = new User('login', 'password', 'key', 'passphrase', true);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertEquals('test', $connection->getName());
-        $this->assertCount(1, $connection->getVariables()->all());
-        $this->assertEquals('value', $connection->getVariables()->get('test')->getValue());
-
-        $this->assertInstanceOf(Server::class, $server);
-        $this->assertEquals('host', $server->getHost());
-        $this->assertEquals(1122, $server->getPort());
-
-        $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals('login', $user->getLogin());
-        $this->assertEquals('password', $user->getPassword());
-        $this->assertEquals('key', $user->getKey());
-        $this->assertEquals('passphrase', $user->getPassphrase());
-        $this->assertEquals(true, $user->getForwarding());
-
+        $this->assertSame($variablesMock, $connection->getVariables());
+        $this->assertEquals($expectedServer, $connection->getServer());
+        $this->assertEquals($expectedUser, $connection->getUser());
     }
 
     public function testConfigurationDefaults()
     {
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+        $variableFactoryMock->method('createList')->with([])->willReturn($variablesMock);
+
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
+
         $configuration = [
             'test' => [],
         ];
-
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
 
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
 
         /** @var Connection $connection */
         $connection = $connectionList->get('test');
-        $server = $connection->getServer();
-        $user = $connection->getUser();
+        $expectedServer = new Server(null, null);
+        $expectedUser = new User(null, null, null, null, false);
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertEquals('test', $connection->getName());
-        $this->assertEquals([], $connection->getVariables()->all());
-
-        $this->assertInstanceOf(Server::class, $server);
-        $this->assertEquals(null, $server->getHost());
-        $this->assertEquals(null, $server->getPort());
-
-        $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals(null, $user->getLogin());
-        $this->assertEquals(null, $user->getPassword());
-        $this->assertEquals(null, $user->getKey());
-        $this->assertEquals(null, $user->getPassphrase());
-        $this->assertEquals(false, $user->getForwarding());
+        $this->assertSame($variablesMock, $connection->getVariables());
+        $this->assertEquals($expectedServer, $connection->getServer());
+        $this->assertEquals($expectedUser, $connection->getUser());
     }
 
     public function testEmptyConfiguration()
@@ -114,40 +98,45 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testMultiple()
     {
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+        $variableFactoryMock->method('createList')->with([])->willReturn($variablesMock);
+
         $configuration = [
             'connection1' => [],
             'connection2' => [],
             'connection3' => [],
         ];
 
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
 
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
         $this->assertCount(3, $connectionList->all());
 
-        $connection1 = $connectionList->get('connection1');
-        $connection2 = $connectionList->get('connection2');
-        $connection3 = $connectionList->get('connection3');
+        $server = new Server(null, null);
+        $user = new User(null, null, null, null, false);
+        $expectedConnection1 = new Connection('connection1', $server, $user, $variablesMock);
+        $expectedConnection2 = new Connection('connection2', $server, $user, $variablesMock);
+        $expectedConnection3 = new Connection('connection3', $server, $user, $variablesMock);
 
-        $this->assertInstanceOf(Connection::class, $connection1);
-        $this->assertEquals('connection1', $connection1->getName());
-        $this->assertInstanceOf(Connection::class, $connection2);
-        $this->assertEquals('connection2', $connection2->getName());
-        $this->assertInstanceOf(Connection::class, $connection3);
-        $this->assertEquals('connection3', $connection3->getName());
+        $this->assertEquals($expectedConnection1, $connectionList->get('connection1'));
+        $this->assertEquals($expectedConnection2, $connectionList->get('connection2'));
+        $this->assertEquals($expectedConnection3, $connectionList->get('connection3'));
     }
 
     public function testLoadKey()
     {
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+        $variableFactoryMock->method('createList')->with([])->willReturn($variablesMock);
+
         $configuration = [
             'test' => [
                 'key' => __DIR__ . '/../Fixtures/key/id_rsa'
             ],
         ];
 
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
         $connection = $connectionList->get('test');
 
@@ -164,41 +153,35 @@ EOF;
     {
         $this->expectException(\Exception::class);
 
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+
         $configuration = [
             'test' => [
                 'wrong_parameter' => 'value',
             ],
         ];
 
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
 
         $connectionFactory->createListFromConfiguration($configuration);
     }
 
     public function testCreateStubConnection()
     {
-        $variableFactory = new VariableFactory();
-        $connectionFactory = new ConnectionFactory($variableFactory);
+        $variablesMock = $this->createMock(VariableListInterface::class);
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+        $variableFactoryMock->method('createList')->with([])->willReturn($variablesMock);
+
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
 
         /** @var Connection $connection */
         $connection = $connectionFactory->createStubConnection();
-        $server = $connection->getServer();
-        $user = $connection->getUser();
 
-        $this->assertInstanceOf(Connection::class, $connection);
-        $this->assertEquals(null, $connection->getName());
-        $this->assertEquals([], $connection->getVariables()->all());
+        $expectedServer = new Server(null, null);
+        $expectedUser = new User(null, null, null, null, false);
 
-        $this->assertInstanceOf(Server::class, $server);
-        $this->assertEquals(null, $server->getHost());
-        $this->assertEquals(null, $server->getPort());
-
-        $this->assertInstanceOf(User::class, $user);
-        $this->assertEquals(null, $user->getLogin());
-        $this->assertEquals(null, $user->getPassword());
-        $this->assertEquals(null, $user->getKey());
-        $this->assertEquals(null, $user->getPassphrase());
-        $this->assertEquals(false, $user->getForwarding());
+        $this->assertSame($variablesMock, $connection->getVariables());
+        $this->assertEquals($expectedServer, $connection->getServer());
+        $this->assertEquals($expectedUser, $connection->getUser());
     }
 }
