@@ -30,5 +30,8 @@
         "psr-4": {
             "Aes3xs\\Yodler\\Tests\\": "tests"
         }
-    }
+    },
+    "bin": [
+        "bin/yodle"
+    ]
 }
