@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Helper;
+namespace Aes3xs\Yodler\Tests\Common;
 
 use Aes3xs\Yodler\Exception\ArgumentNotFoundException;
 use Aes3xs\Yodler\Common\CallableHelper;
