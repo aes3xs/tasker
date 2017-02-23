@@ -21,7 +21,11 @@ interface CommanderInterface
     /**
      * Execute command.
      *
+     * Returns command output or false on error.
+     *
      * @param $command
+     *
+     * @return string|bool
      */
     public function exec($command);
 
@@ -30,14 +34,18 @@ interface CommanderInterface
      *
      * @param $local
      * @param $remote
+     *
+     * @return bool
      */
-    public function upload($local, $remote);
+    public function send($local, $remote);
 
     /**
      * Download file.
      *
      * @param $remote
      * @param $local
+     *
+     * @return bool
      */
-    public function download($remote, $local);
+    public function recv($remote, $local);
 }
