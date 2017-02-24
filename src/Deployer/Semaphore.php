@@ -146,9 +146,9 @@ class Semaphore implements SemaphoreInterface
             $data = $this->getData();
             $wait = false;
             $error = false;
-            foreach ($data['concurrent_ids'] as $id) {
-                $missCheckpoints = !empty(array_diff($data['checkpoints'][$id], $data['checkpoints'][$id]));
-                $hasError = in_array(self::CHECKPOINT_ERROR, $data['checkpoints'][$id]);
+            foreach ($data['concurrent_ids'] as $concurrentId) {
+                $missCheckpoints = !empty(array_diff($data['checkpoints'][$id], $data['checkpoints'][$concurrentId]));
+                $hasError = in_array(self::CHECKPOINT_ERROR, $data['checkpoints'][$concurrentId]);
                 $wait = $wait || $missCheckpoints;
                 $error = $error || $hasError;
             }
