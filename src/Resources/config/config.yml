@@ -1,6 +1,16 @@
 parameters:
     command_builder.class: Aes3xs\Yodler\Console\CommandBuilder
     event_dispatcher.class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
+    logger.class: Monolog\Logger
+    console_handler.class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
+    console_formatter.class: Aes3xs\Yodler\Logger\ConsoleFormatter
+
+    verbosity_level_map:
+        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
+        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL: info
+        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERBOSE: debug
+        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE: debug
+        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_DEBUG: debug
 
 services:
 
@@ -20,3 +30,27 @@ services:
             - '@deployer'
         tags:
             - { name: kernel.event_subscriber }
+
+    logger.console_handler:
+        class: '%console_handler.class%'
+        arguments:
+            - null
+            - true
+            - '%verbosity_level_map%'
+        calls:
+            - [setFormatter, ['@logger.console_formatter']]
+        tags:
+            - { name: kernel.event_subscriber }
+
+    logger.console_formatter:
+        class: '%console_formatter.class%'
+        public: false
+        arguments: [null, null, true, true]
+        calls:
+            - [setHeap, ['@heap']]
+
+    logger:
+        class: '%logger.class%'
+        arguments: [main]
+        calls:
+            - [pushHandler, ['@logger.console_handler']]
