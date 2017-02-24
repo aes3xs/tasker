@@ -89,7 +89,6 @@ services:
 
     lazy_heap_proxy:
         class: '%lazy_heap_proxy.class%'
-        public: false
         arguments:
             - '@heap_factory'
         tags:
