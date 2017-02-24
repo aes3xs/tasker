@@ -22,7 +22,7 @@ use Monolog\Logger;
 class ConsoleFormatter extends LineFormatter
 {
     const SIMPLE_DATE = 'H:i:s';
-    const SIMPLE_FORMAT = "%start_tag%[%datetime%] %level_name% %channel%:%end_tag% %message_start_tag%%message% %context% %extra%%message_end_tag%\n";
+    const SIMPLE_FORMAT = "%head%[%datetime%] %level_name% %channel%:%/head% %body%%message%%/body% %aux%%context% %extra%%/aux%\n";
 
     /**
      * @var HeapInterface
@@ -44,29 +44,27 @@ class ConsoleFormatter extends LineFormatter
     {
         $record['channel'] = $this->getChannelName($this->heap->get('deployContext'));
 
-        if ($record['level'] >= Logger::ERROR) {
-            $record['start_tag'] = '<error>';
-            $record['end_tag'] = '</error>';
-        } elseif ($record['level'] >= Logger::NOTICE) {
-            $record['start_tag'] = '<comment>';
-            $record['end_tag'] = '</comment>';
-        } elseif ($record['level'] >= Logger::INFO) {
-            $record['start_tag'] = '<info>';
-            $record['end_tag'] = '</info>';
-        } else {
-            $record['start_tag'] = "\033[1;30m";
-            $record['end_tag'] = "\033[0m";
-        }
+        $record['head'] = "";
+        $record['/head'] = "";
+        $record['body'] = "";
+        $record['/body'] = "";
+        $record['aux'] = "";
+        $record['/aux'] = "";
 
         if ($record['level'] >= Logger::ERROR) {
-            $record['message_start_tag'] = '<error>';
-            $record['message_end_tag'] = '</error>';
-        } elseif ($record['level'] === Logger::DEBUG) {
-            $record['message_start_tag'] = "\033[1;30m";
-            $record['message_end_tag'] = "\033[0m";
+            $record['head'] = $record['body'] = "\033[1;31m";
+            $record['/head'] = $record['/body'] = "\033[0m";
+            $record['aux'] = "<error>";
+            $record['/aux'] = "</error>";
+        } elseif ($record['level'] >= Logger::NOTICE) {
+            $record['head'] = '<comment>';
+            $record['/head'] = '</comment>';
+        } elseif ($record['level'] >= Logger::INFO) {
+            $record['head'] = '<info>';
+            $record['/head'] = '</info>';
         } else {
-            $record['message_start_tag'] = '';
-            $record['message_end_tag'] = '';
+            $record['head'] = $record['body'] = "\033[1;30m";
+            $record['/head'] = $record['/body'] = "\033[0m";
         }
 
         return parent::format($record);
