@@ -10,6 +10,11 @@ parameters:
     semaphore.class: Aes3xs\Yodler\Deployer\SemaphoreInterface
     report_factory.class: Aes3xs\Yodler\Deployer\ReportFactory
     report.class: Aes3xs\Yodler\Deployer\ReportInterface
+    deploy_factory.class: Aes3xs\Yodler\Deploy\DeployFactory
+    scenario_factory.class: Aes3xs\Yodler\Scenario\ScenarioFactory
+    connection_factory.class: Aes3xs\Yodler\Connection\ConnectionFactory
+    variable_factory.class: Aes3xs\Yodler\Variable\VariableFactory
+    action_factory.class: Aes3xs\Yodler\Action\ActionFactory
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -98,3 +103,37 @@ services:
         class: '%report.class%'
         factory: 'report_factory:create'
         arguments: ['%report_lock_name%']
+
+    deploy_factory:
+        class: '%deploy_factory.class%'
+        public: false
+        arguments:
+            - '@scenarios'
+            - '@connections'
+            - '@variable_factory'
+            - '@action_factory'
+
+    scenario_factory:
+        class: '%scenario_factory.class%'
+        public: false
+        arguments:
+            - '@action_factory'
+            - '@variable_factory'
+
+    connection_factory:
+        class: '%connection_factory.class%'
+        public: false
+        arguments:
+            - '@variable_factory'
+
+    variable_factory:
+        class: '%variable_factory.class%'
+        public: false
+
+    action_factory:
+        class: '%action_factory.class%'
+        public: false
+        arguments:
+            - '@variables'
+            - '@semaphore'
+            - '@logger'
