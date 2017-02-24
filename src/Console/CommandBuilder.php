@@ -123,6 +123,8 @@ class CommandBuilder implements EventSubscriberInterface
     {
         $this->input = $event->getInput();
         $this->output = $event->getOutput();
+
+        $event->getCommand()->getApplication()->addCommands($this->build());
     }
 
     /**
