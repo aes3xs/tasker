@@ -13,15 +13,16 @@ namespace Aes3xs\Yodler\Logger;
 
 use Aes3xs\Yodler\Deployer\DeployContextInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
-use Symfony\Bridge\Monolog\Formatter\ConsoleFormatter as BaseConsoleFormatter;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Logger;
 
 /**
  * Custom console formatter.
  */
-class ConsoleFormatter extends BaseConsoleFormatter
+class ConsoleFormatter extends LineFormatter
 {
     const SIMPLE_DATE = 'H:i:s';
-    const SIMPLE_FORMAT = "%start_tag%[%datetime%] %level_name% %channel%:%end_tag% %message% %context% %extra%\n";
+    const SIMPLE_FORMAT = "%start_tag%[%datetime%] %level_name% %channel%:%end_tag% %message_start_tag%%message% %context% %extra%%message_end_tag%\n";
 
     /**
      * @var HeapInterface
@@ -43,6 +44,31 @@ class ConsoleFormatter extends BaseConsoleFormatter
     {
         $record['channel'] = $this->getChannelName($this->heap->get('deployContext'));
 
+        if ($record['level'] >= Logger::ERROR) {
+            $record['start_tag'] = '<error>';
+            $record['end_tag'] = '</error>';
+        } elseif ($record['level'] >= Logger::NOTICE) {
+            $record['start_tag'] = '<comment>';
+            $record['end_tag'] = '</comment>';
+        } elseif ($record['level'] >= Logger::INFO) {
+            $record['start_tag'] = '<info>';
+            $record['end_tag'] = '</info>';
+        } else {
+            $record['start_tag'] = "\033[1;30m";
+            $record['end_tag'] = "\033[0m";
+        }
+
+        if ($record['level'] >= Logger::ERROR) {
+            $record['message_start_tag'] = '<error>';
+            $record['message_end_tag'] = '</error>';
+        } elseif ($record['level'] === Logger::DEBUG) {
+            $record['message_start_tag'] = "\033[1;30m";
+            $record['message_end_tag'] = "\033[0m";
+        } else {
+            $record['message_start_tag'] = '';
+            $record['message_end_tag'] = '';
+        }
+
         return parent::format($record);
     }
 
@@ -55,6 +81,14 @@ class ConsoleFormatter extends BaseConsoleFormatter
     {
         if (is_scalar($data)) {
             return parent::convertToString($data);
+        }
+
+        if (is_array($data)) {
+            $result = [];
+            foreach ($data as $item) {
+                $result[] = parent::convertToString($item);
+            }
+            return implode(PHP_EOL, $result);
         }
 
         return var_export($this->normalize($data), true);
