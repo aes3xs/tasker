@@ -15,6 +15,10 @@ parameters:
     connection_factory.class: Aes3xs\Yodler\Connection\ConnectionFactory
     variable_factory.class: Aes3xs\Yodler\Variable\VariableFactory
     action_factory.class: Aes3xs\Yodler\Action\ActionFactory
+    deploy_list.class: Aes3xs\Yodler\Deploy\DeployListInterface
+    scenario_list.class: Aes3xs\Yodler\Scenario\ScenarioListInterface
+    connection_list.class: Aes3xs\Yodler\Connection\ConnectionListInterface
+    variable_list.class: Aes3xs\Yodler\Variable\VariableListInterface
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -137,3 +141,27 @@ services:
             - '@variables'
             - '@semaphore'
             - '@logger'
+
+    deploys:
+        class: '%deploy_list.class%'
+        public: false
+        factory: 'deploy_factory:createListFromConfiguration'
+        arguments: ['%deploys%']
+
+    scenarios:
+        class: '%scenario_list.class%'
+        public: false
+        factory: 'scenario_factory:createListFromConfiguration'
+        arguments: ['%scenarios%']
+
+    connections:
+        class: '%connection_list.class%'
+        public: false
+        factory: 'connection_factory:createListFromConfiguration'
+        arguments: ['%connections%']
+
+    variables:
+        class: '%variable_list.class%'
+        public: false
+        factory: 'variable_factory:createListFromConfiguration'
+        arguments: ['%sources%']
