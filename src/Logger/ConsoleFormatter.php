@@ -52,8 +52,8 @@ class ConsoleFormatter extends LineFormatter
         $record['/aux'] = "";
 
         if ($record['level'] >= Logger::ERROR) {
-            $record['head'] = $record['body'] = "\033[1;31m";
-            $record['/head'] = $record['/body'] = "\033[0m";
+            $record['head'] = "\033[1;31m";
+            $record['/head'] = "\033[0m";
             $record['aux'] = "<error>";
             $record['/aux'] = "</error>";
         } elseif ($record['level'] >= Logger::NOTICE) {
@@ -63,8 +63,8 @@ class ConsoleFormatter extends LineFormatter
             $record['head'] = '<info>';
             $record['/head'] = '</info>';
         } else {
-            $record['head'] = $record['body'] = "\033[1;30m";
-            $record['/head'] = $record['/body'] = "\033[0m";
+            $record['head'] = $record['body'] = $record['aux'] = "\033[1;30m";
+            $record['/head'] = $record['/body'] = $record['/aux'] = "\033[0m";
         }
 
         return parent::format($record);
