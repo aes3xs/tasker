@@ -22,6 +22,9 @@ parameters:
     sftp_factory.class: Aes3xs\Yodler\Commander\SftpFactory
     commander_factory.class: Aes3xs\Yodler\Commander\CommanderFactory
     lazy_commander_proxy.class: Aes3xs\Yodler\Commander\LazyCommanderProxy
+    deployer.class: Aes3xs\Yodler\Deployer\Deployer
+    executor.class: Aes3xs\Yodler\Deployer\Executor
+    deploy_context_factory.class: Aes3xs\Yodler\Deployer\DeployContextFactory
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -131,6 +134,31 @@ services:
             - '@logger'
 
     commander: '@lazy_commander_proxy'
+
+    executor:
+        class: '%executor.class%'
+        public: false
+        arguments:
+            - '@heap'
+            - '@report'
+            - '@logger'
+
+    deployer:
+        class: '%deployer.class%'
+        arguments:
+            - '@deploy_context_factory'
+            - '@executor'
+            - '@event_dispatcher'
+            - '@semaphore'
+            - '@report'
+
+    deploy_context_factory:
+        class: '%deploy_context_factory.class%'
+        public: false
+        arguments:
+            - '@deploy_factory'
+            - '@scenario_factory'
+            - '@connection_factory'
 
     deploy_factory:
         class: '%deploy_factory.class%'
