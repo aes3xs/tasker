@@ -21,11 +21,11 @@ interface CommanderInterface
     /**
      * Execute command.
      *
-     * Returns command output or false on error.
+     * Returns command output or throws exception on error.
      *
      * @param $command
      *
-     * @return string|bool
+     * @return string
      */
     public function exec($command);
 
@@ -34,8 +34,6 @@ interface CommanderInterface
      *
      * @param $local
      * @param $remote
-     *
-     * @return bool
      */
     public function send($local, $remote);
 
@@ -44,8 +42,6 @@ interface CommanderInterface
      *
      * @param $remote
      * @param $local
-     *
-     * @return bool
      */
     public function recv($remote, $local);
 }
