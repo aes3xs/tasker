@@ -10,5 +10,13 @@ services:
 
     command_builder:
         class: '%command_builder.class%'
+        arguments:
+            - '@deploys'
+            - '@scenarios'
+            - '@connections'
+            - '@heap_factory'
+            - '@deploy_context_factory'
+            - '@deploy_factory'
+            - '@deployer'
         tags:
-            - { name: kernel.event_subscriber}
+            - { name: kernel.event_subscriber }
