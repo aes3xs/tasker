@@ -26,7 +26,7 @@ interface ActionListInterface
     /**
      * Add variable to a list.
      *
-     * @param ActionInterface $scenario
+     * @param ActionInterface $action
      */
-    public function add(ActionInterface $scenario);
+    public function add(ActionInterface $action);
 }

@@ -32,8 +32,8 @@ class ActionList implements ActionListInterface
     /**
      * {@inheritdoc}
      */
-    public function add(ActionInterface $scenario)
+    public function add(ActionInterface $action)
     {
-        $this->actions[] = $scenario;
+        $this->actions[] = $action;
     }
 }
