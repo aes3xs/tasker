@@ -47,11 +47,8 @@ services:
         arguments:
             - '@deploys'
             - '@scenarios'
-            - '@connections'
             - '@heap_factory'
             - '@deploy_context_factory'
-            - '@deploy_factory'
-            - '@deployer'
         tags:
             - { name: kernel.event_subscriber }
 
@@ -161,7 +158,6 @@ services:
 
     deploy_factory:
         class: '%deploy_factory.class%'
-        public: false
         arguments:
             - '@scenarios'
             - '@connections'
@@ -207,7 +203,6 @@ services:
 
     connections:
         class: '%connection_list.class%'
-        public: false
         factory: 'connection_factory:createListFromConfiguration'
         arguments: ['%connections%']
 

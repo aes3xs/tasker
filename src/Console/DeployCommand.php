@@ -12,15 +12,17 @@
 namespace Aes3xs\Yodler\Console;
 
 use Aes3xs\Yodler\Deploy\DeployInterface;
-use Aes3xs\Yodler\Deployer\DeployerInterface;
+use Aes3xs\Yodler\Exception\RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Deploy command exucutes configured deploy.
  */
-class DeployCommand extends Command
+class DeployCommand extends Command implements ContainerAwareInterface
 {
     /**
      * @var DeployInterface
@@ -28,22 +30,40 @@ class DeployCommand extends Command
     protected $deploy;
 
     /**
-     * @var DeployerInterface
+     * @var ContainerInterface
      */
-    protected $deployer;
+    protected $container;
 
     /**
      * Constructor.
      *
      * @param DeployInterface $deploy
-     * @param DeployerInterface $deployer
      */
-    public function __construct(DeployInterface $deploy, DeployerInterface $deployer)
+    public function __construct(DeployInterface $deploy)
     {
         $this->deploy = $deploy;
-        $this->deployer = $deployer;
 
         parent::__construct();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setContainer(ContainerInterface $container = null)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    protected function getContainer()
+    {
+        if (!$this->container) {
+            throw new RuntimeException('Container is not properly set up');
+        }
+
+        return $this->container;
     }
 
     /**
@@ -62,6 +82,6 @@ class DeployCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->deployer->deploy($this->deploy);
+        $this->getContainer()->get('deployer')->deploy($this->deploy);
     }
 }

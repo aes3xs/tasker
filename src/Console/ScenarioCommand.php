@@ -11,19 +11,19 @@
 
 namespace Aes3xs\Yodler\Console;
 
-use Aes3xs\Yodler\Connection\ConnectionListInterface;
-use Aes3xs\Yodler\Deploy\DeployFactoryInterface;
-use Aes3xs\Yodler\Deployer\DeployerInterface;
+use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Scenario command exucutes configured scenario on selected connection.
  */
-class ScenarioCommand extends Command
+class ScenarioCommand extends Command implements ContainerAwareInterface
 {
     /**
      * @var ScenarioInterface
@@ -31,40 +31,40 @@ class ScenarioCommand extends Command
     protected $scenario;
 
     /**
-     * @var ConnectionListInterface
+     * @var ContainerInterface
      */
-    protected $connections;
-
-    /**
-     * @var DeployerInterface
-     */
-    protected $deployer;
-
-    /**
-     * @var DeployFactoryInterface
-     */
-    protected $deployFactory;
+    protected $container;
 
     /**
      * Constructor.
      *
      * @param ScenarioInterface $scenario
-     * @param ConnectionListInterface $connections
-     * @param DeployerInterface $deployer
-     * @param DeployFactoryInterface $deployFactory
      */
-    public function __construct(
-        ScenarioInterface $scenario,
-        ConnectionListInterface $connections,
-        DeployerInterface $deployer,
-        DeployFactoryInterface $deployFactory
-    ) {
+    public function __construct(ScenarioInterface $scenario)
+    {
         $this->scenario = $scenario;
-        $this->connections = $connections;
-        $this->deployer = $deployer;
-        $this->deployFactory = $deployFactory;
 
         parent::__construct();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setContainer(ContainerInterface $container = null)
+    {
+        $this->container = $container;
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    protected function getContainer()
+    {
+        if (!$this->container) {
+            throw new RuntimeException('Container is not properly set up');
+        }
+
+        return $this->container;
     }
 
     /**
@@ -84,10 +84,8 @@ class ScenarioCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $connection = $this->connections->get($input->getArgument('conn'));
-
-        $deploy = $this->deployFactory->createFromScenarioAndConnection($this->scenario, $connection);
-
-        $this->deployer->deploy($deploy);
+        $connection = $this->getContainer()->get('connections')->get($input->getArgument('conn'));
+        $deploy = $this->getContainer()->get('deploy_factory')->createFromScenarioAndConnection($this->scenario, $connection);
+        $this->getContainer()->get('deployer')->deploy($deploy);
     }
 }

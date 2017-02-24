@@ -17,10 +17,12 @@ use Aes3xs\Yodler\Deploy\DeployInterface;
 use Aes3xs\Yodler\Deploy\DeployListInterface;
 use Aes3xs\Yodler\Deployer\DeployContextFactoryInterface;
 use Aes3xs\Yodler\Deployer\DeployerInterface;
+use Aes3xs\Yodler\Event\ConsoleRunEvent;
 use Aes3xs\Yodler\Heap\HeapFactoryInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Aes3xs\Yodler\Scenario\ScenarioListInterface;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputArgument;
@@ -28,6 +30,7 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -46,11 +49,6 @@ class CommandBuilder implements EventSubscriberInterface
     protected $scenarios;
 
     /**
-     * @var ConnectionListInterface
-     */
-    protected $connections;
-
-    /**
      * @var HeapFactoryInterface
      */
     protected $heapFactory;
@@ -61,70 +59,31 @@ class CommandBuilder implements EventSubscriberInterface
     protected $deployContextFactory;
 
     /**
-     * @var DeployFactoryInterface
+     * Constructor.
+     *
+     * @param DeployListInterface $deploys
+     * @param ScenarioListInterface $scenarios
+     * @param HeapFactoryInterface $heapFactory
+     * @param DeployContextFactoryInterface $deployContextFactory
      */
-    protected $deployFactory;
-
-    /**
-     * @var DeployerInterface
-     */
-    protected $deployer;
-
-    /**
-     * @var InputInterface
-     */
-    protected $input;
-
-    /**
-     * @var OutputInterface
-     */
-    protected $output;
-
     public function __construct(
         DeployListInterface $deploys,
         ScenarioListInterface $scenarios,
-        ConnectionListInterface $connections,
         HeapFactoryInterface $heapFactory,
-        DeployContextFactoryInterface $deployContextFactory,
-        DeployFactoryInterface $deployFactory,
-        DeployerInterface $deployer
+        DeployContextFactoryInterface $deployContextFactory
     ) {
         $this->deploys = $deploys;
         $this->scenarios = $scenarios;
-        $this->connections = $connections;
         $this->heapFactory = $heapFactory;
         $this->deployContextFactory = $deployContextFactory;
-        $this->deployFactory = $deployFactory;
-        $this->deployer = $deployer;
     }
 
     /**
-     * @return array
+     * @param ConsoleRunEvent $event
      */
-    public function build()
+    public function onConsoleRun(ConsoleRunEvent $event)
     {
-        $commands = [];
-
-        foreach ($this->deploys->all() as $deploy) {
-            $commands[] = $this->buildDeployCommand($deploy);
-        }
-
-        foreach ($this->scenarios->all() as $scenario) {
-            $commands[] = $this->buildScenarioCommand($scenario);
-        }
-
-        return $commands;
-    }
-
-    /**
-     * @param ConsoleCommandEvent $event
-     */
-    public function onCommand(ConsoleCommandEvent $event)
-    {
-        $this->input = $event->getInput();
-        $this->output = $event->getOutput();
-
-        $event->getCommand()->getApplication()->addCommands($this->build());
+        $event->getApplication()->addCommands($this->build($event->getInput(), $event->getOutput()));
     }
 
     /**
@@ -133,8 +92,26 @@ class CommandBuilder implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            ConsoleEvents::COMMAND => ['onCommand', 255],
+            ConsoleRunEvent::NAME => ['onConsoleRun', 255],
         ];
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     *
+     * @return Command[]
+     */
+    public function build(InputInterface $input, OutputInterface $output)
+    {
+        $commands = [];
+        foreach ($this->deploys->all() as $deploy) {
+            $commands[] = $this->buildDeployCommand($deploy, $input, $output);
+        }
+        foreach ($this->scenarios->all() as $scenario) {
+            $commands[] = $this->buildScenarioCommand($scenario, $input, $output);
+        }
+        return $commands;
     }
 
     /**
@@ -168,11 +145,13 @@ class CommandBuilder implements EventSubscriberInterface
     /**
      * @param DeployInterface $deploy
      *
+     * @param InputInterface $input
+     * @param OutputInterface $output
      * @return DeployCommand
      */
-    protected function buildDeployCommand(DeployInterface $deploy)
+    protected function buildDeployCommand(DeployInterface $deploy, InputInterface $input, OutputInterface $output)
     {
-        $command = new DeployCommand($deploy, $this->deployer);
+        $command = new DeployCommand($deploy);
 
         foreach ($deploy->getBuilds()->all() as $build) {
             $deployContext = $this->deployContextFactory
@@ -181,7 +160,7 @@ class CommandBuilder implements EventSubscriberInterface
                     $build->getScenario(),
                     $build->getConnection()
                 );
-            $heap = $this->heapFactory->create($deployContext, $this->input, $this->output);
+            $heap = $this->heapFactory->create($deployContext, $input, $output);
             $this->collectScenarioInputDefinitions($build->getScenario(), $command->getDefinition(), $heap);
         }
 
@@ -191,17 +170,19 @@ class CommandBuilder implements EventSubscriberInterface
     /**
      * @param ScenarioInterface $scenario
      *
+     * @param InputInterface $input
+     * @param OutputInterface $output
      * @return ScenarioCommand
      */
-    protected function buildScenarioCommand(ScenarioInterface $scenario)
+    protected function buildScenarioCommand(ScenarioInterface $scenario, InputInterface $input, OutputInterface $output)
     {
-        $command = new ScenarioCommand($scenario, $this->connections, $this->deployer, $this->deployFactory);
+        $command = new ScenarioCommand($scenario);
 
         $deployContext = $this->deployContextFactory->create(
             null,
             $scenario
         );
-        $heap = $this->heapFactory->create($deployContext, $this->input, $this->output);
+        $heap = $this->heapFactory->create($deployContext, $input, $output);
         $this->collectScenarioInputDefinitions($scenario, $command->getDefinition(), $heap);
 
         return $command;

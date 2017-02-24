@@ -38,4 +38,5 @@ $kernel->boot();
 
 $application = new Application();
 $application->setDispatcher($kernel->getContainer()->get('event_dispatcher'));
+$application->setContainer($kernel->getContainer());
 $application->run($input);
