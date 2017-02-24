@@ -27,15 +27,7 @@ class VariableFactory implements VariableFactoryInterface
      */
     public function createList(array $values = [])
     {
-        $variables = [];
-
-        foreach ($values as $name => $value) {
-            $variables[] = new Variable($name, $value);
-        }
-
-        $list = new VariableList($variables);
-
-        return $list;
+        return new VariableList($values);
     }
 
     /**
@@ -72,12 +64,12 @@ class VariableFactory implements VariableFactoryInterface
 
                 $value = !$arguments ? CallableHelper::call($callback, []) : $callback;
 
-                $variables->add(new Variable($method->getName(), $value));
+                $variables->add($method->getName(), $value);
 
                 foreach (self::SHORT_NAME_PREFIXES as $prefix) {
                     if (substr($method->getName(), 0, strlen($prefix)) === $prefix) {
                         $shortName = lcfirst(substr($method->getName(), strlen($prefix)));
-                        $variables->add(new Variable($shortName, $value));
+                        $variables->add($shortName, $value);
                     }
                 }
             }

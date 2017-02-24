@@ -14,7 +14,6 @@ namespace Aes3xs\Yodler\Tests\Heap;
 use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
 use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Heap\Heap;
-use Aes3xs\Yodler\Variable\Variable;
 use Aes3xs\Yodler\Variable\VariableList;
 use Symfony\Component\DependencyInjection\ExpressionLanguage;
 
@@ -31,8 +30,8 @@ class HeapTest extends \PHPUnit_Framework_TestCase
     public function testAddVariables()
     {
         $heap = $this->createHeap();
-        $list1 = new VariableList([new Variable('test', 'value')]);
-        $list2 = new VariableList([new Variable('test', 'overridenValue')]);
+        $list1 = new VariableList(['test' => 'value']);
+        $list2 = new VariableList(['test' => 'overridenValue']);
 
         $heap->addVariables($list1);
 
@@ -49,7 +48,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($heap->has('test'));
 
-        $list = new VariableList([new Variable('test', 'value')]);
+        $list = new VariableList(['test' => 'value']);
         $heap->addVariables($list);
 
         $this->assertTrue($heap->has('test'));
@@ -58,7 +57,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
     public function testGet()
     {
         $heap = $this->createHeap();
-        $list = new VariableList([new Variable('test', 'value')]);
+        $list = new VariableList(['test' => 'value']);
         $heap->addVariables($list);
 
         $this->assertEquals('value', $heap->get('test'));
@@ -79,7 +78,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $callback = function () {
             return 'value';
         };
-        $list = new VariableList([new Variable('test', $callback)]);
+        $list = new VariableList(['test' => $callback]);
         $heap->addVariables($list);
 
         $this->assertTrue(is_callable($heap->get('test')));
@@ -96,8 +95,8 @@ class HeapTest extends \PHPUnit_Framework_TestCase
             return 'value ' . $test;
         };
         $list = new VariableList([
-            new Variable('test', $callback),
-            new Variable('testDependent', $dependentCallback),
+            'test'          => $callback,
+            'testDependent' => $dependentCallback,
         ]);
         $heap->addVariables($list);
 
@@ -117,8 +116,8 @@ class HeapTest extends \PHPUnit_Framework_TestCase
             return 'value';
         };
         $list = new VariableList([
-            new Variable('test1', $callback1),
-            new Variable('test2', $callback2),
+            'test1' => $callback1,
+            'test2' => $callback2,
         ]);
         $heap->addVariables($list);
 
@@ -128,7 +127,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
     public function testResolveString()
     {
         $heap = $this->createHeap();
-        $list = new VariableList([new Variable('test', 'value')]);
+        $list = new VariableList(['test' => 'value']);
         $heap->addVariables($list);
 
         $this->assertEquals('Value of test: value', $heap->resolveString('Value of test: {{ test }}'));
@@ -137,7 +136,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
     public function testResolveExpression()
     {
         $heap = $this->createHeap();
-        $list = new VariableList([new Variable('test', 5)]);
+        $list = new VariableList(['test' => 5]);
         $heap->addVariables($list);
 
         $this->assertTrue($heap->resolveExpression('test > 4 && test < 6'));
@@ -156,9 +155,9 @@ class HeapTest extends \PHPUnit_Framework_TestCase
             return 'value';
         };
         $list = new VariableList([
-            new Variable('test1', $callback1),
-            new Variable('test2', $callback2),
-            new Variable('test3', $callback3),
+            'test1' => $callback1,
+            'test2' => $callback2,
+            'test3' => $callback3,
         ]);
         $heap->addVariables($list);
 
@@ -177,8 +176,8 @@ class HeapTest extends \PHPUnit_Framework_TestCase
             return 'value';
         };
         $list = new VariableList([
-            new Variable('test1', $callback1),
-            new Variable('test2', $callback2),
+            'test1' => $callback1,
+            'test2' => $callback2,
         ]);
         $heap->addVariables($list);
 

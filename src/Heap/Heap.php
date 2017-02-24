@@ -15,7 +15,6 @@ use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
 use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Common\CallableHelper;
-use Aes3xs\Yodler\Variable\VariableInterface;
 use Aes3xs\Yodler\Variable\VariableListInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
@@ -82,7 +81,7 @@ class Heap implements HeapInterface
     {
         foreach ($this->collection as $variables) {
             if ($variables->has($name)) {
-                return $variables->get($name)->getValue();
+                return $variables->get($name);
             }
         }
 
@@ -106,9 +105,9 @@ class Heap implements HeapInterface
     {
         $data = [];
 
-        foreach ($this->all() as $variable) {
-            if (!is_callable($variable->getValue())) {
-                $data[$variable->getName()] = $variable->getValue();
+        foreach ($this->all() as $name => $value) {
+            if (!is_callable($value)) {
+                $data[$name] = $value;
             }
         }
 
@@ -126,9 +125,9 @@ class Heap implements HeapInterface
     {
         $data = [];
 
-        foreach ($this->all() as $variable) {
-            if (!is_callable($variable->getValue())) {
-                $data[$variable->getName()] = $variable->getValue();
+        foreach ($this->all() as $name => $value) {
+            if (!is_callable($value)) {
+                $data[$name] = $value;
             }
         }
 
@@ -148,7 +147,7 @@ class Heap implements HeapInterface
     /**
      * Return all variables flatten to single list by name and priority.
      *
-     * @return VariableInterface[]
+     * @return array
      */
     protected function all()
     {

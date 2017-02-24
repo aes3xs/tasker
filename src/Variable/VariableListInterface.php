@@ -25,25 +25,24 @@ interface VariableListInterface
     /**
      * Return all variables in key-indexed array.
      *
-     * @return VariableInterface[]
+     * @return array
      */
     public function all();
 
     /**
      * Add variable to a list.
      *
-     * @param VariableInterface $variable
-     *
-     * @throws VariableAlreadyExistsException
+     * @param $name
+     * @param $value
      */
-    public function add(VariableInterface $variable);
+    public function add($name, $value);
 
     /**
      * Get variable from a list by name.
      *
      * @param string $name
      *
-     * @return VariableInterface
+     * @return mixed
      *
      * @throws VariableNotFoundException
      */

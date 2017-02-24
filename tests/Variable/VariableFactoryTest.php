@@ -14,7 +14,6 @@ namespace Aes3xs\Yodler\Tests\Variable;
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
 use Aes3xs\Yodler\Exception\FileNotFoundException;
 use Aes3xs\Yodler\Variable\VariableFactory;
-use Aes3xs\Yodler\Variable\VariableInterface;
 
 /**
  * Contains tests with internal file require, run in isolated process.
@@ -29,8 +28,7 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
 
         $list = $variableFactory->createList(['test' => 'value']);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('test'));
-        $this->assertEquals('value', $list->get('test')->getValue());
+        $this->assertEquals('value', $list->get('test'));
     }
 
     public function testCreateListFromConfigurationByFileAndClass()
@@ -41,8 +39,7 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
             __DIR__ . '/../Fixtures/sources/VariableSourceFixture.php' => '\VariableSourceFixture'
         ]);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('test'));
-        $this->assertEquals('value', $list->get('test')->getValue());
+        $this->assertEquals('value', $list->get('test'));
     }
 
     public function testCreateListFromConfigurationByClass()
@@ -55,8 +52,7 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
             '\VariableSourceFixture'
         ]);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('test'));
-        $this->assertEquals('value', $list->get('test')->getValue());
+        $this->assertEquals('value', $list->get('test'));
     }
 
     public function testFileNotFoundException()
@@ -69,8 +65,7 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
             __DIR__ . '/NotExistingFile.php' => '\VariableSourceFixture'
         ]);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('test'));
-        $this->assertEquals('value', $list->get('test')->getValue());
+        $this->assertEquals('value', $list->get('test'));
     }
 
     public function testCreateListFromConfigurationWithInvalidClass()
@@ -85,8 +80,7 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
             '\NotExistingClass'
         ]);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('test'));
-        $this->assertEquals('value', $list->get('test')->getValue());
+        $this->assertEquals('value', $list->get('test'));
     }
 
     public function testShortNameGeneration()
@@ -99,19 +93,19 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($list->has('doTest2'));
         $this->assertTrue($list->has('test2'));
-        $this->assertEquals('value2', $list->get('test2')->getValue());
+        $this->assertEquals('value2', $list->get('test2'));
 
         $this->assertTrue($list->has('runTest3'));
         $this->assertTrue($list->has('test3'));
-        $this->assertEquals('value3', $list->get('test3')->getValue());
+        $this->assertEquals('value3', $list->get('test3'));
 
         $this->assertTrue($list->has('getTest4'));
         $this->assertTrue($list->has('test4'));
-        $this->assertEquals('value4', $list->get('test4')->getValue());
+        $this->assertEquals('value4', $list->get('test4'));
 
         $this->assertTrue($list->has('setTest5'));
         $this->assertTrue($list->has('test5'));
-        $this->assertEquals('value5', $list->get('test5')->getValue());
+        $this->assertEquals('value5', $list->get('test5'));
     }
 
     public function testEvaluated()
@@ -122,12 +116,10 @@ class VariableFactoryTest extends \PHPUnit_Framework_TestCase
             __DIR__ . '/../Fixtures/sources/VariableSourceFixture.php' => '\VariableSourceFixture'
         ]);
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('evaluated'));
-        $this->assertEquals('valueEvaluated', $list->get('evaluated')->getValue());
+        $this->assertEquals('valueEvaluated', $list->get('evaluated'));
 
-        $this->assertInstanceOf(VariableInterface::class, $list->get('notEvaluated'));
-        $this->assertTrue(is_callable($list->get('notEvaluated')->getValue()));
-        $callback = $list->get('notEvaluated')->getValue();
+        $this->assertTrue(is_callable($list->get('notEvaluated')));
+        $callback = $list->get('notEvaluated');
         $this->assertEquals('valueNotEvaluated', call_user_func($callback, 'argument'));
     }
 }

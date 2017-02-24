@@ -20,19 +20,18 @@ use Aes3xs\Yodler\Exception\VariableNotFoundException;
 class VariableList implements VariableListInterface
 {
     /**
-     * @var VariableInterface[]
+     * @var array
      */
     protected $variables = [];
 
     /**
      * Constructor.
+     *
      * @param array $variables
      */
     public function __construct(array $variables = [])
     {
-        foreach ($variables as $variable) {
-            $this->add($variable);
-        }
+        $this->variables = $variables;
     }
 
     /**
@@ -46,13 +45,13 @@ class VariableList implements VariableListInterface
     /**
      * {@inheritdoc}
      */
-    public function add(VariableInterface $variable)
+    public function add($name, $value)
     {
-        if ($this->has($variable->getName())) {
-            throw new VariableAlreadyExistsException($variable->getName());
+        if ($this->has($name)) {
+            throw new VariableAlreadyExistsException($name);
         }
 
-        $this->variables[$variable->getName()] = $variable;
+        $this->variables[$name] = $value;
     }
 
     /**
