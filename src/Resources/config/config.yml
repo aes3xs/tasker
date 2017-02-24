@@ -6,6 +6,10 @@ parameters:
     console_formatter.class: Aes3xs\Yodler\Logger\ConsoleFormatter
     heap_factory.class: Aes3xs\Yodler\Heap\HeapFactory
     lazy_heap_proxy.class: Aes3xs\Yodler\Heap\LazyHeapProxy
+    semaphore_factory.class: Aes3xs\Yodler\Deployer\SemaphoreFactory
+    semaphore.class: Aes3xs\Yodler\Deployer\SemaphoreInterface
+    report_factory.class: Aes3xs\Yodler\Deployer\ReportFactory
+    report.class: Aes3xs\Yodler\Deployer\ReportInterface
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -13,6 +17,9 @@ parameters:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERBOSE: debug
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE: debug
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_DEBUG: debug
+
+    semaphore_lock_name: semaphore_lock_name
+    report_lock_name: report_lock_name
 
 services:
 
@@ -73,3 +80,21 @@ services:
             - { name: kernel.event_subscriber }
 
     heap: '@lazy_heap_proxy'
+
+    semaphore_factory:
+        class: '%semaphore_factory.class%'
+        public: false
+
+    report_factory:
+        class: '%report_factory.class%'
+        public: false
+
+    semaphore:
+        class: '%semaphore.class%'
+        factory: 'semaphore_factory:create'
+        arguments: ['%semaphore_lock_name%']
+
+    report:
+        class: '%report.class%'
+        factory: 'report_factory:create'
+        arguments: ['%report_lock_name%']
