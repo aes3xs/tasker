@@ -4,6 +4,8 @@ parameters:
     logger.class: Monolog\Logger
     console_handler.class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
     console_formatter.class: Aes3xs\Yodler\Logger\ConsoleFormatter
+    heap_factory.class: Aes3xs\Yodler\Heap\HeapFactory
+    lazy_heap_proxy.class: Aes3xs\Yodler\Heap\LazyHeapProxy
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -54,3 +56,20 @@ services:
         arguments: [main]
         calls:
             - [pushHandler, ['@logger.console_handler']]
+
+    heap_factory:
+        class: '%heap_factory.class%'
+        public: false
+        arguments:
+            - '@service_container'
+            - '@variables'
+            - '@variable_factory'
+
+    lazy_heap_proxy:
+        class: '%lazy_heap_proxy.class%'
+        arguments:
+            - '@heap_factory'
+        tags:
+            - { name: kernel.event_subscriber }
+
+    heap: '@lazy_heap_proxy'
