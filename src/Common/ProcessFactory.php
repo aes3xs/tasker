@@ -13,8 +13,18 @@ namespace Aes3xs\Yodler\Common;
 
 use Symfony\Component\Process\Process;
 
+/**
+ * Symfony process factory.
+ */
 class ProcessFactory
 {
+    /**
+     * Create symfony process instance.
+     *
+     * @param $command
+     *
+     * @return Process
+     */
     public function create($command)
     {
         return new Process($command);
