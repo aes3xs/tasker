@@ -23,12 +23,13 @@ class LocalCommanderTest extends \PHPUnit_Framework_TestCase
         $filesystemMock = $this->createMock(Filesystem::class);
         $processMock = $this->createMock(Process::class);
         $processMock->method('mustRun');
+        $processMock->method('getOutput')->willReturn('output');
         $processFactoryMock = $this->createMock(ProcessFactory::class);
         $processFactoryMock->method('create')->with('command')->willReturn($processMock);
 
         $commander = new LocalCommander($filesystemMock, $processFactoryMock);
 
-        $commander->exec('command');
+        $this->assertEquals('output', $commander->exec('command'));
     }
 
     public function testSend()
