@@ -116,7 +116,7 @@ class Semaphore implements SemaphoreInterface
         while (true) {
             $this->lockHandler->lock(true);
             $data = $this->getData(false);
-            $data['checkpoints'][$this->getId()] = [];
+            $data['checkpoints'][$id] = [];
             $this->sharedMemoryHandler->dump($data);
             $this->lockHandler->release();
             if ($data['state'] === self::STATE_RUNNING) {
@@ -131,9 +131,11 @@ class Semaphore implements SemaphoreInterface
      */
     public function reportCheckpoint($name)
     {
+        $id = $this->getId();
+
         $this->lockHandler->lock(true);
         $data = $this->getData();
-        $data['checkpoints'][$this->getId()][] = $name;
+        $data['checkpoints'][$id][] = $name;
         $this->sharedMemoryHandler->dump($data);
         $this->lockHandler->release();
 
@@ -145,7 +147,7 @@ class Semaphore implements SemaphoreInterface
             $wait = false;
             $error = false;
             foreach ($data['concurrent_ids'] as $id) {
-                $missCheckpoints = !empty(array_diff($data['checkpoints'][$this->getId()], $data['checkpoints'][$id]));
+                $missCheckpoints = !empty(array_diff($data['checkpoints'][$id], $data['checkpoints'][$id]));
                 $hasError = in_array(self::CHECKPOINT_ERROR, $data['checkpoints'][$id]);
                 $wait = $wait || $missCheckpoints;
                 $error = $error || $hasError;
@@ -169,9 +171,11 @@ class Semaphore implements SemaphoreInterface
      */
     public function reportError()
     {
+        $id = $this->getId();
+
         $this->lockHandler->lock(true);
         $data = $this->getData();
-        $data['checkpoints'][$this->getId()][] = self::CHECKPOINT_ERROR;
+        $data['checkpoints'][$id][] = self::CHECKPOINT_ERROR;
         $this->sharedMemoryHandler->dump($data);
         $this->lockHandler->release();
     }
