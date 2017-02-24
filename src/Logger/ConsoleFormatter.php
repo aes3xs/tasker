@@ -1,11 +1,23 @@
 <?php
 
+/*
+ * This file is part of the Yodler package.
+ *
+ * (c) aes3xs <aes3xs@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Aes3xs\Yodler\Logger;
 
 use Aes3xs\Yodler\Deployer\DeployContextInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
 use Symfony\Bridge\Monolog\Formatter\ConsoleFormatter as BaseConsoleFormatter;
 
+/**
+ * Custom console formatter.
+ */
 class ConsoleFormatter extends BaseConsoleFormatter
 {
     const SIMPLE_DATE = 'H:i:s';
@@ -16,6 +28,9 @@ class ConsoleFormatter extends BaseConsoleFormatter
      */
     protected $heap;
 
+    /**
+     * @param HeapInterface $heap
+     */
     public function setHeap(HeapInterface $heap)
     {
         $this->heap = $heap;
@@ -31,6 +46,11 @@ class ConsoleFormatter extends BaseConsoleFormatter
         return parent::format($record);
     }
 
+    /**
+     * @param $data
+     *
+     * @return mixed|string
+     */
     protected function convertToString($data)
     {
         if (is_scalar($data)) {
@@ -40,7 +60,11 @@ class ConsoleFormatter extends BaseConsoleFormatter
         return var_export($this->normalize($data), true);
     }
 
-    public function getChannelName(DeployContextInterface $deployContext)
+    /**
+     * @param DeployContextInterface $deployContext
+     * @return string
+     */
+    protected function getChannelName(DeployContextInterface $deployContext)
     {
         return sprintf('%s@%s',
             $deployContext->getScenario()->getName(),
@@ -56,6 +80,11 @@ class ConsoleFormatter extends BaseConsoleFormatter
         return $this->formatException($e);
     }
 
+    /**
+     * @param \Exception $e
+     *
+     * @return string
+     */
     protected function formatException(\Exception $e)
     {
         $result = [
