@@ -19,6 +19,9 @@ parameters:
     scenario_list.class: Aes3xs\Yodler\Scenario\ScenarioListInterface
     connection_list.class: Aes3xs\Yodler\Connection\ConnectionListInterface
     variable_list.class: Aes3xs\Yodler\Variable\VariableListInterface
+    sftp_factory.class: Aes3xs\Yodler\Commander\SftpFactory
+    commander_factory.class: Aes3xs\Yodler\Commander\CommanderFactory
+    lazy_commander_proxy.class: Aes3xs\Yodler\Commander\LazyCommanderProxy
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -107,6 +110,26 @@ services:
         class: '%report.class%'
         factory: 'report_factory:create'
         arguments: ['%report_lock_name%']
+
+    sftp_factory:
+        class: '%sftp_factory.class%'
+        public: false
+
+    commander_factory:
+        class: '%commander_factory.class%'
+        public: false
+        arguments:
+            - '@sftp_factory'
+
+    lazy_commander_proxy:
+        class: '%lazy_commander_proxy.class%'
+        public: false
+        arguments:
+            - '@heap'
+            - '@commander_factory'
+            - '@logger'
+
+    commander: '@lazy_commander_proxy'
 
     deploy_factory:
         class: '%deploy_factory.class%'
