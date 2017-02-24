@@ -42,7 +42,7 @@ class HeapFactory implements HeapFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create(DeployContextInterface $deployContext, InputInterface $input = null, OutputInterface $output = null)
+    public function create(DeployContextInterface $deployContext, InputInterface $input, OutputInterface $output)
     {
         $twig = new \Twig_Environment(new \Twig_Loader_Array());
         $expressionLanguage = new ExpressionLanguage();
