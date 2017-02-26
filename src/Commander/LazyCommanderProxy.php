@@ -66,6 +66,7 @@ class LazyCommanderProxy implements CommanderInterface
         $command = $this->heap->resolveString($command);
         $this->logger->debug('> ' . $command);
         $output = $this->getCommander()->exec($command);
+        $output = trim($output);
         $this->logger->debug('< ' . $command . ': ' . $output);
         return $output;
     }
