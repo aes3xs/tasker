@@ -71,6 +71,6 @@ class VariableList implements VariableListInterface
      */
     public function has($name)
     {
-        return isset($this->variables[$name]);
+        return array_key_exists($name, $this->variables);
     }
 }
