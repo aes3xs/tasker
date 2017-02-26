@@ -11,8 +11,10 @@
 
 namespace Aes3xs\Yodler\Variable;
 
+use Aes3xs\Yodler\Exception\ClassMismatchException;
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
 use Aes3xs\Yodler\Exception\FileNotFoundException;
+use Aes3xs\Yodler\Recipe\RecipeInterface;
 
 /**
  * Variable factory implementation.
@@ -32,21 +34,23 @@ class VariableFactory implements VariableFactoryInterface
      */
     public function createListFromConfiguration($variableConfiguration)
     {
-        $variables = $this->createList();
+        $variables = [];
 
         foreach ($variableConfiguration as $file => $class) {
 
             if (!is_numeric($file)) {
-
                 if (!file_exists($file)) {
                     throw new FileNotFoundException($file);
                 }
-
                 require_once $file;
             }
 
             if (!class_exists($class)) {
                 throw new ClassNotFoundException($class);
+            }
+
+            if (!is_a($class, RecipeInterface::class, true)) {
+                throw new ClassMismatchException(RecipeInterface::class, $class);
             }
 
             $source = new $class();
@@ -55,15 +59,15 @@ class VariableFactory implements VariableFactoryInterface
             $reflectionMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
             foreach ($reflectionMethods as $method) {
                 $callback = $method->isStatic() ? $method->getClosure() : $method->getClosure($source)->bindTo($source, $source);
-                $variables->add($method->getName(), $callback);
+                $variables[$method->getName()] = $callback;
             }
 
             $reflectionProperties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
             foreach ($reflectionProperties as $property) {
-                $variables->add($property->getName(), $property->getValue($source));
+                $variables[$property->getName()] = $property->getValue($source);
             }
         }
 
-        return $variables;
+        return $this->createList($variables);
     }
 }
