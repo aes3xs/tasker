@@ -17,6 +17,8 @@ use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Common\CallableHelper;
 use Aes3xs\Yodler\Variable\VariableListInterface;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
+use Symfony\Component\ExpressionLanguage\Node\NameNode;
+use Symfony\Component\ExpressionLanguage\Node\Node;
 
 /**
  * Heap implementation.
@@ -103,19 +105,48 @@ class Heap implements HeapInterface
      */
     public function resolveString($string)
     {
+        $dependencies = $this->getTwigVariables($string);
         $data = [];
+        foreach ($dependencies as $name) {
+            $data[$name] = $this->resolve($name);
+        }
+        $template = $this->twig->createTemplate($string);
+        return $template->render($data);
+    }
 
-        foreach ($this->all() as $name => $value) {
-            if (!is_callable($value)) {
-                $data[$name] = $value;
+    /**
+     * Return twig variables by source.
+     *
+     * http://stackoverflow.com/a/40105067
+     *
+     * @param $source
+     *
+     * @return array
+     */
+    protected function getTwigVariables($source)
+    {
+        $tokens = $this->twig->tokenize($source);
+        $parsed = $this->twig->getParser()->parse($tokens);
+        $collected = [];
+        $this->collectTwigNodes($parsed, $collected);
+        return array_keys($collected);
+    }
+
+    /**
+     * @param \Twig_Node[] $nodes
+     * @param array $collected
+     */
+    protected function collectTwigNodes($nodes, array &$collected)
+    {
+        foreach ($nodes as $node) {
+            $childNodes = $node->getIterator()->getArrayCopy();
+            if (!empty($childNodes)) {
+                $this->collectTwigNodes($childNodes, $collected); // recursion
+            } elseif ($node instanceof \Twig_Node_Expression_Name) {
+                $name = $node->getAttribute('name');
+                $collected[$name] = $node; // ensure unique values
             }
         }
-
-        $template = $this->twig->createTemplate($string);
-
-        $result = $template->render($data);
-
-        return $result;
     }
 
     /**
@@ -123,15 +154,41 @@ class Heap implements HeapInterface
      */
     public function resolveExpression($expression)
     {
+        $dependencies = $this->getExpressionVariables($expression);
         $data = [];
-
-        foreach ($this->all() as $name => $value) {
-            if (!is_callable($value)) {
-                $data[$name] = $value;
-            }
+        foreach ($dependencies as $name) {
+            $data[$name] = $this->resolve($name);
         }
-
         return $this->expressionLanguage->evaluate($expression, $data);
+    }
+
+    /**
+     * @param $expression
+     *
+     * @return array
+     */
+    protected function getExpressionVariables($expression)
+    {
+        $nodes = $this->expressionLanguage->parse($expression, array_keys($this->all()))->getNodes()->nodes;
+        $collected = [];
+        $this->collectExpressionNameNodes($nodes, $collected);
+        return array_keys($collected);
+    }
+
+    /**
+     * @param array $nodes
+     * @param array $collected
+     */
+    protected function collectExpressionNameNodes(array $nodes, array &$collected)
+    {
+        /** @var Node $node */
+        foreach ($nodes as $node) {
+            if ($node instanceof NameNode) {
+                $name = $node->attributes['name'];
+                $collected[$name] = $name; // ensure unique values
+            }
+            $this->collectExpressionNameNodes($node->nodes, $collected); // recursion
+        }
     }
 
     /**
