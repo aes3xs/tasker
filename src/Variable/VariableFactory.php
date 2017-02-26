@@ -13,15 +13,12 @@ namespace Aes3xs\Yodler\Variable;
 
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
 use Aes3xs\Yodler\Exception\FileNotFoundException;
-use Aes3xs\Yodler\Common\CallableHelper;
 
 /**
  * Variable factory implementation.
  */
 class VariableFactory implements VariableFactoryInterface
 {
-    const SHORT_NAME_PREFIXES = ['get', 'set', 'do', 'run'];
-
     /**
      * {@inheritdoc}
      */
@@ -52,26 +49,18 @@ class VariableFactory implements VariableFactoryInterface
                 throw new ClassNotFoundException($class);
             }
 
-            $initializable = new $class();
+            $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
+
             $reflectionMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
-
             foreach ($reflectionMethods as $method) {
+                $callback = $method->isStatic() ? $method->getClosure() : $method->getClosure($source)->bindTo($source, $source);
+                $variables->add($method->getName(), $callback);
+            }
 
-                $callback = $method->isStatic() ? $method->getClosure() : $method->getClosure($initializable);
-
-                $arguments = CallableHelper::extractArguments($callback);
-
-                $value = !$arguments ? CallableHelper::call($callback, []) : $callback;
-
-                $variables->add($method->getName(), $value);
-
-                foreach (self::SHORT_NAME_PREFIXES as $prefix) {
-                    if (substr($method->getName(), 0, strlen($prefix)) === $prefix) {
-                        $shortName = lcfirst(substr($method->getName(), strlen($prefix)));
-                        $variables->add($shortName, $value);
-                    }
-                }
+            $reflectionProperties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
+            foreach ($reflectionProperties as $property) {
+                $variables->add($property->getName(), $property->getValue($source));
             }
         }
 
