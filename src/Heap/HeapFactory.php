@@ -49,9 +49,9 @@ class HeapFactory implements HeapFactoryInterface
 
         $heap = new Heap($twig, $expressionLanguage);
 
+        $heap->addVariables($this->variables);
         $heap->addVariables($this->getContainerParameterVariables());
         $heap->addVariables($this->getContainerServiceVariables());
-        $heap->addVariables($this->variables);
 
         $values = [
             'deployContext' => $deployContext,
