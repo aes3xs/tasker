@@ -16,4 +16,5 @@ namespace Aes3xs\Yodler\Recipe;
  */
 interface RecipeInterface
 {
+    public function __construct();
 }
