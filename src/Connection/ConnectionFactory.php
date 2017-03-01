@@ -40,6 +40,14 @@ class ConnectionFactory implements ConnectionFactoryInterface
     /**
      * {@inheritdoc}
      */
+    public function createList()
+    {
+        return new ConnectionList();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function createListFromConfiguration($connectionConfiguration)
     {
         $connections = new ConnectionList();
@@ -79,14 +87,6 @@ class ConnectionFactory implements ConnectionFactoryInterface
         }
 
         return $connections;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createStubConnection()
-    {
-        return new Connection(null, new Server(null, 0), new User(null), $this->variableFactory->createList());
     }
 
     /**

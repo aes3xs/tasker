@@ -19,6 +19,13 @@ use Aes3xs\Yodler\Exception\FileReadException;
 interface ConnectionFactoryInterface
 {
     /**
+     * Return empty list.
+     *
+     * @return ConnectionListInterface
+     */
+    public function createList();
+
+    /**
      * Create list from configuration parsed from YAML.
      *
      * @param $connectionConfiguration
@@ -28,11 +35,4 @@ interface ConnectionFactoryInterface
      * @throws FileReadException
      */
     public function createListFromConfiguration($connectionConfiguration);
-
-    /**
-     * Create stub connection.
-     *
-     * @return ConnectionInterface
-     */
-    public function createStubConnection();
 }
