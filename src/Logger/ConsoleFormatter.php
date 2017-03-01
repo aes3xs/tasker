@@ -11,8 +11,9 @@
 
 namespace Aes3xs\Yodler\Logger;
 
-use Aes3xs\Yodler\Deployer\DeployContextInterface;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 
@@ -22,7 +23,7 @@ use Monolog\Logger;
 class ConsoleFormatter extends LineFormatter
 {
     const SIMPLE_DATE = 'H:i:s';
-    const SIMPLE_FORMAT = "%head%[%datetime%] %level_name% %channel%:%/head% %body%%message%%/body% %aux%%context% %extra%%/aux%\n";
+    const SIMPLE_FORMAT = "%head%[%datetime%] %level_name% %channel%:%/head% %body%%message%%/body% %aux%%context%%/aux% %aux%%extra%%/aux%\n";
 
     /**
      * @var HeapInterface
@@ -42,7 +43,7 @@ class ConsoleFormatter extends LineFormatter
      */
     public function format(array $record)
     {
-        $record['channel'] = $this->getChannelName($this->heap->get('deployContext'));
+        $record['channel'] = $this->getChannelName($this->heap->get('scenario'), $this->heap->get('connection'));
 
         $record['head'] = "";
         $record['/head'] = "";
@@ -93,15 +94,13 @@ class ConsoleFormatter extends LineFormatter
     }
 
     /**
-     * @param DeployContextInterface $deployContext
+     * @param ScenarioInterface $scenario
+     * @param ConnectionInterface $connection
      * @return string
      */
-    protected function getChannelName(DeployContextInterface $deployContext)
+    protected function getChannelName(ScenarioInterface $scenario, ConnectionInterface $connection)
     {
-        return sprintf('%s@%s',
-            $deployContext->getScenario()->getName(),
-            $deployContext->getConnection()->getName()
-        );
+        return sprintf('%s@%s', $scenario->getName(), $connection->getName());
     }
 
     /**
