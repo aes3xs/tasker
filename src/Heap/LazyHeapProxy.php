@@ -11,9 +11,10 @@
 
 namespace Aes3xs\Yodler\Heap;
 
-use Aes3xs\Yodler\Deployer\DeployContext;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
@@ -43,9 +44,14 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     protected $output;
 
     /**
-     * @var DeployContext
+     * @var ScenarioInterface
      */
-    protected $deployContext;
+    protected $scenario;
+
+    /**
+     * @var ConnectionInterface
+     */
+    protected $connection;
 
     /**
      * Constructor.
@@ -76,14 +82,6 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve($name)
-    {
-        return $this->getHeap()->resolve($name);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function resolveString($string)
     {
         return $this->getHeap()->resolveString($string);
@@ -95,14 +93,6 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     public function resolveExpression($expression)
     {
         return $this->getHeap()->resolveExpression($expression);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDependencies($name)
-    {
-        return $this->getHeap()->getDependencies($name);
     }
 
     /**
@@ -119,7 +109,8 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
      */
     public function onDeploy(DeployEvent $event)
     {
-        $this->deployContext = $event->getDeployContext();
+        $this->scenario = $event->getScenario();
+        $this->connection = $event->getConnection();
     }
 
     /**
@@ -139,13 +130,13 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     protected function getHeap()
     {
         if (!$this->heap) {
-            if (!$this->deployContext) {
+            if (!$this->scenario || !$this->connection) {
                 throw new RuntimeException('Deploy event was not invoked');
             }
             if (!$this->input || !$this->output) {
                 throw new RuntimeException('Command event was not invoked');
             }
-            $this->heap = $this->heapFactory->create($this->deployContext, $this->input, $this->output);
+            $this->heap = $this->heapFactory->create($this->scenario, $this->connection, $this->input, $this->output);
         }
 
         return $this->heap;

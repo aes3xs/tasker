@@ -14,7 +14,6 @@ namespace Aes3xs\Yodler\Heap;
 use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Aes3xs\Yodler\Variable\VariableFactoryInterface;
-use Aes3xs\Yodler\Variable\VariableListInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
