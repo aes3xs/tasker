@@ -36,6 +36,9 @@ parameters:
     semaphore_lock_name: semaphore_lock_name
     report_lock_name: report_lock_name
 
+    autoload:
+        - '%config_dir%'
+
 services:
 
     event_dispatcher:
