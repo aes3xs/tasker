@@ -30,6 +30,9 @@ parameters:
     deployer.class: Aes3xs\Yodler\Deployer\Deployer
     executor.class: Aes3xs\Yodler\Deployer\Executor
 
+    shell.class: Aes3xs\Yodler\Service\Shell
+    releaser.class: Aes3xs\Yodler\Service\Releaser
+
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL: info
@@ -175,3 +178,13 @@ services:
         class: '%connection_list.class%'
         factory: 'connection_factory:createListFromConfiguration'
         arguments: ['%connections%']
+
+    shell:
+        class: '%shell.class%'
+        arguments:
+            - "@commander"
+
+    releaser:
+        class: '%releaser.class%'
+        arguments:
+            - "@shell"

@@ -1,0 +1,205 @@
+<?php
+
+/*
+ * This file is part of the Yodler package.
+ *
+ * (c) aes3xs <aes3xs@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Aes3xs\Yodler\Service;
+
+/**
+ * Helper service to manage releases.
+ */
+class Releaser
+{
+    /**
+     * @var Shell
+     */
+    protected $shell;
+
+    /**
+     * Constructor.
+     *
+     * @param Shell $shell
+     */
+    public function __construct(Shell $shell)
+    {
+        $this->shell = $shell;
+    }
+
+    /**
+     * @param $path
+     */
+    public function prepare($path)
+    {
+        if (!$this->shell->isDir($path)) {
+            $this->shell->mkdir($path);
+        }
+        if ($this->shell->exists("$path/current") && !$this->shell->isLink("$path/current")) {
+            throw new \RuntimeException('Not a link: ' . "$path/current");
+        }
+        if (!$this->shell->isDir("$path/releases")) {
+            $this->shell->mkdir("$path/releases");
+        }
+        if (!$this->shell->isDir("$path/shared")) {
+            $this->shell->mkdir("$path/shared");
+        }
+    }
+
+    /**
+     * @param $path
+     * @param int $keep
+     */
+    public function cleanup($path, $keep = null)
+    {
+        $releases = $this->getReleaseList($path);
+
+        $list = $this->shell->ls("$path/releases");
+
+        $broken = array_diff($list, $releases);
+        foreach ($broken as $release) {
+            $this->shell->rm("$path/releases/$release");
+        }
+
+        if (null === $keep) {
+            return;
+        }
+
+        $outdated = array_slice($releases, $keep);
+        foreach ($outdated as $release) {
+            $this->shell->rm("$path/releases/$release");
+        }
+    }
+
+    /**
+     * @param $path
+     *
+     * @return array
+     */
+    public function getReleaseList($path)
+    {
+        $path = rtrim($path, '/');
+
+        if (!$this->shell->isDir("$path/releases")) {
+            return [];
+        }
+
+        $output = $this->shell->exec("find $path/releases -maxdepth 2 -mindepth 2 -path \"*/*/release.lock\"");
+
+        $list = [];
+        $rplc = ['/' => '\/', '.' => '\.'];
+        $pattern = strtr("$path/releases/", $rplc) . '(.+)' . strtr('/release.lock', $rplc);
+        if (preg_match_all("~$pattern~", $output, $matches)) {
+            $list = $matches[1];
+        }
+
+        $releases = [];
+        foreach ($list as $name) {
+            $date = $this->shell->read("$path/releases/$name/release.lock");
+            if ($date) {
+                $releases[$date] = $name;
+            }
+        }
+
+        krsort($releases);
+
+        return $releases;
+    }
+
+    /**
+     * @param $path
+     * @param $name
+     *
+     * @return string
+     */
+    public function createRelease($path, $name = null)
+    {
+        $name = $name ?: date('YmdHis');
+
+        if ($this->shell->exists("$path/releases/$name")) {
+            throw new \RuntimeException('Path already exists: ' . "$path/releases/$name");
+        }
+
+        $this->shell->mkdir("$path/releases/$name");
+
+        return $name;
+    }
+
+    /**
+     * @param $path
+     */
+    public function lock($path)
+    {
+        if ($this->shell->exists("$path/deploy.lock")) {
+            throw new \RuntimeException("Deploy locked. Unlock to proceed.");
+        } else {
+            $this->shell->touch("$path/deploy.lock");
+        }
+    }
+
+    /**
+     * @param $path
+     */
+    public function unlock($path)
+    {
+        $this->shell->rm("$path/deploy.lock");
+    }
+
+    /**
+     * @param $path
+     * @param $name
+     */
+    public function release($path, $name)
+    {
+        $this->shell->ln("$path/releases/$name", "current");
+        $this->shell->write("$path/releases/$name/release.lock", date('Y-m-d H:i:s'));
+    }
+
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function rollback($path)
+    {
+        $releases = $this->getReleaseList($path);
+        krsort($releases);
+
+        $currentRelease = array_shift($releases);
+        $previousRelease = reset($releases);
+
+        if ($previousRelease) {
+            $this->shell->ln("$path/releases/$previousRelease", "current");
+            $this->shell->rm("$path/releases/$currentRelease");
+        } else {
+            throw new \RuntimeException('No available release to revert to');
+        }
+
+        return $previousRelease;
+    }
+
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function getCurrentPath($path)
+    {
+        return $this->shell->realpath("$path/current");
+    }
+
+    /**
+     * @param $path
+     * @param $name
+     *
+     * @return string
+     */
+    public function getReleasePath($path, $name)
+    {
+        return $this->shell->realpath("$path/releases/$name");
+    }
+}
