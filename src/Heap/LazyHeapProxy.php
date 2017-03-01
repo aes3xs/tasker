@@ -12,11 +12,10 @@
 namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Yodler\Event\ConsoleRunEvent;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
-use Symfony\Component\Console\ConsoleEvents;
-use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -96,9 +95,9 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     }
 
     /**
-     * @param ConsoleCommandEvent $event
+     * @param ConsoleRunEvent $event
      */
-    public function onCommand(ConsoleCommandEvent $event)
+    public function onConsoleRun(ConsoleRunEvent $event)
     {
         $this->input = $event->getInput();
         $this->output = $event->getOutput();
@@ -119,8 +118,8 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            ConsoleEvents::COMMAND => ['onCommand', 255],
-            DeployEvent::NAME      => ['onDeploy', 255],
+            ConsoleRunEvent::NAME => ['onConsoleRun', 255],
+            DeployEvent::NAME     => ['onDeploy', 255],
         ];
     }
 
@@ -131,10 +130,10 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     {
         if (!$this->heap) {
             if (!$this->scenario || !$this->connection) {
-                throw new RuntimeException('Deploy event was not invoked');
+                throw new RuntimeException('Deploy event was never invoked');
             }
             if (!$this->input || !$this->output) {
-                throw new RuntimeException('Command event was not invoked');
+                throw new RuntimeException('Command event was never invoked');
             }
             $this->heap = $this->heapFactory->create($this->scenario, $this->connection, $this->input, $this->output);
         }
