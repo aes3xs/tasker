@@ -1,0 +1,7 @@
+parameters:
+    autoload:
+        - '%config_dir%/../recipe'
+    connections:
+        local: ~
+    scenarios:
+        default: \DefaultRecipe
