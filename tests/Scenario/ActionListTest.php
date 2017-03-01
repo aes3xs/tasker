@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Action;
+namespace Aes3xs\Yodler\Tests\Scenario;
 
-use Aes3xs\Yodler\Action\ActionInterface;
-use Aes3xs\Yodler\Action\ActionList;
+use Aes3xs\Yodler\Scenario\ActionInterface;
+use Aes3xs\Yodler\Scenario\ActionList;
 
 class ActionListTest extends \PHPUnit_Framework_TestCase
 {

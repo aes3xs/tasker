@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Action;
+namespace Aes3xs\Yodler\Scenario;
 
 /**
  * Action list implementation.
