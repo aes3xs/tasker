@@ -24,11 +24,4 @@ interface ScenarioFactoryInterface
      * @return ScenarioListInterface
      */
     public function createListFromConfiguration($scenarioConfiguration);
-
-    /**
-     * Create stub scenario.
-     *
-     * @return ScenarioListInterface
-     */
-    public function createStubScenario();
 }
