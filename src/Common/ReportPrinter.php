@@ -59,7 +59,6 @@ class ReportPrinter
         foreach ($result['deploys'] as $pid => $deploy) {
             $i++;
             $io->title('Deploy #' . $i);
-            $io->text('<info>Name:</info> ' . $deploy['deploy']);
             $io->text('<info>Scenario:</info> ' . $deploy['scenario']);
             $io->text('<info>Connection:</info> ' . $deploy['connection']);
 
