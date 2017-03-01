@@ -20,6 +20,7 @@
         "symfony/process": "^3.2",
         "symfony/yaml": "^3.2",
         "twig/twig": "~1.0",
+        "doctrine/annotations": "^1.4",
         "doctrine/inflector": "^1.1",
         "phpseclib/phpseclib": "^2.0"
     },

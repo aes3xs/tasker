@@ -26,6 +26,10 @@ if (!$autoloader) {
     die('vendor/autoload.php could not be found.');
 }
 
+\Doctrine\Common\Annotations\AnnotationRegistry::registerLoader(function($class) {
+    return class_exists($class, true);
+});
+
 use Aes3xs\Yodler\Kernel;
 use Aes3xs\Yodler\Console\Application;
 use Symfony\Component\Console\Input\ArgvInput;
