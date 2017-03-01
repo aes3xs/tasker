@@ -11,7 +11,8 @@
 
 namespace Aes3xs\Yodler\Event;
 
-use Aes3xs\Yodler\Deployer\DeployContextInterface;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -22,25 +23,40 @@ class DeployEvent extends Event
     const NAME = 'deploy';
 
     /**
-     * @var DeployContextInterface
+     * @var ScenarioInterface
      */
-    protected $deployContext;
+    protected $scenario;
+
+    /**
+     * @var ConnectionInterface
+     */
+    protected $connection;
 
     /**
      * Constructor.
      *
-     * @param DeployContextInterface $deployContext
+     * @param ScenarioInterface $scenario
+     * @param ConnectionInterface $connection
      */
-    public function __construct(DeployContextInterface $deployContext)
+    public function __construct(ScenarioInterface $scenario, ConnectionInterface $connection)
     {
-        $this->deployContext = $deployContext;
+        $this->scenario = $scenario;
+        $this->connection = $connection;
     }
 
     /**
-     * @return DeployContextInterface
+     * @return ScenarioInterface
      */
-    public function getDeployContext()
+    public function getScenario()
     {
-        return $this->deployContext;
+        return $this->scenario;
+    }
+
+    /**
+     * @return ConnectionInterface
+     */
+    public function getConnection()
+    {
+        return $this->connection;
     }
 }
