@@ -93,22 +93,12 @@ class Heap implements HeapInterface
     /**
      * {@inheritdoc}
      */
-    public function resolve($name)
-    {
-        $value = $this->get($name);
-
-        return is_callable($value) ? $this->resolveCallbackWithCallstack($value) : $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function resolveString($string)
     {
         $dependencies = $this->getTwigVariables($string);
         $data = [];
         foreach ($dependencies as $name) {
-            $data[$name] = $this->resolve($name);
+            $data[$name] = $this->get($name);
         }
         $template = $this->twig->createTemplate($string);
         return $template->render($data);
@@ -157,7 +147,7 @@ class Heap implements HeapInterface
         $dependencies = $this->getExpressionVariables($expression);
         $data = [];
         foreach ($dependencies as $name) {
-            $data[$name] = $this->resolve($name);
+            $data[$name] = $this->get($name);
         }
         return $this->expressionLanguage->evaluate($expression, $data);
     }
@@ -189,16 +179,6 @@ class Heap implements HeapInterface
             }
             $this->collectExpressionNameNodes($node->nodes, $collected); // recursion
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDependencies($name)
-    {
-        $value = $this->get($name);
-
-        return is_callable($value) ? $this->getDependenciesWithCallstack($value) : [];
     }
 
     /**

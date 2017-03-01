@@ -36,14 +36,6 @@ interface HeapInterface
     public function get($name);
 
     /**
-     * Resolve value if callback, otherwise return as is.
-     *
-     * @param $name
-     * @return mixed
-     */
-    public function resolve($name);
-
-    /**
      * Resolve string using twig syntax.
      *
      * @param $string
@@ -58,12 +50,4 @@ interface HeapInterface
      * @return mixed
      */
     public function resolveExpression($expression);
-
-    /**
-     * Recursively collect and return callback dependencies.
-     *
-     * @param $name
-     * @return array
-     */
-    public function getDependencies($name);
 }
