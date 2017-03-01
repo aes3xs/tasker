@@ -77,7 +77,7 @@ class Kernel
         $containerBuilder->addCompilerPass(new RegisterListenersPass());
 
         $configPath = dirname($loader->getLocator()->locate($configFile));
-        $containerBuilder->setParameter('config_path', $configPath);
+        $containerBuilder->setParameter('config_dir', $configPath);
         $containerBuilder->compile();
 
         return $containerBuilder;
