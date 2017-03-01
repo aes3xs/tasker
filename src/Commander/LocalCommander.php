@@ -45,7 +45,7 @@ class LocalCommander implements CommanderInterface
      */
     public function send($local, $remote)
     {
-        $this->filesystem->copy($local, $remote);
+        $this->filesystem->copy($local, $remote, true);
     }
 
     /**
@@ -53,6 +53,6 @@ class LocalCommander implements CommanderInterface
      */
     public function recv($remote, $local)
     {
-        $this->filesystem->copy($remote, $local);
+        $this->filesystem->copy($remote, $local, true);
     }
 }
