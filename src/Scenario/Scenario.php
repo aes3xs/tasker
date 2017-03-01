@@ -11,14 +11,12 @@
 
 namespace Aes3xs\Yodler\Scenario;
 
-use Aes3xs\Yodler\Action\ActionListInterface;
 use Aes3xs\Yodler\Variable\VariableListInterface;
-use Aes3xs\Yodler\Variable\VariableSuppliedInterface;
 
 /**
  * Scenario implementation.
  */
-class Scenario implements ScenarioInterface, VariableSuppliedInterface
+class Scenario implements ScenarioInterface
 {
     /**
      * @var string

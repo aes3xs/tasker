@@ -11,6 +11,8 @@
 
 namespace Aes3xs\Yodler\Connection;
 
+use Aes3xs\Yodler\Variable\VariableListInterface;
+
 /**
  * Interface to connection definition.
  */
@@ -30,4 +32,9 @@ interface ConnectionInterface
      * @return UserInterface
      */
     public function getUser();
+
+    /**
+     * @return VariableListInterface
+     */
+    public function getVariables();
 }

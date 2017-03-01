@@ -17,7 +17,7 @@ use Aes3xs\Yodler\Variable\VariableSuppliedInterface;
 /**
  * Connection definition implementation.
  */
-class Connection implements ConnectionInterface, VariableSuppliedInterface
+class Connection implements ConnectionInterface
 {
     /**
      * @var string

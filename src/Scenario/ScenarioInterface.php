@@ -11,7 +11,7 @@
 
 namespace Aes3xs\Yodler\Scenario;
 
-use Aes3xs\Yodler\Action\ActionListInterface;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 
 /**
  * Interface to deploy scenario.
@@ -40,4 +40,11 @@ interface ScenarioInterface
      * @return ActionListInterface
      */
     public function getFailbackActions();
+
+    /**
+     * Return list of variables.
+     *
+     * @return VariableListInterface
+     */
+    public function getVariables();
 }
