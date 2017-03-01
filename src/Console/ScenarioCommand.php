@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler\Console;
 
+use Aes3xs\Yodler\Common\ReportPrinter;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Console\Command\Command;
@@ -74,7 +75,7 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
     {
         $this
             ->setName($this->scenario->getName())
-            ->addArgument('conn', InputArgument::REQUIRED, 'Define connection for scenario to run on');
+            ->addArgument('conn', InputArgument::REQUIRED | InputArgument::IS_ARRAY, 'Define connections for scenario to run on');
 
         parent::configure();
     }
@@ -84,8 +85,14 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $connection = $this->getContainer()->get('connections')->get($input->getArgument('conn'));
-        $deploy = $this->getContainer()->get('deploy_factory')->createFromScenarioAndConnection($this->scenario, $connection);
-        $this->getContainer()->get('deployer')->deploy($deploy);
+        $connections = $this->getContainer()->get('connection_factory')->createList();
+        foreach ($input->getArgument('conn') as $connectionName) {
+            $connection = $this->getContainer()->get('connections')->get($connectionName);
+            $connections->add($connection);
+        }
+
+        if ($this->getContainer()->get('deployer')->deploy($this->scenario, $connections)) {
+            ReportPrinter::printResult($this->getContainer()->get('report')->getRawData(), $input, $output);
+        }
     }
 }
