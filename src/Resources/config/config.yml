@@ -1,30 +1,34 @@
 parameters:
+
     command_builder.class: Aes3xs\Yodler\Console\CommandBuilder
+
     event_dispatcher.class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
+
     logger.class: Monolog\Logger
     console_handler.class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
     console_formatter.class: Aes3xs\Yodler\Logger\ConsoleFormatter
+
     heap_factory.class: Aes3xs\Yodler\Heap\HeapFactory
     lazy_heap_proxy.class: Aes3xs\Yodler\Heap\LazyHeapProxy
+
     semaphore_factory.class: Aes3xs\Yodler\Deployer\SemaphoreFactory
     semaphore.class: Aes3xs\Yodler\Deployer\SemaphoreInterface
     report_factory.class: Aes3xs\Yodler\Deployer\ReportFactory
     report.class: Aes3xs\Yodler\Deployer\ReportInterface
-    deploy_factory.class: Aes3xs\Yodler\Deploy\DeployFactory
+
     scenario_factory.class: Aes3xs\Yodler\Scenario\ScenarioFactory
     connection_factory.class: Aes3xs\Yodler\Connection\ConnectionFactory
     variable_factory.class: Aes3xs\Yodler\Variable\VariableFactory
-    action_factory.class: Aes3xs\Yodler\Action\ActionFactory
-    deploy_list.class: Aes3xs\Yodler\Deploy\DeployListInterface
+
     scenario_list.class: Aes3xs\Yodler\Scenario\ScenarioListInterface
     connection_list.class: Aes3xs\Yodler\Connection\ConnectionListInterface
-    variable_list.class: Aes3xs\Yodler\Variable\VariableListInterface
+
     sftp_factory.class: Aes3xs\Yodler\Commander\SftpFactory
     commander_factory.class: Aes3xs\Yodler\Commander\CommanderFactory
     lazy_commander_proxy.class: Aes3xs\Yodler\Commander\LazyCommanderProxy
+
     deployer.class: Aes3xs\Yodler\Deployer\Deployer
     executor.class: Aes3xs\Yodler\Deployer\Executor
-    deploy_context_factory.class: Aes3xs\Yodler\Deployer\DeployContextFactory
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -48,10 +52,7 @@ services:
     command_builder:
         class: '%command_builder.class%'
         arguments:
-            - '@deploys'
             - '@scenarios'
-            - '@heap_factory'
-            - '@deploy_context_factory'
         tags:
             - { name: kernel.event_subscriber }
 
@@ -84,7 +85,6 @@ services:
         public: false
         arguments:
             - '@service_container'
-            - '@variables'
             - '@variable_factory'
 
     lazy_heap_proxy:
@@ -145,38 +145,20 @@ services:
     deployer:
         class: '%deployer.class%'
         arguments:
-            - '@deploy_context_factory'
             - '@executor'
             - '@event_dispatcher'
+            - '@connection_factory'
             - '@semaphore'
             - '@report'
-
-    deploy_context_factory:
-        class: '%deploy_context_factory.class%'
-        public: false
-        arguments:
-            - '@deploy_factory'
-            - '@scenario_factory'
-            - '@connection_factory'
-
-    deploy_factory:
-        class: '%deploy_factory.class%'
-        arguments:
-            - '@scenarios'
-            - '@connections'
-            - '@variable_factory'
-            - '@action_factory'
 
     scenario_factory:
         class: '%scenario_factory.class%'
         public: false
         arguments:
-            - '@action_factory'
             - '@variable_factory'
 
     connection_factory:
         class: '%connection_factory.class%'
-        public: false
         arguments:
             - '@variable_factory'
 
@@ -184,23 +166,8 @@ services:
         class: '%variable_factory.class%'
         public: false
 
-    action_factory:
-        class: '%action_factory.class%'
-        public: false
-        arguments:
-            - '@variables'
-            - '@semaphore'
-            - '@logger'
-
-    deploys:
-        class: '%deploy_list.class%'
-        public: false
-        factory: 'deploy_factory:createListFromConfiguration'
-        arguments: ['%deploys%']
-
     scenarios:
         class: '%scenario_list.class%'
-        public: false
         factory: 'scenario_factory:createListFromConfiguration'
         arguments: ['%scenarios%']
 
@@ -208,9 +175,3 @@ services:
         class: '%connection_list.class%'
         factory: 'connection_factory:createListFromConfiguration'
         arguments: ['%connections%']
-
-    variables:
-        class: '%variable_list.class%'
-        public: false
-        factory: 'variable_factory:createListFromConfiguration'
-        arguments: ['%sources%']
