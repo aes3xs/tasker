@@ -11,9 +11,11 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Deploy\DeployInterface;
+use Aes3xs\Yodler\Connection\ConnectionFactoryInterface;
+use Aes3xs\Yodler\Connection\ConnectionListInterface;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -29,11 +31,6 @@ class Deployer implements DeployerInterface
     const STATE_INTERRUPT = 'Interrupted';
 
     /**
-     * @var DeployContextFactoryInterface
-     */
-    protected $deployContextFactory;
-
-    /**
      * @var ExecutorInterface
      */
     protected $executor;
@@ -42,6 +39,11 @@ class Deployer implements DeployerInterface
      * @var EventDispatcherInterface
      */
     protected $eventDispatcher;
+
+    /**
+     * @var ConnectionFactoryInterface
+     */
+    protected $connectionFactory;
 
     /**
      * @var SemaphoreInterface
@@ -56,22 +58,22 @@ class Deployer implements DeployerInterface
     /**
      * Constructor.
      *
-     * @param DeployContextFactoryInterface $deployContextFactory
      * @param ExecutorInterface $executor
      * @param EventDispatcherInterface $eventDispatcher
+     * @param ConnectionFactoryInterface $connectionFactory
      * @param SemaphoreInterface $semaphore
      * @param ReportInterface $report
      */
     public function __construct(
-        DeployContextFactoryInterface $deployContextFactory,
         ExecutorInterface $executor,
         EventDispatcherInterface $eventDispatcher,
+        ConnectionFactoryInterface $connectionFactory,
         SemaphoreInterface $semaphore,
         ReportInterface $report
     ) {
-        $this->deployContextFactory = $deployContextFactory;
         $this->executor = $executor;
         $this->eventDispatcher = $eventDispatcher;
+        $this->connectionFactory = $connectionFactory;
         $this->semaphore = $semaphore;
         $this->report = $report;
     }
@@ -79,14 +81,14 @@ class Deployer implements DeployerInterface
     /**
      * {@inheritdoc}
      */
-    public function deploy(DeployInterface $deploy)
+    public function deploy(ScenarioInterface $scenario, ConnectionListInterface $connections)
     {
         $this->semaphore->reset();
         $this->report->reset();
 
         $childPids = [];
 
-        foreach ($deploy->getBuilds()->all() as $build) {
+        foreach ($connections->all() as $connection) {
 
             $pid = pcntl_fork();
             if ($pid == -1) {
@@ -96,27 +98,21 @@ class Deployer implements DeployerInterface
                 continue;
             }
 
-            $deployContext = $this->deployContextFactory->create(
-                $deploy,
-                $build->getScenario(),
-                $build->getConnection()
-            );
-
-            $event = new DeployEvent($deployContext);
+            $event = new DeployEvent($scenario, $connection);
             $this->eventDispatcher->dispatch(DeployEvent::NAME, $event);
 
             $this->report->initialize(getmypid());
-            $this->report->reportDeploy($deployContext);
+            $this->report->reportDeploy($scenario, $connection);
             $this->semaphore->reportReady(getmypid());
 
             try {
-                $this->executor->execute($build->getScenario()->getActions());
+                $this->executor->execute($scenario->getActions());
             } catch (\Exception $e) {
                 $this->semaphore->reportError();
-                $this->executor->execute($build->getScenario()->getFailbackActions());
+                $this->executor->execute($scenario->getFailbackActions());
             }
 
-            return;
+            return false;
         }
 
         $this->semaphore->run($childPids);
@@ -125,12 +121,6 @@ class Deployer implements DeployerInterface
             pcntl_waitpid($pid, $status);
         }
 
-        $deployContext = $this->deployContextFactory->create($deploy);
-
-        $event = new DeployEvent($deployContext);
-        $this->eventDispatcher->dispatch(DeployEvent::NAME, $event);
-
-        $this->report->initialize(getmypid());
-        $this->executor->execute($deploy->getDoneActions());
+        return true;
     }
 }

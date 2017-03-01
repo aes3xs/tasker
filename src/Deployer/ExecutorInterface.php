@@ -11,8 +11,7 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Action\ActionListInterface;
-use Aes3xs\Yodler\Heap\HeapInterface;
+use Aes3xs\Yodler\Scenario\ActionListInterface;
 
 /**
  * Interface to action executor.

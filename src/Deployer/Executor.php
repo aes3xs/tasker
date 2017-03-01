@@ -11,8 +11,9 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Action\ActionListInterface;
+use Aes3xs\Yodler\Common\CallableHelper;
 use Aes3xs\Yodler\Heap\HeapInterface;
+use Aes3xs\Yodler\Scenario\ActionListInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -58,12 +59,12 @@ class Executor implements ExecutorInterface
             try {
                 $this->report->reportActionRunning($action);
                 $this->logger->info('➤ ' . $action->getName());
-                if ($action->skip($this->heap)) {
+                if ($action->getCondition() && !$this->heap->resolveExpression($action->getCondition())) {
                     $this->report->reportActionSkipped($action);
                     $this->logger->info('⇣ ' . $action->getName());
                     continue;
                 }
-                $output = $action->execute($this->heap);
+                $output = $this->executeCallback($this->heap, $action->getCallback());
                 $this->report->reportActionSucceed($action, $output);
                 $this->logger->info('✔ ' . $action->getName());
                 if ($output) {
@@ -75,5 +76,14 @@ class Executor implements ExecutorInterface
                 throw $e;
             }
         }
+    }
+
+    protected function executeCallback(HeapInterface $heap, callable $callback)
+    {
+        $arguments = [];
+        foreach (CallableHelper::extractArguments($callback) as $argument) {
+            $arguments[$argument] = $heap->get($argument);
+        }
+        return CallableHelper::call($callback, $arguments);
     }
 }
