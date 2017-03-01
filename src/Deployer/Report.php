@@ -11,9 +11,11 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Action\ActionInterface;
 use Aes3xs\Yodler\Common\SharedMemoryHandler;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Scenario\ActionInterface;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Filesystem\LockHandler;
@@ -76,22 +78,21 @@ class Report implements ReportInterface
     /**
      * {@inheritdoc}
      */
-    public function reportDeploy(DeployContextInterface $deployContext)
+    public function reportDeploy(ScenarioInterface $scenario, ConnectionInterface $connection)
     {
         $id = $this->getId();
 
         $this->lockHandler->lock(true);
 
         $deploy = [
-            'deploy'     => $deployContext->getDeploy()->getName(),
-            'scenario'   => $deployContext->getScenario()->getName(),
-            'connection' => $deployContext->getConnection()->getName(),
+            'scenario'   => $scenario->getName(),
+            'connection' => $connection->getName(),
             'actions'    => [],
             'failback'   => [],
         ];
         $actions = [];
 
-        foreach ($deployContext->getScenario()->getActions()->all() as $action) {
+        foreach ($scenario->getActions()->all() as $action) {
             $key = spl_object_hash($action);
             $actions[$key] = [
                 'name'   => $action->getName(),
@@ -101,7 +102,7 @@ class Report implements ReportInterface
                 'name' => $action->getName(),
             ];
         }
-        foreach ($deployContext->getScenario()->getFailbackActions()->all() as $action) {
+        foreach ($scenario->getFailbackActions()->all() as $action) {
             $key = spl_object_hash($action);
             $actions[$key] = [
                 'name'   => $action->getName(),
@@ -238,7 +239,6 @@ class Report implements ReportInterface
             ->arrayNode('deploys')
                 ->prototype('array')
                 ->children()
-                    ->scalarNode('deploy')->isRequired()->end()
                     ->scalarNode('scenario')->isRequired()->end()
                     ->scalarNode('connection')->isRequired()->end()
                     ->arrayNode('actions')

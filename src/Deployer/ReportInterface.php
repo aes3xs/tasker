@@ -11,7 +11,9 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Action\ActionInterface;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Yodler\Scenario\ActionInterface;
+use Aes3xs\Yodler\Scenario\ScenarioInterface;
 
 /**
  * Interface to report.
@@ -41,9 +43,10 @@ interface ReportInterface
     /**
      * Report about deploy.
      *
-     * @param DeployContextInterface $deployContext
+     * @param ScenarioInterface $scenario
+     * @param ConnectionInterface $connection
      */
-    public function reportDeploy(DeployContextInterface $deployContext);
+    public function reportDeploy(ScenarioInterface $scenario, ConnectionInterface $connection);
 
     /**
      * Report about running action.
