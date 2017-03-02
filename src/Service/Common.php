@@ -9,9 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Recipe;
-
-use Aes3xs\Yodler\Service\Shell;
+namespace Aes3xs\Yodler\Service;
 
 /**
  * Helper service to some common tasks.
