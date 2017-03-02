@@ -34,10 +34,30 @@ class Releaser
     /**
      * @param $path
      */
+    public function lock($path)
+    {
+        if ($this->shell->exists("$path/deploy.lock")) {
+            throw new \RuntimeException("Deploy locked. Unlock to proceed.");
+        } else {
+            $this->shell->touch("$path/deploy.lock");
+        }
+    }
+
+    /**
+     * @param $path
+     */
+    public function unlock($path)
+    {
+        $this->shell->rm("$path/deploy.lock");
+    }
+
+    /**
+     * @param $path
+     */
     public function prepare($path)
     {
         if (!$this->shell->isDir($path)) {
-            $this->shell->mkdir($path);
+            throw new \RuntimeException('Not a directory: ' . $path);
         }
         if ($this->shell->exists("$path/current") && !$this->shell->isLink("$path/current")) {
             throw new \RuntimeException('Not a link: ' . "$path/current");
@@ -77,6 +97,58 @@ class Releaser
 
     /**
      * @param $path
+     * @param $name
+     *
+     * @return string
+     */
+    public function create($path, $name = null)
+    {
+        $name = $name ?: date('YmdHis');
+
+        if ($this->shell->exists("$path/releases/$name")) {
+            throw new \RuntimeException('Path already exists: ' . "$path/releases/$name");
+        }
+
+        $this->shell->mkdir("$path/releases/$name");
+
+        return $name;
+    }
+
+    /**
+     * @param $path
+     * @param $name
+     */
+    public function release($path, $name)
+    {
+        $this->shell->ln("$path/releases/$name", "$path/current");
+        $this->shell->write("$path/releases/$name/release.lock", date('Y-m-d H:i:s'));
+    }
+
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function rollback($path)
+    {
+        $releases = $this->getReleaseList($path);
+        krsort($releases);
+
+        $currentRelease = array_shift($releases);
+        $previousRelease = reset($releases);
+
+        if ($previousRelease) {
+            $this->shell->ln("$path/releases/$previousRelease", "$path/current");
+            $this->shell->rm("$path/releases/$currentRelease");
+        } else {
+            throw new \RuntimeException('No available release to revert to');
+        }
+
+        return $previousRelease;
+    }
+
+    /**
+     * @param $path
      *
      * @return array
      */
@@ -112,84 +184,12 @@ class Releaser
 
     /**
      * @param $path
-     * @param $name
-     *
-     * @return string
-     */
-    public function createRelease($path, $name = null)
-    {
-        $name = $name ?: date('YmdHis');
-
-        if ($this->shell->exists("$path/releases/$name")) {
-            throw new \RuntimeException('Path already exists: ' . "$path/releases/$name");
-        }
-
-        $this->shell->mkdir("$path/releases/$name");
-
-        return $name;
-    }
-
-    /**
-     * @param $path
-     */
-    public function lock($path)
-    {
-        if ($this->shell->exists("$path/deploy.lock")) {
-            throw new \RuntimeException("Deploy locked. Unlock to proceed.");
-        } else {
-            $this->shell->touch("$path/deploy.lock");
-        }
-    }
-
-    /**
-     * @param $path
-     */
-    public function unlock($path)
-    {
-        $this->shell->rm("$path/deploy.lock");
-    }
-
-    /**
-     * @param $path
-     * @param $name
-     */
-    public function release($path, $name)
-    {
-        $this->shell->ln("$path/releases/$name", "current");
-        $this->shell->write("$path/releases/$name/release.lock", date('Y-m-d H:i:s'));
-    }
-
-    /**
-     * @param $path
-     *
-     * @return string
-     */
-    public function rollback($path)
-    {
-        $releases = $this->getReleaseList($path);
-        krsort($releases);
-
-        $currentRelease = array_shift($releases);
-        $previousRelease = reset($releases);
-
-        if ($previousRelease) {
-            $this->shell->ln("$path/releases/$previousRelease", "current");
-            $this->shell->rm("$path/releases/$currentRelease");
-        } else {
-            throw new \RuntimeException('No available release to revert to');
-        }
-
-        return $previousRelease;
-    }
-
-    /**
-     * @param $path
      *
      * @return string
      */
     public function getCurrentPath($path)
     {
-        return $this->shell->realpath("$path/current");
+        return $this->shell->exists("$path/current") ? $this->shell->realpath("$path/current") : null;
     }
 
     /**
@@ -200,6 +200,6 @@ class Releaser
      */
     public function getReleasePath($path, $name)
     {
-        return $this->shell->realpath("$path/releases/$name");
+        return $this->shell->exists("$path/releases/$name") ? $this->shell->realpath("$path/releases/$name") : null;
     }
 }
