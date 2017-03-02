@@ -95,6 +95,14 @@ class LazyHeapProxy implements HeapInterface, EventSubscriberInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function resolveCallback(callable $callback)
+    {
+        return $this->getHeap()->resolveCallback($callback);
+    }
+
+    /**
      * @param ConsoleRunEvent $event
      */
     public function onConsoleRun(ConsoleRunEvent $event)

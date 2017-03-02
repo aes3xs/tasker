@@ -50,4 +50,12 @@ interface HeapInterface
      * @return mixed
      */
     public function resolveExpression($expression);
+
+    /**
+     * Resolve callback.
+     *
+     * @param callable $callback
+     * @return mixed
+     */
+    public function resolveCallback(callable $callback);
 }

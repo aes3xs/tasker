@@ -182,6 +182,14 @@ class Heap implements HeapInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function resolveCallback(callable $callback)
+    {
+        return $this->resolveCallbackWithCallstack($callback);
+    }
+
+    /**
      * Return all variables flatten to single list by name and priority.
      *
      * @return array
@@ -217,51 +225,6 @@ class Heap implements HeapInterface
 
         foreach ($arguments as $name) {
 
-            $value = $this->get($name);
-
-            if (is_callable($value)) {
-
-                if (in_array($name, $callstack)) {
-                    throw new VariableCircularReferenceException($name, $callstack);
-                }
-
-                $callstack[] = $name;
-
-                $value = $this->resolveCallbackWithCallstack($value, $callstack);
-
-                $extractedName = array_pop($callstack);
-
-                if ($extractedName !== $name) {
-                    throw new RuntimeException(sprintf('Extracted name `%s` doesn\'t match called `%s`', $extractedName, $name));
-                }
-            }
-
-            $callArguments[$name] = $value;
-        }
-
-        return CallableHelper::call($callback, $callArguments);
-    }
-
-    /**
-     * Return callback dependencies using arguments from the heap.
-     *
-     * Has circular reference detection.
-     *
-     * @param callable $callback
-     * @param array $callstack
-     *
-     * @return array
-     *
-     * @throws VariableCircularReferenceException
-     */
-    protected function getDependenciesWithCallstack(callable $callback, &$callstack = [])
-    {
-        $arguments = CallableHelper::extractArguments($callback);
-
-        $dependencies = $arguments;
-
-        foreach ($arguments as $name) {
-
             if (!$this->has($name)) {
                 continue;
             }
@@ -275,9 +238,7 @@ class Heap implements HeapInterface
                 }
 
                 $callstack[] = $name;
-
-                $dependencies = array_merge($dependencies, $this->getDependenciesWithCallstack($value, $callstack));
-
+                $value = $this->resolveCallbackWithCallstack($value, $callstack);
                 $extractedName = array_pop($callstack);
 
                 if ($extractedName !== $name) {
@@ -288,8 +249,6 @@ class Heap implements HeapInterface
             $callArguments[$name] = $value;
         }
 
-        $dependencies = array_unique($dependencies);
-
-        return $dependencies;
+        return CallableHelper::call($callback, $callArguments);
     }
 }
