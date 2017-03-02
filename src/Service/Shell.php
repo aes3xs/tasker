@@ -71,7 +71,7 @@ class Shell
      * @param bool $sudo
      * @param bool $recursive
      */
-    public function chmod($path, $mode, $recursive = true, $sudo = false)
+    public function chmod($path, $mode = 0755, $recursive = true, $sudo = false)
     {
         $path = escapeshellarg($path);
         $recursive = $recursive ? '-R' : '';
