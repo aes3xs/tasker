@@ -13,6 +13,7 @@ namespace Aes3xs\Yodler\Tests\DependencyInjection;
 
 use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Connection\ConnectionFactory;
+use Aes3xs\Yodler\Connection\ConnectionListInterface;
 use Aes3xs\Yodler\Connection\Server;
 use Aes3xs\Yodler\Connection\User;
 use Aes3xs\Yodler\Variable\VariableFactoryInterface;
@@ -20,6 +21,18 @@ use Aes3xs\Yodler\Variable\VariableListInterface;
 
 class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 {
+    public function testCreateList()
+    {
+        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
+
+        $connectionFactory = new ConnectionFactory($variableFactoryMock);
+
+        $connectionList = $connectionFactory->createList();
+
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
+        $this->assertCount(0, $connectionList->all());
+    }
+
     public function testCreateListFromConfiguration()
     {
         $variablesMock = $this->createMock(VariableListInterface::class);
@@ -44,6 +57,8 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
         ];
 
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
+
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
         $this->assertCount(1, $connectionList->all());
 
         /** @var Connection $connection */
@@ -69,6 +84,8 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
 
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
+
         /** @var Connection $connection */
         $connection = $connectionList->get('test');
         $expectedServer = new Server(null, null);
@@ -90,6 +107,8 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
         $connectionFactory = new ConnectionFactory($variableFactoryMock);
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
+
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
 
         /** @var Connection $connection */
         $connection = $connectionList->get('test');
@@ -115,6 +134,8 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
         $connectionFactory = new ConnectionFactory($variableFactoryMock);
 
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
+
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
         $this->assertCount(3, $connectionList->all());
 
         $server = new Server(null, null);
@@ -142,6 +163,9 @@ class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase
 
         $connectionFactory = new ConnectionFactory($variableFactoryMock);
         $connectionList = $connectionFactory->createListFromConfiguration($configuration);
+
+        $this->assertInstanceOf(ConnectionListInterface::class, $connectionList);
+
         $connection = $connectionList->get('test');
 
         $expected = <<<EOF
@@ -168,23 +192,5 @@ EOF;
         $connectionFactory = new ConnectionFactory($variableFactoryMock);
 
         $connectionFactory->createListFromConfiguration($configuration);
-    }
-
-    public function testCreateStubConnection()
-    {
-        $variablesMock = $this->createMock(VariableListInterface::class);
-        $variableFactoryMock = $this->createMock(VariableFactoryInterface::class);
-        $variableFactoryMock->method('createList')->with([])->willReturn($variablesMock);
-
-        $connectionFactory = new ConnectionFactory($variableFactoryMock);
-
-        /** @var Connection $connection */
-        $connection = $connectionFactory->createStubConnection();
-
-        $expectedServer = new Server(null, null);
-        $expectedUser = new User(null, null, null, null, false);
-        $expectedConnection = new Connection(null, $expectedServer, $expectedUser, $variablesMock);
-
-        $this->assertEquals($expectedConnection, $connection);
     }
 }
