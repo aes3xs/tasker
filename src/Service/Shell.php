@@ -59,11 +59,7 @@ class Shell
      */
     public function ln($origin, $link, $relative = true)
     {
-        if ($relative && $this->lnRelativeSupported === null) {
-            // Check if target system supports relative symlink.
-            $this->lnRelativeSupported = $this->exec('if [[ "$(man ln)" =~ "--relative" ]]; then echo "true"; fi') === 'true';
-        }
-        $relative = $this->lnRelativeSupported === true ? '--relative' : '';
+        $relative = $relative ? '--relative' : '';
         $this->exec("ln -nfs $relative $origin $link");
     }
 
@@ -73,7 +69,7 @@ class Shell
      * @param bool $sudo
      * @param bool $recursive
      */
-    public function chmod($path, $mode, $sudo = true, $recursive = true)
+    public function chmod($path, $mode, $recursive = true, $sudo = false)
     {
         $path = is_array($path) ? implode(' ', $path) : $path;
         $recursive = $recursive ? '-R' : '';
@@ -86,7 +82,7 @@ class Shell
      * @param null $group
      * @param bool $sudo
      */
-    public function chown($path, $user, $group = null, $sudo = true)
+    public function chown($path, $user, $group = null, $sudo = false)
     {
         $path = is_array($path) ? implode(' ', $path) : $path;
         $user = $group ? "$user:$group" : $user;
@@ -97,7 +93,7 @@ class Shell
      * @param $path
      * @param bool $sudo
      */
-    public function rm($path, $sudo = true)
+    public function rm($path, $sudo = false)
     {
         $paths = !is_array($path) ? [$path] : $path;
         $sudo  = $sudo ? 'sudo' : '';
