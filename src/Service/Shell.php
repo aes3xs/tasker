@@ -172,11 +172,11 @@ class Shell
     /**
      * @param $command
      *
-     * @return bool
+     * @return string|bool
      */
-    public function commandExist($command)
+    public function which($command)
     {
-        return $this->exec("if hash $command 2>/dev/null; then echo 'true'; fi") === 'true';
+        return $this->exec("which $command") ?: false;
     }
 
     /**
