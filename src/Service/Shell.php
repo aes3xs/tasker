@@ -41,7 +41,7 @@ class Shell
     /**
      * @param $command
      *
-     * @return string|array
+     * @return string
      */
     public function exec($command)
     {
@@ -144,6 +144,17 @@ class Shell
     {
         $path = escapeshellarg($path);
         return $this->exec("realpath $path");
+    }
+
+    /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function dirname($path)
+    {
+        $path = escapeshellarg($path);
+        return $this->exec("dirname $path");
     }
 
     /**
