@@ -36,7 +36,8 @@ class Common
      * @param array $removePaths
      * @param array $copyPaths
      * @param array $createPaths
-     * @param $writablePaths
+     * @param array $linkPaths
+     * @param array $writablePaths
      * @param array $readablePaths
      */
     public function structurize(
@@ -44,6 +45,7 @@ class Common
         array $removePaths = [],
         array $copyPaths = [],
         array $createPaths = [],
+        array $linkPaths = [],
         array $writablePaths = [],
         array $readablePaths = []
     ) {
@@ -59,6 +61,10 @@ class Common
             $this->shell->copy("$basePath/$source", "$basePath/$target");
         }
 
+        foreach ($linkPaths as $source => $target) {
+            $this->shell->ln("$basePath/$source", "$basePath/$target");
+        }
+
         foreach ($writablePaths as $path) {
             if (!$this->shell->isWritable("$basePath/$path")) {
                 throw new \RuntimeException('Path not writable: ' . "$basePath/$path");
@@ -71,4 +77,6 @@ class Common
             }
         }
     }
+
+
 }
