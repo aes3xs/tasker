@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Recipe;
 use Aes3xs\Yodler\Service\Shell;
 
 /**
- * Helper service to to some common tasks.
+ * Helper service to some common tasks.
  */
 class Common
 {
