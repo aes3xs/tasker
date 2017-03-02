@@ -22,12 +22,14 @@ class CallableHelper
      * Extract call arguments from specified callback.
      *
      * Can be used with array notation [className, methodName].
+     * Collects default values into $defaults array.
      *
      * @param callable $callable
      *
+     * @param array $defaults
      * @return array
      */
-    public static function extractArguments(callable $callable)
+    public static function extractArguments(callable $callable, &$defaults = [])
     {
         if (is_array($callable)) {
             $class = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
@@ -42,6 +44,9 @@ class CallableHelper
 
         foreach ($arguments as $argument) {
             $argumentNames[] = $argument->getName();
+            if ($argument->isDefaultValueAvailable()) {
+                $defaults[$argument->getName()] = $argument->getDefaultValue();
+            }
         }
 
         return $argumentNames;
@@ -57,16 +62,19 @@ class CallableHelper
      */
     public static function call(callable $callable, array $arguments)
     {
-        $argumentNames = self::extractArguments($callable);
+        $argumentNames = self::extractArguments($callable, $defaults);
 
         $argumentCallStack = [];
 
         foreach ($argumentNames as $name) {
-            if (!array_key_exists($name, $arguments)) {
+            $hasValue = array_key_exists($name, $arguments);
+            $hasDefault = array_key_exists($name, $defaults);
+
+            if (!$hasValue && !$hasDefault) {
                 throw new ArgumentNotFoundException($name);
             }
 
-            $argumentCallStack[] = $arguments[$name];
+            $argumentCallStack[] = $hasValue ? $arguments[$name] : $defaults[$name];
         }
 
         return call_user_func_array($callable, $argumentCallStack);
