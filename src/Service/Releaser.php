@@ -147,6 +147,60 @@ class Releaser
         return $previousRelease;
     }
 
+    public function updateReleaseShares($path, $name, $sharedDirs = [], $sharedFiles = [])
+    {
+        foreach ($sharedDirs as $a) {
+            foreach ($sharedDirs as $b) {
+                if ($a !== $b && strpos($a, $b) === 0) {
+                    throw new \RuntimeException("Nested shared directories: $a, $b");
+                }
+            }
+        }
+
+        $release = $this->getReleasePath($path, $name);
+
+        foreach ($sharedDirs as $dir) {
+
+            if (!$this->shell->exists("$path/shared/$dir")) {
+                $this->shell->mkdir("$path/shared/$dir");
+
+                // Initialize share from source release
+                if ($this->shell->isDir("$release/$dir")) {
+                    $this->shell->copy("$release/$dir", "$path/shared/" . dirname($dir));
+                }
+            }
+
+            if (!$this->shell->isDir("$path/shared/$dir")) {
+                throw new \RuntimeException('Not a directory: ' . "$path/shared/$dir");
+            }
+
+            $this->shell->rm("$release/$dir");
+            $this->shell->mkdir(dirname("$release/$dir"));
+            $this->shell->ln("$path/shared/$dir", "$release/$dir");
+        }
+
+        foreach ($sharedFiles as $file) {
+
+            if (!$this->shell->exists("$path/shared/$file")) {
+                $this->shell->touch("$path/shared/$file");
+
+                // Initialize share from source release
+                if ($this->shell->isFile("$release/$file")) {
+                    $this->shell->copy("$release/$file", "$path/shared/$file");
+                }
+            }
+
+            if (!$this->shell->isFile("$path/shared/$file")) {
+                throw new \RuntimeException('Not a file: ' . "$path/shared/$file");
+            }
+
+            $this->shell->rm("$release/$file");
+            $this->shell->mkdir(dirname("$release/$file"));
+            $this->shell->mkdir(dirname("$path/shared/$file"));
+            $this->shell->ln("$path/shared/$file", "$release/$file");
+        }
+    }
+
     /**
      * @param $path
      *
