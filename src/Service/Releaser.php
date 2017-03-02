@@ -147,6 +147,12 @@ class Releaser
         return $previousRelease;
     }
 
+    /**
+     * @param $path
+     * @param $name
+     * @param array $sharedDirs
+     * @param array $sharedFiles
+     */
     public function updateReleaseShares($path, $name, $sharedDirs = [], $sharedFiles = [])
     {
         foreach ($sharedDirs as $a) {
