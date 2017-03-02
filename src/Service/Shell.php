@@ -224,6 +224,28 @@ class Shell
     }
 
     /**
+     * @param $path
+     *
+     * @return bool
+     */
+    public function isWritable($path)
+    {
+        $path = escapeshellarg($path);
+        return $this->exec("if [ -w $path ]; then echo 'true'; fi") === 'true';
+    }
+
+    /**
+     * @param $path
+     *
+     * @return bool
+     */
+    public function isReadable($path)
+    {
+        $path = escapeshellarg($path);
+        return $this->exec("if [ -r $path ]; then echo 'true'; fi") === 'true';
+    }
+
+    /**
      * @param $file
      * @param $data
      */
