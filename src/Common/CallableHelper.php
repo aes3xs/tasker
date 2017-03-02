@@ -22,31 +22,18 @@ class CallableHelper
      * Extract call arguments from specified callback.
      *
      * Can be used with array notation [className, methodName].
-     * Collects default values into $defaults array.
      *
      * @param callable $callable
      *
-     * @param array $defaults
      * @return array
      */
-    public static function extractArguments(callable $callable, &$defaults = [])
+    public static function extractArguments(callable $callable)
     {
-        if (is_array($callable)) {
-            $class = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
-            $reflection = new \ReflectionMethod($class, $callable[1]);
-        } else {
-            $reflection = new \ReflectionFunction($callable);
-        }
-
-        $arguments = $reflection->getParameters();
+        $parameters = self::getReflectionParameters($callable);
 
         $argumentNames = [];
-
-        foreach ($arguments as $argument) {
-            $argumentNames[] = $argument->getName();
-            if ($argument->isDefaultValueAvailable()) {
-                $defaults[$argument->getName()] = $argument->getDefaultValue();
-            }
+        foreach ($parameters as $parameter) {
+            $argumentNames[] = $parameter->getName();
         }
 
         return $argumentNames;
@@ -62,21 +49,39 @@ class CallableHelper
      */
     public static function call(callable $callable, array $arguments)
     {
-        $argumentNames = self::extractArguments($callable, $defaults);
+        $parameters = self::getReflectionParameters($callable);
 
         $argumentCallStack = [];
+        foreach ($parameters as $parameter) {
 
-        foreach ($argumentNames as $name) {
+            $name = $parameter->getName();
+
             $hasValue = array_key_exists($name, $arguments);
-            $hasDefault = array_key_exists($name, $defaults);
-
+            $hasDefault = $parameter->isDefaultValueAvailable();
             if (!$hasValue && !$hasDefault) {
                 throw new ArgumentNotFoundException($name);
             }
 
-            $argumentCallStack[] = $hasValue ? $arguments[$name] : $defaults[$name];
+            $argumentCallStack[] = $hasValue ? $arguments[$name] : $parameter->getDefaultValue();
         }
 
         return call_user_func_array($callable, $argumentCallStack);
+    }
+
+    /**
+     * @param callable $callable
+     *
+     * @return \ReflectionParameter[]
+     */
+    protected static function getReflectionParameters(callable $callable)
+    {
+        if (is_array($callable)) {
+            $class = is_object($callable[0]) ? get_class($callable[0]) : $callable[0];
+            $reflection = new \ReflectionMethod($class, $callable[1]);
+        } else {
+            $reflection = new \ReflectionFunction($callable);
+        }
+
+        return $reflection->getParameters();
     }
 }
