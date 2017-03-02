@@ -15,111 +15,54 @@ use Aes3xs\Yodler\Service\Shell;
 
 abstract class AbstractRecipe implements RecipeInterface
 {
+    /**
+     * Constructor.
+     */
     public function __construct()
     {
     }
 
-    /**
-     * @var Shell
-     */
-    protected $shell;
-
-    /**
-     * @var string
-     */
-    protected $releaseName;
-
-    /**
-     * @var string
-     */
-    protected $releasePath;
-
-    /**
-     * @return Shell
-     */
-    protected function getShell()
+    protected function removePaths(Shell $shell, $basePath, array $paths)
     {
-        if (!$this->shell instanceof Shell) {
-            throw new \RuntimeException('Shell is not properly initialzed');
-        }
-
-        return $this->shell;
-    }
-
-    protected function getReleasePath()
-    {
-        if (!$this->releasePath) {
-            throw new \RuntimeException('Release path is not properly initialzed');
-        }
-
-        return $this->releasePath;
-    }
-
-    /**
-     * @param array $paths
-     */
-    protected function removePaths(array $paths = [])
-    {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $path) {
-            $this->getShell()->rm("$basePath/$path");
+            $shell->rm("$basePath/$path");
         }
     }
 
-    /**
-     * @param array $paths
-     */
-    protected function copyPaths(array $paths = [])
+    protected function copyPaths(Shell $shell, $basePath, array $paths)
     {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $source => $target) {
-            $this->shell->copy("$basePath/$source", "$basePath/$target");
+            $shell->copy("$basePath/$source", "$basePath/$target");
         }
     }
 
-    /**
-     * @param array $paths
-     */
-    protected function createPaths(array $paths = [])
+    protected function createPaths(Shell $shell, $basePath, array $paths)
     {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $path) {
-            $this->shell->mkdir("$basePath/$path");
+            $shell->mkdir("$basePath/$path");
         }
     }
 
-    /**
-     * @param array $paths
-     */
-    protected function linkPaths(array $paths = [])
+    protected function linkPaths(Shell $shell, $basePath, array $paths)
     {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $source => $target) {
-            $this->shell->ln("$basePath/$source", "$basePath/$target");
+            $shell->ln("$basePath/$source", "$basePath/$target");
         }
     }
 
-    /**
-     * @param array $paths
-     */
-    protected function writablePaths( array $paths = [])
+    protected function writablePaths(Shell $shell, $basePath, array $paths)
     {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $path) {
-            if (!$this->shell->isWritable("$basePath/$path")) {
+            if (!$shell->isWritable("$basePath/$path")) {
                 throw new \RuntimeException('Path not writable: ' . "$basePath/$path");
             }
         }
     }
 
-    /**
-     * @param array $paths
-     */
-    protected function readablePaths(array $paths = [])
+    protected function readablePaths(Shell $shell, $basePath, array $paths)
     {
-        $basePath = $this->getReleasePath();
         foreach ($paths as $path) {
-            if (!$this->shell->isReadable("$basePath/$path")) {
+            if (!$shell->isReadable("$basePath/$path")) {
                 throw new \RuntimeException('Path not readable: ' . "$basePath/$path");
             }
         }
