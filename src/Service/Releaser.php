@@ -187,6 +187,8 @@ class Releaser
 
         foreach ($sharedFiles as $file) {
 
+            $this->shell->mkdir(dirname("$path/shared/$file"));
+
             if (!$this->shell->exists("$path/shared/$file")) {
                 $this->shell->touch("$path/shared/$file");
 
@@ -202,7 +204,6 @@ class Releaser
 
             $this->shell->rm("$release/$file");
             $this->shell->mkdir(dirname("$release/$file"));
-            $this->shell->mkdir(dirname("$path/shared/$file"));
             $this->shell->ln("$path/shared/$file", "$release/$file");
         }
     }
