@@ -74,6 +74,7 @@ class Shell
     public function chmod($path, $mode = 0755, $recursive = true, $sudo = false)
     {
         $path = escapeshellarg($path);
+        $mode = sprintf("%04o", $mode);
         $recursive = $recursive ? '-R' : '';
         $sudo  = $sudo ? 'sudo' : '';
         $this->exec("$sudo chmod $recursive $mode $path");
