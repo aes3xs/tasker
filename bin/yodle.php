@@ -43,7 +43,7 @@ $kernel = new Kernel($file);
 $kernel->boot();
 
 foreach ($kernel->getContainer()->getParameter('autoload') as $dir) {
-    $map = ClassMapGenerator::createMap($dir);
+    $map = ClassMapGenerator::createMap(new \RecursiveDirectoryIterator($dir));
     $map_loader = new MapClassLoader($map);
     $map_loader->register();
 }
