@@ -50,10 +50,10 @@ class ScenarioFactory implements ScenarioFactoryInterface
 
         foreach ($scenarioConfiguration as $name => $class) {
 
-            $methodList = null;
+            $methods = null;
             if (strpos($class, '::') !== false) {
                 list($class, $method) = explode('::', $class);
-                $methodList[] = $method;
+                $methods[] = $method;
             }
 
             if (!class_exists($class)) {
@@ -71,16 +71,26 @@ class ScenarioFactory implements ScenarioFactoryInterface
             $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
 
-            $reflectionMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
-            foreach ($reflectionMethods as $method) {
+            if (null === $methods) {
+                $methods = [];
+                $parentClass = $reflectionClass;
+                do {
+                    $collectedMethods = [];
+                    $reflectionMethods = $parentClass->getMethods(\ReflectionMethod::IS_PUBLIC);
+                    foreach ($reflectionMethods as $method) {
+                        if ($method->isConstructor()) {
+                            continue;
+                        }
+                        $collectedMethods[$method->getName()] = $method->getName();
+                    }
+                    $methods = $collectedMethods + $methods;
+                } while ($parentClass = $parentClass->getParentClass());
+                $methods = array_values($methods);
+            }
 
-                if (null !== $methodList && !in_array($method->getName(), $methodList)) {
-                    continue;
-                }
+            foreach ($methods as $methodName) {
 
-                if ($method->isConstructor()) {
-                    continue;
-                }
+                $method = $reflectionClass->getMethod($methodName);
 
                 $callback = $method->isStatic() ? $method->getClosure() : $method->getClosure($source)->bindTo($source, $source);
 
