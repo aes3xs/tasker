@@ -11,16 +11,16 @@
 
 namespace Aes3xs\Yodler\Tests\Deployer;
 
-use Aes3xs\Yodler\Action\ActionInterface;
-use Aes3xs\Yodler\Action\ActionListInterface;
 use Aes3xs\Yodler\Deployer\Executor;
 use Aes3xs\Yodler\Deployer\ReportInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
+use Aes3xs\Yodler\Scenario\ActionInterface;
+use Aes3xs\Yodler\Scenario\ActionListInterface;
 use Psr\Log\LoggerInterface;
 
 class ExecutorTest extends \PHPUnit_Framework_TestCase
 {
-    public function testExecuteSucceed()
+    public function testExecute()
     {
         $heapMock = $this->createMock(HeapInterface::class);
         $reportMock = $this->createMock(ReportInterface::class);
@@ -30,26 +30,8 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
 
         $actionMock = $this->createMock(ActionInterface::class);
         $actionMock->expects($this->at(0))->method('getName')->willReturn('test');
-        $actionMock->expects($this->at(1))->method('skip')->with($heapMock)->willReturn(false);
-        $actionMock->expects($this->at(2))->method('execute')->with($heapMock);
-        $actionsMock = $this->createMock(ActionListInterface::class);
-        $actionsMock->method('all')->willReturn([$actionMock]);
-
-        $executor->execute($actionsMock);
-    }
-
-    public function testExecuteSkipped()
-    {
-        $heapMock = $this->createMock(HeapInterface::class);
-        $reportMock = $this->createMock(ReportInterface::class);
-        $loggerMock = $this->createMock(LoggerInterface::class);
-
-        $executor = new Executor($heapMock, $reportMock, $loggerMock);
-
-        $actionMock = $this->createMock(ActionInterface::class);
-        $actionMock->expects($this->at(0))->method('getName')->willReturn('test');
-        $actionMock->expects($this->at(1))->method('skip')->with($heapMock)->willReturn(true);
-        $actionMock->expects($this->never())->method('execute');
+        $actionMock->expects($this->at(1))->method('getCondition')->willReturn(null);
+        $actionMock->expects($this->at(2))->method('getCallback')->willReturn(function () {});
         $actionsMock = $this->createMock(ActionListInterface::class);
         $actionsMock->method('all')->willReturn([$actionMock]);
 
@@ -67,9 +49,7 @@ class ExecutorTest extends \PHPUnit_Framework_TestCase
         $executor = new Executor($heapMock, $reportMock, $loggerMock);
 
         $actionMock = $this->createMock(ActionInterface::class);
-        $actionMock->expects($this->at(0))->method('getName')->willReturn('test');
-        $actionMock->expects($this->at(1))->method('skip')->with($heapMock)->willReturn(false);
-        $actionMock->expects($this->at(2))->method('execute')->willThrowException(new \RuntimeException('test'));
+        $actionMock->expects($this->at(0))->method('getName')->willThrowException(new \RuntimeException());
         $actionsMock = $this->createMock(ActionListInterface::class);
         $actionsMock->method('all')->willReturn([$actionMock]);
 
