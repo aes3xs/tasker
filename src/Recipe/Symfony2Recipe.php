@@ -95,6 +95,10 @@ class Symfony2Recipe extends AbstractRecipe
     public function release(Releaser $releaser, $deploy_path)
     {
         $releaser->release($deploy_path, $this->releaseName);
+    }
+
+    public function unlock(Releaser $releaser, $deploy_path)
+    {
         $releaser->unlock($deploy_path);
     }
 
