@@ -11,7 +11,7 @@
 
 namespace Aes3xs\Yodler\Tests\Scenario;
 
-use Aes3xs\Yodler\Action\ActionListInterface;
+use Aes3xs\Yodler\Scenario\ActionListInterface;
 use Aes3xs\Yodler\Scenario\Scenario;
 use Aes3xs\Yodler\Variable\VariableListInterface;
 
