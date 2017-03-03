@@ -28,46 +28,4 @@ class VariableFactory implements VariableFactoryInterface
     {
         return new VariableList($values);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createListFromConfiguration($variableConfiguration)
-    {
-        $variables = [];
-
-        foreach ($variableConfiguration as $file => $class) {
-
-            if (!is_numeric($file)) {
-                if (!file_exists($file)) {
-                    throw new FileNotFoundException($file);
-                }
-                require_once $file;
-            }
-
-            if (!class_exists($class)) {
-                throw new ClassNotFoundException($class);
-            }
-
-            if (!is_a($class, RecipeInterface::class, true)) {
-                throw new ClassMismatchException(RecipeInterface::class, $class);
-            }
-
-            $source = new $class();
-            $reflectionClass = new \ReflectionClass($class);
-
-            $reflectionMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
-            foreach ($reflectionMethods as $method) {
-                $callback = $method->isStatic() ? $method->getClosure() : $method->getClosure($source)->bindTo($source, $source);
-                $variables[$method->getName()] = $callback;
-            }
-
-            $reflectionProperties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
-            foreach ($reflectionProperties as $property) {
-                $variables[$property->getName()] = $property->getValue($source);
-            }
-        }
-
-        return $this->createList($variables);
-    }
 }

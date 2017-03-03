@@ -11,9 +11,6 @@
 
 namespace Aes3xs\Yodler\Variable;
 
-use Aes3xs\Yodler\Exception\ClassNotFoundException;
-use Aes3xs\Yodler\Exception\FileNotFoundException;
-
 /**
  * Interface to variable factory.
  */
@@ -27,16 +24,4 @@ interface VariableFactoryInterface
      * @return VariableListInterface
      */
     public function createList(array $values = []);
-
-    /**
-     * Create list from configuration parsed from YAML.
-     *
-     * @param $variableConfiguration
-     *
-     * @return VariableListInterface
-     *
-     * @throws ClassNotFoundException
-     * @throws FileNotFoundException
-     */
-    public function createListFromConfiguration($variableConfiguration);
 }
