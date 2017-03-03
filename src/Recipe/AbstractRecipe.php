@@ -22,48 +22,54 @@ abstract class AbstractRecipe implements RecipeInterface
     {
     }
 
-    protected function removePaths(Shell $shell, $basePath, array $paths)
+    protected function removePaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
-            $shell->rm("$basePath/$path");
+            $shell->rm($basePath ? "$basePath/$path" : $path);
         }
     }
 
-    protected function copyPaths(Shell $shell, $basePath, array $paths)
+    protected function copyPaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $source => $target) {
-            $shell->copy("$basePath/$source", "$basePath/$target");
+            $shell->copy(
+                $basePath ? "$basePath/$source" : $source,
+                $basePath ? "$basePath/$target" : $target
+            );
         }
     }
 
-    protected function createPaths(Shell $shell, $basePath, array $paths)
+    protected function createPaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
-            $shell->mkdir("$basePath/$path");
+            $shell->mkdir($basePath ? "$basePath/$path" : $path);
         }
     }
 
-    protected function linkPaths(Shell $shell, $basePath, array $paths)
+    protected function linkPaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $source => $target) {
-            $shell->ln("$basePath/$source", "$basePath/$target");
+            $shell->ln(
+                $basePath ? "$basePath/$source" : $source,
+                $basePath ? "$basePath/$target" : $target
+            );
         }
     }
 
-    protected function writablePaths(Shell $shell, $basePath, array $paths)
+    protected function writablePaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
-            if (!$shell->isWritable("$basePath/$path")) {
-                throw new \RuntimeException('Path not writable: ' . "$basePath/$path");
+            if (!$shell->isWritable($basePath ? "$basePath/$path" : $path)) {
+                throw new \RuntimeException('Path not writable: ' . ($basePath ? "$basePath/$path" : $path));
             }
         }
     }
 
-    protected function readablePaths(Shell $shell, $basePath, array $paths)
+    protected function readablePaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
-            if (!$shell->isReadable("$basePath/$path")) {
-                throw new \RuntimeException('Path not readable: ' . "$basePath/$path");
+            if (!$shell->isReadable($basePath ? "$basePath/$path" : $path)) {
+                throw new \RuntimeException('Path not readable: ' . ($basePath ? "$basePath/$path" : $path));
             }
         }
     }

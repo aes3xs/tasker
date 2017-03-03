@@ -29,11 +29,11 @@ class Symfony3Recipe extends Symfony2Recipe
 
     public function shared(Releaser $releaser, $deploy_path)
     {
-        $releaser->updateReleaseShares($deploy_path, $this->releaseName, ['var/logs', 'var/sessions'], ['app/config/parameters.yml']);
+        $releaser->updateReleaseShares($deploy_path, ['var/logs', 'var/sessions'], ['app/config/parameters.yml'], $this->releaseName);
     }
 
     public function permissionCheck(Shell $shell)
     {
-        $this->writablePaths($shell, $this->releasePath, ['var/cache', 'var/logs', 'var/sessions']);
+        $this->writablePaths($shell, ['var/cache', 'var/logs', 'var/sessions'], $this->releasePath);
     }
 }

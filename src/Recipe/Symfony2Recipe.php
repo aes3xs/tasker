@@ -48,7 +48,7 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function structureCheck(Shell $shell)
     {
-        $this->removePaths($shell, $this->releasePath, ['web/app_*.php', 'web/config.php']);
+        $this->removePaths($shell, ['web/app_*.php', 'web/config.php'], $this->releasePath);
 
         if ($shell->exists($this->cacheDir)) {
             $shell->rm($this->cacheDir);
@@ -83,7 +83,7 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function permissionCheck(Shell $shell)
     {
-        $this->writablePaths($shell, $this->releasePath, ['app/cache', 'app/logs']);
+        $this->writablePaths($shell, ['app/cache', 'app/logs'], $this->releasePath);
     }
 
     public function migrate(Symfony $symfony, $migrate = false)
