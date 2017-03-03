@@ -40,7 +40,8 @@ class Symfony2Recipe extends AbstractRecipe
     public function updateCode(Git $git, $repository, $branch, Releaser $releaser, $deploy_path)
     {
         $releases = $releaser->getReleaseList($deploy_path);
-        $reference = $releases ? reset($releases) : null;
+        $release = $releases ? reset($releases) : null;
+        $reference = $release ? $releaser->getReleasePath($deploy_path, $release) : null;
 
         $git->cloneAt($repository, $this->releasePath, $branch, $reference);
     }
