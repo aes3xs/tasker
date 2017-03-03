@@ -67,33 +67,37 @@ class ReportPrinter
             $failbackSucceed = true;
             foreach ($deploy['actions'] as $key => $action) {
                 $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
+                $start = new \DateTime($action['start']);
+                $finish = new \DateTime($action['finish']);
                 $rows[] = [
-                    'name'   => $action['name'],
-                    'pic'    => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
-                    'state'  => $action['state'],
-                    'start'  => $action['start'],
-                    'finish' => $action['finish'],
-                    'output' => mb_substr($action['output'], 0, 32),
+                    'name'     => $action['name'],
+                    'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
+                    'state'    => $action['state'],
+                    'start'    => $start->format('H:i:s'),
+                    'duration' => self::formatInterval($start, $finish),
+                    'output'   => mb_substr($action['output'], 0, 32),
                 ];
                 $actionsSucceed = $actionsSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
             }
             $rows[] = new TableSeparator();
             foreach ($deploy['failback'] as $key => $action) {
                 $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
+                $start = new \DateTime($action['start']);
+                $finish = new \DateTime($action['finish']);
                 $rows[] = [
-                    'name'   => $action['name'],
-                    'pic'    => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
-                    'state'  => $action['state'],
-                    'start'  => $action['start'],
-                    'finish' => $action['finish'],
-                    'output' => mb_substr($action['output'], 0, 32),
+                    'name'     => $action['name'],
+                    'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
+                    'state'    => $action['state'],
+                    'start'    => $start->format('H:i:s'),
+                    'duration' => self::formatInterval($start, $finish),
+                    'output'   => mb_substr($action['output'], 0, 32),
                 ];
                 $failbackSucceed = $failbackSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
             }
 
             $table = new Table($output);
             $table
-                ->setHeaders(['Name', 'ℹ', 'State', 'Start', 'Finish', 'Output'])
+                ->setHeaders(['Name', 'ℹ', 'State', 'Start', 'Duration', 'Output'])
                 ->setRows($rows);
             $table->setStyle('borderless');
             $table->render();
@@ -106,5 +110,23 @@ class ReportPrinter
                 $io->caution('Deploy failed, failback failed');
             }
         }
+    }
+
+    protected static function formatInterval(\DateTime $start, \DateTime $finish)
+    {
+        $diff = $finish->diff($start);
+
+        $intervals = [
+            $diff->y ?  $diff->y . ' years' : null,
+            $diff->m ?  $diff->m . ' months' : null,
+            $diff->d ?  $diff->d . ' days' : null,
+            $diff->h ?  $diff->h . 'h' : null,
+            $diff->m ?  $diff->m . 'm' : null,
+            $diff->s ?  $diff->s . 's' : null,
+        ];
+
+        $intervals = array_filter($intervals);
+
+        return $intervals ? implode(' ', $intervals) : '0s';
     }
 }
