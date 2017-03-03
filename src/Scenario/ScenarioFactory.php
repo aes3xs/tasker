@@ -50,6 +50,12 @@ class ScenarioFactory implements ScenarioFactoryInterface
 
         foreach ($scenarioConfiguration as $name => $class) {
 
+            $methodList = null;
+            if (strpos($class, '::') !== false) {
+                list($class, $method) = explode('::', $class);
+                $methodList[] = $method;
+            }
+
             if (!class_exists($class)) {
                 throw new ClassNotFoundException($class);
             }
@@ -67,6 +73,10 @@ class ScenarioFactory implements ScenarioFactoryInterface
 
             $reflectionMethods = $reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC);
             foreach ($reflectionMethods as $method) {
+
+                if (null !== $methodList && !in_array($method->getName(), $methodList)) {
+                    continue;
+                }
 
                 if ($method->isConstructor()) {
                     continue;
