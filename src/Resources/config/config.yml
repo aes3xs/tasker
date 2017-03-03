@@ -37,11 +37,11 @@ parameters:
     symfony.class: Aes3xs\Yodler\Service\Symfony
 
     verbosity_level_map:
-        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
-        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_NORMAL: info
-        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERBOSE: debug
-        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_VERY_VERBOSE: debug
-        !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_DEBUG: debug
+        16: 400     # VERBOSITY_QUIET:          ERROR
+        32: 200     # VERBOSITY_NORMAL:         INFO
+        64: 100     # VERBOSITY_VERBOSE:        DEBUG
+        128: 100    # VERBOSITY_VERY_VERBOSE:   DEBUG
+        256: 100    # VERBOSITY_DEBUG:          DEBUG
 
     semaphore_lock_name: semaphore_lock_name
     report_lock_name: report_lock_name
