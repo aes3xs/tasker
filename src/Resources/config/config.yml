@@ -32,6 +32,9 @@ parameters:
 
     shell.class: Aes3xs\Yodler\Service\Shell
     releaser.class: Aes3xs\Yodler\Service\Releaser
+    git.class: Aes3xs\Yodler\Service\Git
+    composer.class: Aes3xs\Yodler\Service\Composer
+    symfony.class: Aes3xs\Yodler\Service\Symfony
 
     verbosity_level_map:
         !php/const:\Symfony\Component\Console\Output\OutputInterface::VERBOSITY_QUIET: error
@@ -186,5 +189,20 @@ services:
 
     releaser:
         class: '%releaser.class%'
+        arguments:
+            - "@shell"
+
+    git:
+        class: '%git.class%'
+        arguments:
+            - "@shell"
+
+    composer:
+        class: '%composer.class%'
+        arguments:
+            - "@shell"
+
+    symfony:
+        class: '%symfony.class%'
         arguments:
             - "@shell"
