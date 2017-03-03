@@ -48,12 +48,14 @@ class Symfony
 
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';
-        foreach ($options as $name => $value) {
-            if (is_numeric($name)) {
+        foreach ($options as $i => $value) {
+            if (is_numeric($i)) {
                 $name = $value;
                 $value = null;
+            } else {
+                $name = $i;
             }
-            $name = false === strpos($name, '--') ? ' --' : ' '; // Add preceding --
+            $name = false === strpos($name, '--') ? " --$name" : " $name"; // Add preceding --
             $value = $value ? '=' . $value : '';
             $optionLine .= $name . $value;
         }
