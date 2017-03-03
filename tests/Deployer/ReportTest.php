@@ -11,14 +11,12 @@
 
 namespace Aes3xs\Yodler\Tests\Deployer;
 
-use Aes3xs\Yodler\Action\ActionInterface;
-use Aes3xs\Yodler\Action\ActionListInterface;
 use Aes3xs\Yodler\Common\SharedMemoryHandler;
 use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Deploy\DeployInterface;
-use Aes3xs\Yodler\Deployer\DeployContextInterface;
 use Aes3xs\Yodler\Deployer\Report;
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Scenario\ActionInterface;
+use Aes3xs\Yodler\Scenario\ActionListInterface;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Filesystem\LockHandler;
 
@@ -55,22 +53,17 @@ class ReportTest extends \PHPUnit_Framework_TestCase
         $actionsMock->method('all')->willReturn([]);
         $failbackActionsMock = $this->createMock(ActionListInterface::class);
         $failbackActionsMock->method('all')->willReturn([]);
-        $deployMock = $this->createMock(DeployInterface::class);
-        $deployMock->method('getName')->willReturn('deploy');
+
         $scenarioMock = $this->createMock(ScenarioInterface::class);
         $scenarioMock->method('getName')->willReturn('scenario');
         $scenarioMock->method('getActions')->willReturn($actionsMock);
         $scenarioMock->method('getFailbackActions')->willReturn($failbackActionsMock);
         $connectionMock = $this->createMock(ConnectionInterface::class);
         $connectionMock->method('getName')->willReturn('connection');
-        $deployContextMock = $this->createMock(DeployContextInterface::class);
-        $deployContextMock->method('getDeploy')->willReturn($deployMock);
-        $deployContextMock->method('getScenario')->willReturn($scenarioMock);
-        $deployContextMock->method('getConnection')->willReturn($connectionMock);
 
         $report = new Report($lockHandlerMock, $sharedMemoryHandlerMock);
         $report->initialize(1);
-        $report->reportDeploy($deployContextMock);
+        $report->reportDeploy($scenarioMock, $connectionMock);
     }
 
     public function testReportActionRunning()
