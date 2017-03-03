@@ -28,6 +28,11 @@ class Symfony
     protected $shell;
 
     /**
+     * @var string
+     */
+    protected $phpPath;
+
+    /**
      * Constructor.
      *
      * @param Shell $shell
@@ -39,6 +44,8 @@ class Symfony
 
     public function runCommand($console, $command, $arguments = [], $options = self::DEFAULT_OPTIONS)
     {
+        $php = $this->getPhpPath();
+
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';
         foreach ($options as $name => $value) {
@@ -46,11 +53,27 @@ class Symfony
                 $name = $value;
                 $value = null;
             }
-            $name = strpos($name, '--') !== 0 ? ' --' : ''; // Add preceding --
+            $name = false === strpos($name, '--') ? ' --' : ' '; // Add preceding --
             $value = $value ? '=' . $value : '';
             $optionLine .= $name . $value;
         }
 
-        return $this->shell->exec("$console $command $argumentLine $optionLine");
+        return $this->shell->exec("$php $console $command $argumentLine $optionLine");
+    }
+
+    /**
+     * @return string
+     */
+    protected function getPhpPath()
+    {
+        if (null === $this->phpPath) {
+            $phpPath = $this->shell->which('php');
+            if (!$phpPath) {
+                throw new \RuntimeException('PHP not found');
+            }
+            $this->phpPath = $phpPath;
+        }
+
+        return $this->phpPath;
     }
 }
