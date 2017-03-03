@@ -81,13 +81,8 @@ class Heap implements HeapInterface
      */
     public function get($name)
     {
-        foreach ($this->collection as $variables) {
-            if ($variables->has($name)) {
-                return $variables->get($name);
-            }
-        }
-
-        throw new VariableNotFoundException($name);
+        $value = $this->getRaw($name);
+        return is_callable($value) ? $this->resolveCallback($value) : $value;
     }
 
     /**
@@ -206,6 +201,21 @@ class Heap implements HeapInterface
     }
 
     /**
+     * @param $name
+     * @return mixed
+     */
+    public function getRaw($name)
+    {
+        foreach ($this->collection as $variables) {
+            if ($variables->has($name)) {
+                return $variables->get($name);
+            }
+        }
+
+        throw new VariableNotFoundException($name);
+    }
+
+    /**
      * Resolve callback using arguments from the heap.
      *
      * Has circular reference detection.
@@ -229,7 +239,7 @@ class Heap implements HeapInterface
                 continue;
             }
 
-            $value = $this->get($name);
+            $value = $this->getRaw($name);
 
             if (is_callable($value)) {
 

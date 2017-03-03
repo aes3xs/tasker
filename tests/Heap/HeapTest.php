@@ -54,16 +54,6 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($heap->has('test'));
     }
 
-    public function testGet()
-    {
-        $heap = $this->createHeap();
-        $list = new VariableList(['test' => 'value']);
-        $heap->addVariables($list);
-
-        $this->assertEquals('value', $heap->get('test'));
-    }
-
-
     public function testNotFoundException()
     {
         $this->expectException(VariableNotFoundException::class);
@@ -72,7 +62,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $heap->get('test');
     }
 
-    public function testResolve()
+    public function testGet()
     {
         $heap = $this->createHeap();
         $callback = function () {
@@ -81,11 +71,10 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $list = new VariableList(['test' => $callback]);
         $heap->addVariables($list);
 
-        $this->assertTrue(is_callable($heap->get('test')));
-        $this->assertEquals('value', $heap->resolve('test'));
+        $this->assertEquals('value', $heap->get('test'));
     }
 
-    public function testResolveDependent()
+    public function testGetDependent()
     {
         $heap = $this->createHeap();
         $callback = function () {
@@ -100,11 +89,10 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         ]);
         $heap->addVariables($list);
 
-        $this->assertTrue(is_callable($heap->get('testDependent')));
-        $this->assertEquals('value value', $heap->resolve('testDependent'));
+        $this->assertEquals('value value', $heap->get('testDependent'));
     }
 
-    public function testResolveCircularReferenceException()
+    public function testGetCircularReferenceException()
     {
         $this->expectException(VariableCircularReferenceException::class);
 
@@ -121,7 +109,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         ]);
         $heap->addVariables($list);
 
-        $heap->resolve('test1');
+        $heap->get('test1');
     }
 
     public function testResolveString()
@@ -142,45 +130,17 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($heap->resolveExpression('test > 4 && test < 6'));
     }
 
-    public function testGetDependencies()
+    public function testResolveCallback()
     {
         $heap = $this->createHeap();
-        $callback1 = function () {
-            return 'value';
-        };
-        $callback2 = function ($test1) {
-            return 'value';
-        };
-        $callback3 = function ($test2) {
-            return 'value';
+        $callback = function ($test) {
+            return 'value' . $test;
         };
         $list = new VariableList([
-            'test1' => $callback1,
-            'test2' => $callback2,
-            'test3' => $callback3,
+            'test' => 123,
         ]);
         $heap->addVariables($list);
 
-        $this->assertEquals(['test1', 'test2'], $heap->getDependencies('test3'), '', 0, 10, true);
-    }
-
-    public function testGetDependenciesCircularReferenceException()
-    {
-        $this->expectException(VariableCircularReferenceException::class);
-
-        $heap = $this->createHeap();
-        $callback1 = function ($test2) {
-            return 'value';
-        };
-        $callback2 = function ($test1) {
-            return 'value';
-        };
-        $list = new VariableList([
-            'test1' => $callback1,
-            'test2' => $callback2,
-        ]);
-        $heap->addVariables($list);
-
-        $heap->getDependencies('test1');
+        $this->assertEquals('value123', $heap->resolveCallback($callback));
     }
 }
