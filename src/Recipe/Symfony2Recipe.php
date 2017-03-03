@@ -33,8 +33,8 @@ class Symfony2Recipe extends AbstractRecipe
         $releaser->lock($deploy_path);
         $this->releaseName = $releaser->create($deploy_path);
         $this->releasePath = $releaser->getReleasePath($deploy_path, $this->releaseName);
-        $this->console = "{$this->releaseName}/app/console";
-        $this->cacheDir = "{$this->releaseName}/app/cache";
+        $this->console = "{$this->releasePath}/app/console";
+        $this->cacheDir = "{$this->releasePath}/app/cache";
     }
 
     public function updateCode(Git $git, $repository, $branch, Releaser $releaser, $deploy_path)
@@ -63,7 +63,7 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function composerInstall(Composer $composer)
     {
-        $composer->install($this->releaseName);
+        $composer->install($this->releasePath);
     }
 
     public function cacheWarmup(Symfony $symfony)
@@ -73,7 +73,7 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function assets(Symfony $symfony, $assetic_dump = false)
     {
-        $symfony->runCommand($this->console, 'assets:install', [$this->releaseName . "/web"]);
+        $symfony->runCommand($this->console, 'assets:install', [$this->releasePath . "/web"]);
 
         if ($assetic_dump) {
             $symfony->runCommand($this->console, 'assetic:dump');
