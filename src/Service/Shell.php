@@ -275,6 +275,6 @@ class Shell
     {
         $source = escapeshellarg($source);
         $target = escapeshellarg($target);
-        $this->exec("copy -r $source $target");
+        $this->exec("cp -r $source $target");
     }
 }
