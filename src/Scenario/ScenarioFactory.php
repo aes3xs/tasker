@@ -76,7 +76,16 @@ class ScenarioFactory implements ScenarioFactoryInterface
             if (null === $methods) {
                 $methods = [];
                 $parentClass = $reflectionClass;
-                do {
+
+                /** @var \ReflectionClass[] $parents */
+                $parents = [$reflectionClass];
+                while ($parentClass = $parentClass->getParentClass()) {
+                    $parents[] = $parentClass;
+                }
+                $parents = array_reverse($parents);
+
+                foreach ($parents as $parentClass) {
+
                     $collectedMethods = [];
                     $reflectionMethods = $parentClass->getMethods(\ReflectionMethod::IS_PUBLIC);
                     foreach ($reflectionMethods as $method) {
@@ -85,6 +94,8 @@ class ScenarioFactory implements ScenarioFactoryInterface
                         }
                         $collectedMethods[$method->getName()] = $method->getName();
                     }
+                    $methods += $collectedMethods;
+
                     foreach ($reflectionMethods as $method) {
                         /** @var After $afterAnnotation */
                         $afterAnnotation = $annotationReader->getMethodAnnotation($method, After::class);
@@ -101,22 +112,22 @@ class ScenarioFactory implements ScenarioFactoryInterface
                             throw new \RuntimeException('After and Before annotations cannot be used together: ' . $after . ', ' . $before);
                         }
 
-                        unset($collectedMethods[$method->getName()]);
+                        unset($methods[$method->getName()]);
 
                         $actionName = $after ?: $before;
-                        if (!isset($collectedMethods[$actionName])) {
+                        if (!isset($methods[$actionName])) {
                             throw new \RuntimeException('Action doesn\'t exist: ' . $actionName);
                         }
-                        $index = array_search($actionName, array_keys($collectedMethods)) + ($after ? 1 : 0);
+                        $index = array_search($actionName, array_keys($methods)) + ($after ? 1 : 0);
 
-                        $collectedMethods = array_merge(
-                            array_slice($collectedMethods, 0, $index, true),
+                        $methods = array_merge(
+                            array_slice($methods, 0, $index, true),
                             [$method->getName() => $method->getName()],
-                            array_slice($collectedMethods, $index, null, true)
+                            array_slice($methods, $index, null, true)
                         );
                     }
-                    $methods = $collectedMethods + $methods;
-                } while ($parentClass = $parentClass->getParentClass());
+                }
+
                 $methods = array_values($methods);
             }
 
