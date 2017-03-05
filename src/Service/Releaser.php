@@ -36,11 +36,21 @@ class Releaser
      */
     public function lock($path)
     {
-        if ($this->shell->exists("$path/deploy.lock")) {
+        if ($this->isLocked($path)) {
             throw new \RuntimeException("Deploy locked. Unlock to proceed.");
         } else {
             $this->shell->touch("$path/deploy.lock");
         }
+    }
+
+    /**
+     * @param $path
+     *
+     * @return bool
+     */
+    public function isLocked($path)
+    {
+        return $this->shell->exists("$path/deploy.lock");
     }
 
     /**
