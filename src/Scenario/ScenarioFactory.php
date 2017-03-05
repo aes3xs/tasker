@@ -11,6 +11,8 @@
 
 namespace Aes3xs\Yodler\Scenario;
 
+use Aes3xs\Yodler\Annotation\After;
+use Aes3xs\Yodler\Annotation\Before;
 use Aes3xs\Yodler\Annotation\Condition;
 use Aes3xs\Yodler\Annotation\Failback;
 use Aes3xs\Yodler\Exception\ClassMismatchException;
@@ -82,6 +84,36 @@ class ScenarioFactory implements ScenarioFactoryInterface
                             continue;
                         }
                         $collectedMethods[$method->getName()] = $method->getName();
+                    }
+                    foreach ($reflectionMethods as $method) {
+                        /** @var After $afterAnnotation */
+                        $afterAnnotation = $annotationReader->getMethodAnnotation($method, After::class);
+                        $after = $afterAnnotation ? $afterAnnotation->value : null;
+
+                        /** @var Before $afterAnnotation */
+                        $beforeAnnotation = $annotationReader->getMethodAnnotation($method, Before::class);
+                        $before = $beforeAnnotation ? $beforeAnnotation->value : null;
+
+                        if (!$after && !$before) {
+                            continue;
+                        }
+                        if ($after && $before) {
+                            throw new \RuntimeException('After and Before annotations cannot be used together: ' . $after . ', ' . $before);
+                        }
+
+                        unset($collectedMethods[$method->getName()]);
+
+                        $actionName = $after ?: $before;
+                        if (!isset($collectedMethods[$actionName])) {
+                            throw new \RuntimeException('Action doesn\'t exist: ' . $actionName);
+                        }
+                        $index = array_search($actionName, array_keys($collectedMethods)) + ($after ? 1 : 0);
+
+                        $collectedMethods = array_merge(
+                            array_slice($collectedMethods, 0, $index, true),
+                            [$method->getName() => $method->getName()],
+                            array_slice($collectedMethods, $index, null, true)
+                        );
                     }
                     $methods = $collectedMethods + $methods;
                 } while ($parentClass = $parentClass->getParentClass());
