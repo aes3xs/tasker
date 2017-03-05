@@ -81,12 +81,12 @@ class Git
 
         if ($reference) {
             try {
-                $this->shell->exec("$git clone $at --recursive -q --reference $reference --dissociate $repository $target 2>&1");
+                $this->shell->exec("$git clone $at --recursive -q --reference $reference --dissociate $repository $target");
             } catch (\Exception $e) {
-                $this->shell->exec("$git clone $at --recursive -q $repository $target 2>&1");
+                $this->shell->exec("$git clone $at --recursive -q $repository $target");
             }
         } else {
-            $this->shell->exec("$git clone $at --recursive -q $repository $target 2>&1");
+            $this->shell->exec("$git clone $at --recursive -q $repository $target");
         }
     }
 
@@ -96,7 +96,7 @@ class Git
     public function fetch($path)
     {
         $git = $this->getGitPath();
-        $this->shell->exec("cd $path && $git fetch --prune 2>&1");
+        $this->shell->exec("cd $path && $git fetch --prune");
     }
 
     /**
@@ -107,7 +107,7 @@ class Git
     public function getBranches($path)
     {
         $git = $this->getGitPath();
-        $output = $this->shell->exec("cd $path && $git branch -r 2>&1");
+        $output = $this->shell->exec("cd $path && $git branch -r");
 
         $branches = [];
         if (preg_match_all('/^[\\s]*origin\\/([^\\s]+).*$/m', $output, $matches)) {
