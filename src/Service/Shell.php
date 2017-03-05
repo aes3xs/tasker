@@ -29,6 +29,11 @@ class Shell
     protected $lnRelativeSupported;
 
     /**
+     * @var string
+     */
+    protected $user;
+
+    /**
      * Constructor.
      *
      * @param CommanderInterface $commander
@@ -38,12 +43,38 @@ class Shell
         $this->commander = $commander;
     }
 
+    public function setUser($user)
+    {
+        $this->user = $user;
+    }
+
     /**
      * @param $command
      *
      * @return string
      */
     public function exec($command)
+    {
+        return $this->user ? $this->_execAs($command, $this->user) : $this->_exec($command);
+    }
+
+    /**
+     * @param $command
+     * @param $asUser
+     * @return string
+     */
+    protected function _execAs($command, $asUser)
+    {
+        $command = escapeshellarg($command);
+        $call = sprintf('sudo -Hu %s bash -c %s', $asUser, $command);
+        return $this->_exec($call);
+    }
+
+    /**
+     * @param $command
+     * @return string
+     */
+    protected function _exec($command)
     {
         $result = $this->commander->exec($command);
         if (false !== strpos($result, 'stdin: is not a tty')) {
