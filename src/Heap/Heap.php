@@ -110,8 +110,9 @@ class Heap implements HeapInterface
      */
     protected function getTwigVariables($source)
     {
-        $tokens = $this->twig->tokenize($source);
-        $parsed = $this->twig->getParser()->parse($tokens);
+        $tokens = $this->twig->tokenize(new \Twig_Source($source, ''));
+        $parser = new \Twig_Parser($this->twig);
+        $parsed = $parser->parse($tokens);
         $collected = [];
         $this->collectTwigNodes($parsed, $collected);
         return array_keys($collected);
