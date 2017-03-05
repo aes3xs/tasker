@@ -17,6 +17,8 @@ use phpseclib\System\SSH\Agent;
 
 class PhpSecLibCommander implements CommanderInterface
 {
+    const TIMEOUT = 300;
+
     /**
      * @var SFTP
      */
@@ -34,6 +36,7 @@ class PhpSecLibCommander implements CommanderInterface
     {
         // Silence error reporting
         set_error_handler(function () {});
+        $this->sftp->setTimeout(self::TIMEOUT);
         $result = $this->sftp->exec($command);
         restore_error_handler();
 
