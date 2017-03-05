@@ -16,6 +16,10 @@ use Aes3xs\Yodler\Service\Git;
 use Aes3xs\Yodler\Service\Releaser;
 use Aes3xs\Yodler\Service\Shell;
 use Aes3xs\Yodler\Service\Symfony;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 /**
  * Example recipe.
@@ -27,10 +31,19 @@ class Symfony2Recipe extends AbstractRecipe
     protected $console;
     protected $cacheDir;
 
-    public function prepare(Releaser $releaser, $deploy_path)
+    public function prepare(Releaser $releaser, InputInterface $input, OutputInterface $output, $deploy_path)
     {
         $releaser->prepare($deploy_path);
+
+        if ($releaser->isLocked($deploy_path)) {
+            $helper = new QuestionHelper();
+            $question = new ConfirmationQuestion('<info>Deploy is locked. Unlock?</info> <comment>(Y/n)</comment> ');
+            if ($helper->ask($input, $output, $question)) {
+                $releaser->unlock($deploy_path);
+            }
+        }
         $releaser->lock($deploy_path);
+
         $this->releaseName = $releaser->create($deploy_path);
         $this->releasePath = $releaser->getReleasePath($deploy_path, $this->releaseName);
         $this->console = "{$this->releasePath}/app/console";
@@ -96,10 +109,6 @@ class Symfony2Recipe extends AbstractRecipe
     public function release(Releaser $releaser, $deploy_path)
     {
         $releaser->release($deploy_path, $this->releaseName);
-    }
-
-    public function unlock(Releaser $releaser, $deploy_path)
-    {
         $releaser->unlock($deploy_path);
     }
 
