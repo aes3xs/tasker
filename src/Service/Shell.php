@@ -122,7 +122,7 @@ class Shell
     public function touch($path)
     {
         $path = escapeshellarg($path);
-        $this->commander->exec("touch $path");
+        $this->exec("touch $path");
     }
 
     /**
