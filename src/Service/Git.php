@@ -32,6 +32,11 @@ class Git
     protected $isReferenceSupported;
 
     /**
+     * @var string
+     */
+    protected $key;
+
+    /**
      * Constructor.
      *
      * @param Shell $shell
@@ -39,6 +44,14 @@ class Git
     public function __construct(Shell $shell)
     {
         $this->shell = $shell;
+    }
+
+    /**
+     * @param $keyPath
+     */
+    public function setKey($keyPath)
+    {
+        $this->key = $keyPath;
     }
 
     /**
@@ -120,6 +133,13 @@ class Git
             $this->gitPath = $gitPath;
         }
 
+        if ($this->key) {
+            if (!$this->shell->exists($this->key)) {
+                throw new \RuntimeException('Key doesn\'t exist: ' . $this->key);
+            }
+            $this->gitPath = 'export GIT_SSH_COMMAND="ssh -i {{deploy_path}}/id_rsa"; ' . $this->gitPath;
+        }
+        
         return $this->gitPath;
     }
 
