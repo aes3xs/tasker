@@ -37,7 +37,7 @@ class LocalCommander implements CommanderInterface
         $process->setIdleTimeout(self::TIMEOUT);
         $process->mustRun();
 
-        return $process->getOutput();
+        return $process->getOutput() ?: $process->getErrorOutput();
     }
 
     /**
