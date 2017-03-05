@@ -69,13 +69,14 @@ class ReportPrinter
                 $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
                 $start = new \DateTime($action['start']);
                 $finish = new \DateTime($action['finish']);
+                $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
                 $rows[] = [
                     'name'     => $action['name'],
                     'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
                     'state'    => $action['state'],
                     'start'    => $start->format('H:i:s'),
                     'duration' => self::formatInterval($start, $finish),
-                    'output'   => mb_substr($action['output'], 0, 32),
+                    'output'   => mb_substr($action['output'], 0, 64),
                 ];
                 $actionsSucceed = $actionsSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
             }
@@ -84,13 +85,14 @@ class ReportPrinter
                 $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
                 $start = new \DateTime($action['start']);
                 $finish = new \DateTime($action['finish']);
+                $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
                 $rows[] = [
                     'name'     => $action['name'],
                     'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
                     'state'    => $action['state'],
                     'start'    => $start->format('H:i:s'),
                     'duration' => self::formatInterval($start, $finish),
-                    'output'   => mb_substr($action['output'], 0, 32),
+                    'output'   => mb_substr($action['output'], 0, 64),
                 ];
                 $failbackSucceed = $failbackSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
             }
