@@ -62,39 +62,17 @@ class ReportPrinter
             $io->text('<info>Scenario:</info> ' . $deploy['scenario']);
             $io->text('<info>Connection:</info> ' . $deploy['connection']);
 
-            $rows = [];
-            $actionsSucceed = true;
-            $failbackSucceed = true;
             foreach ($deploy['actions'] as $key => $action) {
-                $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
-                $start = new \DateTime($action['start']);
-                $finish = new \DateTime($action['finish']);
-                $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
-                $rows[] = [
-                    'name'     => $action['name'],
-                    'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
-                    'state'    => $action['state'],
-                    'start'    => $start->format('H:i:s'),
-                    'duration' => self::formatInterval($start, $finish),
-                    'output'   => mb_substr($action['output'], 0, 64),
-                ];
-                $actionsSucceed = $actionsSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
+                $deploy['actions'][$key] = $result['actions'][$pid][$key] + $action;
             }
-            $rows[] = new TableSeparator();
             foreach ($deploy['failback'] as $key => $action) {
-                $action = $result['actions'][$pid][$key] + $action + self::$actionDefaults;
-                $start = new \DateTime($action['start']);
-                $finish = new \DateTime($action['finish']);
-                $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
-                $rows[] = [
-                    'name'     => $action['name'],
-                    'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
-                    'state'    => $action['state'],
-                    'start'    => $start->format('H:i:s'),
-                    'duration' => self::formatInterval($start, $finish),
-                    'output'   => mb_substr($action['output'], 0, 64),
-                ];
-                $failbackSucceed = $failbackSucceed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
+                $deploy['failback'][$key] = $result['actions'][$pid][$key] + $action;
+            }
+
+            $rows = $actionsRows = self::buildRows($deploy['actions'], $actionsSucceed);
+            if ($actionsRows = self::buildRows($deploy['failback'], $failbackSucceed)) {
+                $rows[] = new TableSeparator();
+                $rows = array_merge($rows, $actionsRows);
             }
 
             $table = new Table($output);
@@ -112,6 +90,28 @@ class ReportPrinter
                 $io->caution('Deploy failed, failback failed');
             }
         }
+    }
+
+    protected static function buildRows(array $actionData, &$succeed)
+    {
+        $succeed = true;
+        $rows = [];
+        foreach ($actionData as $key => $action) {
+            $action = $action + self::$actionDefaults;
+            $start = new \DateTime($action['start']);
+            $finish = new \DateTime($action['finish']);
+            $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
+            $rows[] = [
+                'name'     => $action['name'],
+                'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
+                'state'    => $action['state'],
+                'start'    => $start->format('H:i:s'),
+                'duration' => self::formatInterval($start, $finish),
+                'output'   => mb_substr($action['output'], 0, 64),
+            ];
+            $succeed = $succeed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
+        }
+        return $rows;
     }
 
     protected static function formatInterval(\DateTime $start, \DateTime $finish)
