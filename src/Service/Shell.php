@@ -83,8 +83,8 @@ class Shell
      */
     protected function _execAs($command, $asUser)
     {
-        $command = escapeshellarg($command);
-        $call = sprintf('sudo -Hu %s bash -c %s', $asUser, $command);
+        $command = strtr($command, ['"' => '\\"', '\\' => '\\\\']);
+        $call = sprintf('sudo -HEiu %s bash -c "%s"', $asUser, $command);
         return $this->_exec($call);
     }
 
