@@ -125,8 +125,8 @@ class Shell
         $path = escapeshellarg($path);
         $mode = sprintf("%04o", $mode);
         $recursive = $recursive ? '-R' : '';
-        $sudo  = $sudo ? 'sudo' : '';
-        $this->exec("$sudo chmod $recursive $mode $path");
+        $sudo  = $sudo ? 'sudo ' : '';
+        $this->exec($sudo . "chmod $recursive $mode $path");
     }
 
     /**
@@ -139,8 +139,8 @@ class Shell
     {
         $path = escapeshellarg($path);
         $user = $group ? "$user:$group" : $user;
-        $sudo  = $sudo ? 'sudo' : '';
-        $this->exec("$sudo chown -RL $user $path");
+        $sudo  = $sudo ? 'sudo ' : '';
+        $this->exec($sudo . "chown -RL $user $path");
     }
 
     /**
@@ -150,8 +150,8 @@ class Shell
     public function rm($path, $sudo = false)
     {
         $path = escapeshellarg($path);
-        $sudo  = $sudo ? 'sudo' : '';
-        $this->exec("$sudo rm -rf $path");
+        $sudo  = $sudo ? 'sudo ' : '';
+        $this->exec($sudo . "rm -rf $path");
     }
 
     /**
