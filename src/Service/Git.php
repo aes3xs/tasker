@@ -92,6 +92,17 @@ class Git
 
     /**
      * @param $path
+     * @param $count
+     */
+    public function log($path, $count)
+    {
+        $count = intval($count);
+        $git = $this->getGitPath();
+        $this->shell->exec("cd $path && $git log -$count");
+    }
+
+    /**
+     * @param $path
      */
     public function fetch($path)
     {
