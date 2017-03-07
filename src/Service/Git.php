@@ -129,19 +129,18 @@ class Git
             if (!$gitPath) {
                 throw new \RuntimeException('Git not found');
             }
-            $this->gitPath = $gitPath;
-        }
 
-        $command = 'ssh';
-        $command .= ' -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no';
-        if ($this->key) {
-            if (!$this->shell->exists($this->key)) {
-                throw new \RuntimeException('Key doesn\'t exist: ' . $this->key);
+            $command = 'ssh';
+            $command .= ' -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no';
+            if ($this->key) {
+                if (!$this->shell->exists($this->key)) {
+                    throw new \RuntimeException('Key doesn\'t exist: ' . $this->key);
+                }
+                $command .= ' -i ' . $this->key;
             }
-            $command .= ' -i ' . $this->key;
-        }
 
-        $this->gitPath = sprintf('export GIT_SSH_COMMAND="%s"; %s', $command, $this->gitPath);
+            $this->gitPath = sprintf('export GIT_SSH_COMMAND="%s"; %s', $command, $gitPath);
+        }
 
         return $this->gitPath;
     }
