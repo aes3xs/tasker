@@ -67,6 +67,7 @@ class Composer
         $options = "--verbose --prefer-dist --no-progress --no-interaction $dev --optimize-autoloader";
 
         $this->shell->exec("cd $path && $composer update $options");
+        usleep(100); // Issue with output overlap with next command, needs check
     }
 
     /**
