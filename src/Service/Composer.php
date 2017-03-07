@@ -44,29 +44,35 @@ class Composer
     /**
      * @param $path
      * @param bool $dev
+     * @param null $cacheDir
      */
-    public function install($path, $dev = false)
+    public function install($path, $dev = false, $cacheDir = null)
     {
         $composer = $this->getComposer($path);
 
         $dev = $dev ? '' : '--no-dev';
         $options = "--verbose --prefer-dist --no-progress --no-interaction $dev --optimize-autoloader";
 
-        $this->shell->exec("cd $path && $composer install $options");
+        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir &&" : '';
+
+        $this->shell->exec("cd $path && $cacheDirEnv $composer install $options");
     }
 
     /**
      * @param $path
      * @param bool $dev
+     * @param null $cacheDir
      */
-    public function update($path, $dev = false)
+    public function update($path, $dev = false, $cacheDir = null)
     {
         $composer = $this->getComposer($path);
 
         $dev = $dev ? '' : '--no-dev';
         $options = "--verbose --prefer-dist --no-progress --no-interaction $dev --optimize-autoloader";
 
-        $this->shell->exec("cd $path && $composer update $options");
+        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir &&" : '';
+
+        $this->shell->exec("cd $path && $cacheDirEnv $composer update $options");
         usleep(100); // Issue with output overlap with next command, needs check
     }
 
