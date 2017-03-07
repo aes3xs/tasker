@@ -17,9 +17,9 @@ namespace Aes3xs\Yodler\Service;
 class Symfony
 {
     const DEFAULT_OPTIONS = [
-        'env' => 'prod',
-        'no-interaction',
-        'no-debug',
+        'env'            => 'prod',
+        'no-interaction' => null,
+        'no-debug'       => null,
     ];
 
     /**
@@ -32,6 +32,8 @@ class Symfony
      */
     protected $phpPath;
 
+    protected $options = [];
+
     /**
      * Constructor.
      *
@@ -42,9 +44,16 @@ class Symfony
         $this->shell = $shell;
     }
 
-    public function runCommand($console, $command, $arguments = [], $options = self::DEFAULT_OPTIONS)
+    public function setDefaultOptions($options = self::DEFAULT_OPTIONS)
+    {
+        $this->options = $options;
+    }
+
+    public function runCommand($console, $command, $arguments = [], $options = [])
     {
         $php = $this->getPhpPath();
+
+        $options = $this->options + $options;
 
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';

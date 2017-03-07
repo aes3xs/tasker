@@ -88,6 +88,7 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function warmCache(Symfony $symfony)
     {
+        $symfony->setDefaultOptions(Symfony::DEFAULT_OPTIONS);
         $symfony->runCommand($this->console, 'cache:warmup');
     }
 
