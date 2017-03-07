@@ -11,7 +11,6 @@
 
 namespace Aes3xs\Yodler\Recipe;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Service\Composer;
 use Aes3xs\Yodler\Service\Git;
 use Aes3xs\Yodler\Service\Releaser;
