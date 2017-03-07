@@ -112,9 +112,8 @@ class Git
         $branches = [];
         if (preg_match_all('/^[\\s]*origin\\/([^\\s]+).*$/m', $output, $matches)) {
             $branches = $matches[1];
-            if ($branches[0] === 'HEAD') {
-                unset($branches[0]);
-            }
+            $headIndex = array_search('HEAD', $branches);
+            unset($branches[$headIndex]);
         }
 
         return $branches;
