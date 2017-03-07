@@ -32,10 +32,13 @@ class Symfony2Recipe extends AbstractRecipe
     protected $console;
     protected $cacheDir;
 
-    public function prepare(Releaser $releaser, InputInterface $input, OutputInterface $output, ConnectionInterface $connection, $deploy_path)
+    public function prepare(Releaser $releaser, $deploy_path)
     {
         $releaser->prepare($deploy_path);
+    }
 
+    public function lock(Releaser $releaser, InputInterface $input, OutputInterface $output, $deploy_path)
+    {
         if ($releaser->isLocked($deploy_path)) {
             $helper = new QuestionHelper();
             $question = new ConfirmationQuestion('<info>Deploy is locked. Unlock?</info> <comment>(Y/n)</comment> ');
@@ -44,13 +47,14 @@ class Symfony2Recipe extends AbstractRecipe
             }
         }
         $releaser->lock($deploy_path);
+    }
 
+    public function createRelease(Releaser $releaser, $deploy_path)
+    {
         $this->releaseName = $releaser->create($deploy_path);
         $this->releasePath = $releaser->getReleasePath($deploy_path, $this->releaseName);
         $this->console = "{$this->releasePath}/app/console";
         $this->cacheDir = "{$this->releasePath}/app/cache";
-        $connection->getVariables()->add('release_name', $this->releaseName);
-        $connection->getVariables()->add('release_path', $this->releasePath);
     }
 
     public function updateCode(Git $git, $repository, $branch, Releaser $releaser, $deploy_path)
@@ -62,7 +66,7 @@ class Symfony2Recipe extends AbstractRecipe
         $git->cloneAt($repository, $this->releasePath, $branch, $reference);
     }
 
-    public function structureCheck(Shell $shell)
+    public function checkPaths(Shell $shell)
     {
         $this->removePaths($shell, ['web/app_*.php', 'web/config.php'], $this->releasePath);
 
@@ -73,22 +77,22 @@ class Symfony2Recipe extends AbstractRecipe
         $shell->chmod($this->cacheDir, 0775);
     }
 
-    public function shared(Releaser $releaser, $deploy_path)
+    public function updateShared(Releaser $releaser, $deploy_path)
     {
         $releaser->updateReleaseShares($deploy_path, $this->releaseName, ['app/logs'], ['app/config/parameters.yml']);
     }
 
-    public function composerInstall(Composer $composer)
+    public function installVendors(Composer $composer)
     {
         $composer->install($this->releasePath);
     }
 
-    public function cacheWarmup(Symfony $symfony)
+    public function warmCache(Symfony $symfony)
     {
         $symfony->runCommand($this->console, 'cache:warmup');
     }
 
-    public function assets(Symfony $symfony, $assetic_dump = false)
+    public function installAssets(Symfony $symfony, $assetic_dump = false)
     {
         $symfony->runCommand($this->console, 'assets:install', [$this->releasePath . "/web"]);
 
@@ -97,7 +101,7 @@ class Symfony2Recipe extends AbstractRecipe
         }
     }
 
-    public function permissionCheck(Shell $shell)
+    public function checkPermissions(Shell $shell)
     {
         $this->writablePaths($shell, ['app/cache', 'app/logs'], $this->releasePath);
     }

@@ -19,20 +19,20 @@ use Aes3xs\Yodler\Service\Shell;
  */
 class Symfony3Recipe extends Symfony2Recipe
 {
-    public function prepare(Releaser $releaser, $deploy_path)
+    public function createRelease(Releaser $releaser, $deploy_path)
     {
-        parent::prepare($releaser, $deploy_path);
+        parent::createRelease($releaser, $deploy_path);
 
         $this->console = "{$this->releaseName}/bin/console";
         $this->cacheDir = "{$this->releaseName}/var/cache";
     }
 
-    public function shared(Releaser $releaser, $deploy_path)
+    public function updateShared(Releaser $releaser, $deploy_path)
     {
         $releaser->updateReleaseShares($deploy_path, ['var/logs', 'var/sessions'], ['app/config/parameters.yml'], $this->releaseName);
     }
 
-    public function permissionCheck(Shell $shell)
+    public function checkPermissions(Shell $shell)
     {
         $this->writablePaths($shell, ['var/cache', 'var/logs', 'var/sessions'], $this->releasePath);
     }
