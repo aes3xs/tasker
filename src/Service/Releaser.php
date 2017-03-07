@@ -131,7 +131,8 @@ class Releaser
     public function release($path, $name)
     {
         $this->shell->ln("$path/releases/$name", "$path/current");
-        $this->shell->write("$path/releases/$name/release.lock", date('Y-m-d H:i:s'));
+        $date = date('Y-m-d H:i:s');
+        $this->shell->exec("echo '$date' > $path/releases/$name/release.lock");
     }
 
     /**
