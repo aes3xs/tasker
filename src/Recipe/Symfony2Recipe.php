@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler\Recipe;
 
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Service\Composer;
 use Aes3xs\Yodler\Service\Git;
 use Aes3xs\Yodler\Service\Releaser;
@@ -31,7 +32,7 @@ class Symfony2Recipe extends AbstractRecipe
     protected $console;
     protected $cacheDir;
 
-    public function prepare(Releaser $releaser, InputInterface $input, OutputInterface $output, $deploy_path)
+    public function prepare(Releaser $releaser, InputInterface $input, OutputInterface $output, ConnectionInterface $connection, $deploy_path)
     {
         $releaser->prepare($deploy_path);
 
@@ -48,6 +49,8 @@ class Symfony2Recipe extends AbstractRecipe
         $this->releasePath = $releaser->getReleasePath($deploy_path, $this->releaseName);
         $this->console = "{$this->releasePath}/app/console";
         $this->cacheDir = "{$this->releasePath}/app/cache";
+        $connection->getVariables()->add('release_name', $this->releaseName);
+        $connection->getVariables()->add('release_path', $this->releasePath);
     }
 
     public function updateCode(Git $git, $repository, $branch, Releaser $releaser, $deploy_path)
