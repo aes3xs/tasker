@@ -31,11 +31,14 @@ abstract class AbstractRecipe implements RecipeInterface
 
     protected function copyPaths(Shell $shell, array $paths, $basePath = null)
     {
-        foreach ($paths as $source => $target) {
-            $shell->copy(
-                $basePath ? "$basePath/$source" : $source,
-                $basePath ? "$basePath/$target" : $target
-            );
+        foreach ($paths as $source => $targets) {
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $shell->copy(
+                    $basePath ? "$basePath/$source" : $source,
+                    $basePath ? "$basePath/$target" : $target
+                );
+            }
         }
     }
 
@@ -48,11 +51,14 @@ abstract class AbstractRecipe implements RecipeInterface
 
     protected function linkPaths(Shell $shell, array $paths, $basePath = null)
     {
-        foreach ($paths as $source => $target) {
-            $shell->ln(
-                $basePath ? "$basePath/$source" : $source,
-                $basePath ? "$basePath/$target" : $target
-            );
+        foreach ($paths as $source => $targets) {
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $shell->ln(
+                    $basePath ? "$basePath/$source" : $source,
+                    $basePath ? "$basePath/$target" : $target
+                );
+            }
         }
     }
 
