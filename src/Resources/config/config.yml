@@ -38,6 +38,12 @@ parameters:
     symfony.class: Aes3xs\Yodler\Service\Symfony
 
     verbosity_level_map:
+        0: 400      # VERBOSITY_QUIET:          ERROR
+        1: 200      # VERBOSITY_NORMAL:         INFO
+        2: 100      # VERBOSITY_VERBOSE:        DEBUG
+        3: 100      # VERBOSITY_VERY_VERBOSE:   DEBUG
+        4: 100      # VERBOSITY_DEBUG:          DEBUG
+        
         16: 400     # VERBOSITY_QUIET:          ERROR
         32: 200     # VERBOSITY_NORMAL:         INFO
         64: 100     # VERBOSITY_VERBOSE:        DEBUG
