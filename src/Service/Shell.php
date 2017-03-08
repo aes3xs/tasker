@@ -133,14 +133,16 @@ class Shell
      * @param $path
      * @param $user
      * @param null $group
+     * @param bool $recursive
      * @param bool $sudo
      */
-    public function chown($path, $user, $group = null, $sudo = false)
+    public function chown($path, $user, $group = null, $recursive = true, $sudo = false)
     {
         $path = escapeshellarg($path);
         $user = $group ? "$user:$group" : $user;
+        $recursive = $recursive ? '-R' : '';
         $sudo  = $sudo ? 'sudo ' : '';
-        $this->exec($sudo . "chown -RL $user $path");
+        $this->exec($sudo . "chown $recursive $user $path");
     }
 
     /**
