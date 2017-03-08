@@ -44,8 +44,8 @@ parameters:
         128: 100    # VERBOSITY_VERY_VERBOSE:   DEBUG
         256: 100    # VERBOSITY_DEBUG:          DEBUG
 
-    semaphore_lock_name: '%config_dir%'
-    report_lock_name: '%config_dir%'
+    semaphore_lock_name: 'semaphore_lock_%config_dir%'
+    report_lock_name: 'report_lock_%config_dir%'
 
     autoload:
         - '%config_dir%'
