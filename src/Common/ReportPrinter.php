@@ -69,8 +69,10 @@ class ReportPrinter
                 $deploy['failback'][$key] = $result['actions'][$pid][$key] + $action;
             }
 
-            $rows = $actionsRows = self::buildRows($deploy['actions'], $actionsSucceed);
-            if ($actionsRows = self::buildRows($deploy['failback'], $failbackSucceed)) {
+            $total = 0;
+
+            $rows = $actionsRows = self::buildRows($deploy['actions'], $actionsSucceed, $total);
+            if ($actionsRows = self::buildRows($deploy['failback'], $failbackSucceed, $total)) {
                 $rows[] = new TableSeparator();
                 $rows = array_merge($rows, $actionsRows);
             }
@@ -82,6 +84,8 @@ class ReportPrinter
             $table->setStyle('borderless');
             $table->render();
 
+            $io->text("<info>Total:</info> {$total}s");
+
             if ($actionsSucceed) {
                 $io->success('Deployed successfully');
             } elseif ($failbackSucceed) {
@@ -92,7 +96,7 @@ class ReportPrinter
         }
     }
 
-    protected static function buildRows(array $actionData, &$succeed)
+    protected static function buildRows(array $actionData, &$succeed, &$total)
     {
         $succeed = true;
         $rows = [];
@@ -101,34 +105,18 @@ class ReportPrinter
             $start = new \DateTime($action['start']);
             $finish = new \DateTime($action['finish']);
             $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
+            $diff = $finish->getTimestamp() - $start->getTimestamp();
             $rows[] = [
                 'name'     => $action['name'],
                 'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
                 'state'    => $action['state'],
                 'start'    => $start->format('H:i:s'),
-                'duration' => self::formatInterval($start, $finish),
+                'duration' => $diff . 's',
                 'output'   => mb_substr($action['output'], 0, 64),
             ];
             $succeed = $succeed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
+            $total += $diff;
         }
         return $rows;
-    }
-
-    protected static function formatInterval(\DateTime $start, \DateTime $finish)
-    {
-        $diff = $finish->diff($start);
-
-        $intervals = [
-            $diff->y ?  $diff->y . ' years' : null,
-            $diff->m ?  $diff->m . ' months' : null,
-            $diff->d ?  $diff->d . ' days' : null,
-            $diff->h ?  $diff->h . 'h' : null,
-            $diff->m ?  $diff->m . 'm' : null,
-            $diff->s ?  $diff->s . 's' : null,
-        ];
-
-        $intervals = array_filter($intervals);
-
-        return $intervals ? implode(' ', $intervals) : '0s';
     }
 }
