@@ -132,7 +132,7 @@ class Releaser
     {
         $this->shell->ln("$path/releases/$name", "$path/current");
         $date = date('Y-m-d H:i:s');
-        $this->shell->exec("echo '$date' > $path/releases/$name/release.lock");
+        $this->shell->exec("echo -n '$date' > $path/releases/$name/release.lock");
     }
 
     /**
