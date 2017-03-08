@@ -100,7 +100,7 @@ class Git
     {
         $count = intval($count);
         $git = $this->getGitPath();
-        $this->shell->exec("cd $path && $git log -$count");
+        return $this->shell->exec("cd $path && $git log -$count");
     }
 
     /**
