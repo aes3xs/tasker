@@ -14,6 +14,7 @@ namespace Aes3xs\Yodler\Heap;
 use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Aes3xs\Yodler\Variable\VariableFactoryInterface;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -23,13 +24,18 @@ class HeapFactory implements HeapFactoryInterface
 {
     protected $container;
     protected $variableFactory;
+    protected $variables;
     protected $input;
     protected $output;
 
-    public function __construct(Container $container, VariableFactoryInterface $variableFactory)
-    {
+    public function __construct(
+        Container $container,
+        VariableFactoryInterface $variableFactory,
+        VariableListInterface $variables
+    ) {
         $this->container = $container;
         $this->variableFactory = $variableFactory;
+        $this->variables = $variables;
     }
 
     /**
@@ -62,6 +68,8 @@ class HeapFactory implements HeapFactoryInterface
         $heap->addVariables($this->getOptionVariables($input));
 
         $heap->addVariables($connection->getVariables());
+
+        $heap->addVariables($this->variables);
 
         return $heap;
     }

@@ -22,6 +22,7 @@ parameters:
 
     scenario_list.class: Aes3xs\Yodler\Scenario\ScenarioListInterface
     connection_list.class: Aes3xs\Yodler\Connection\ConnectionListInterface
+    variable_list.class: Aes3xs\Yodler\Variable\VariableList
 
     sftp_factory.class: Aes3xs\Yodler\Commander\SftpFactory
     commander_factory.class: Aes3xs\Yodler\Commander\CommanderFactory
@@ -92,6 +93,7 @@ services:
         arguments:
             - '@service_container'
             - '@variable_factory'
+            - '@variables'
 
     lazy_heap_proxy:
         class: '%lazy_heap_proxy.class%'
@@ -181,6 +183,10 @@ services:
         class: '%connection_list.class%'
         factory: 'connection_factory:createListFromConfiguration'
         arguments: ['%connections%']
+
+    variables:
+        class: '%variable_list.class%'
+        factory: 'variable_factory:createList'
 
     shell:
         class: '%shell.class%'
