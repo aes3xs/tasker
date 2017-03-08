@@ -93,6 +93,8 @@ class Git
     /**
      * @param $path
      * @param $count
+     *
+     * @return string
      */
     public function log($path, $count)
     {
