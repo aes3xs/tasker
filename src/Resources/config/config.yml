@@ -43,7 +43,7 @@ parameters:
         2: 100      # VERBOSITY_VERBOSE:        DEBUG
         3: 100      # VERBOSITY_VERY_VERBOSE:   DEBUG
         4: 100      # VERBOSITY_DEBUG:          DEBUG
-        
+
         16: 400     # VERBOSITY_QUIET:          ERROR
         32: 200     # VERBOSITY_NORMAL:         INFO
         64: 100     # VERBOSITY_VERBOSE:        DEBUG

@@ -22,12 +22,28 @@ use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 class HeapFactory implements HeapFactoryInterface
 {
+    /**
+     * @var Container
+     */
     protected $container;
-    protected $variableFactory;
-    protected $variables;
-    protected $input;
-    protected $output;
 
+    /**
+     * @var VariableFactoryInterface
+     */
+    protected $variableFactory;
+
+    /**
+     * @var VariableListInterface
+     */
+    protected $variables;
+
+    /**
+     * Constructor.
+     *
+     * @param Container $container
+     * @param VariableFactoryInterface $variableFactory
+     * @param VariableListInterface $variables
+     */
     public function __construct(
         Container $container,
         VariableFactoryInterface $variableFactory,
@@ -64,10 +80,10 @@ class HeapFactory implements HeapFactoryInterface
         $heap->addVariables($this->variableFactory->createList($values));
 
         $heap->addVariables($scenario->getVariables());
+        $heap->addVariables($connection->getVariables());
+
         $heap->addVariables($this->getArgumentVariables($input));
         $heap->addVariables($this->getOptionVariables($input));
-
-        $heap->addVariables($connection->getVariables());
 
         $heap->addVariables($this->variables);
 
@@ -90,11 +106,17 @@ class HeapFactory implements HeapFactoryInterface
 
     protected function getArgumentVariables(InputInterface $input)
     {
-        return $this->variableFactory->createList($input->getArguments());
+        $list = array_filter($input->getArguments(), function($value) {
+            return !is_null($value);
+        });
+        return $this->variableFactory->createList($list);
     }
 
     protected function getOptionVariables(InputInterface $input)
     {
-        return $this->variableFactory->createList($input->getOptions());
+        $list = array_filter($input->getOptions(), function($value) {
+            return !is_null($value);
+        });
+        return $this->variableFactory->createList($list);
     }
 }
