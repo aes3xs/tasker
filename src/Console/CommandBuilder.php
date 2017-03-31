@@ -44,7 +44,7 @@ class CommandBuilder implements EventSubscriberInterface
      */
     public function onConsoleRun(ConsoleRunEvent $event)
     {
-        $event->getApplication()->addCommands($this->build($event->getInput(), $event->getOutput()));
+        $event->getApplication()->addCommands($this->build());
     }
 
     /**
