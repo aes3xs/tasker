@@ -11,7 +11,6 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Connection\ConnectionFactoryInterface;
 use Aes3xs\Yodler\Connection\ConnectionListInterface;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
@@ -123,6 +122,7 @@ class Deployer implements DeployerInterface
             pcntl_waitpid($pid, $status);
         }
 
+        $this->report->initialize(getmypid());
         $this->executor->execute($scenario->getTerminateActions());
     }
 }
