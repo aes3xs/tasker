@@ -86,6 +86,10 @@ class Reporter
                 $rows[] = new TableSeparator();
                 $rows = array_merge($rows, $actionsRows);
             }
+            if ($actionsRows = self::buildRows($deploy['terminate'])) {
+                $rows[] = new TableSeparator();
+                $rows = array_merge($rows, $actionsRows);
+            }
 
             $table = new Table($output);
             $table
@@ -106,7 +110,7 @@ class Reporter
         }
     }
 
-    protected function buildRows(array $actionData, &$succeed, &$total)
+    protected function buildRows(array $actionData, &$succeed = false, &$total = 0)
     {
         $pics = self::PICS;
 
