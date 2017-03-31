@@ -89,7 +89,6 @@ class Report implements ReportInterface
             'connection' => $connection->getName(),
             'actions'    => [],
             'failback'   => [],
-            'terminate'  => [],
         ];
         $actions = [];
 
@@ -110,16 +109,6 @@ class Report implements ReportInterface
                 'state'  => self::ACTION_STATE_NONE,
             ];
             $deploy['failback'][$key] = [
-                'name' => $action->getName(),
-            ];
-        }
-        foreach ($scenario->getTerminateActions()->all() as $action) {
-            $key = spl_object_hash($action);
-            $actions[$key] = [
-                'name'   => $action->getName(),
-                'state'  => self::ACTION_STATE_NONE,
-            ];
-            $deploy['terminate'][$key] = [
                 'name' => $action->getName(),
             ];
         }

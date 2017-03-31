@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler\Console;
 
+use Aes3xs\Yodler\Common\ReportPrinter;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Symfony\Component\Console\Command\Command;
