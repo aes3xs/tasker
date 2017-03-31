@@ -163,6 +163,7 @@ services:
             - '@event_dispatcher'
             - '@semaphore'
             - '@report'
+            - '@variables'
 
     scenario_factory:
         class: '%scenario_factory.class%'

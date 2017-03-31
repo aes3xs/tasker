@@ -16,6 +16,7 @@ use Aes3xs\Yodler\Connection\ConnectionListInterface;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Scenario\ScenarioInterface;
+use Aes3xs\Yodler\Variable\VariableListInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -51,23 +52,31 @@ class Deployer implements DeployerInterface
     protected $report;
 
     /**
+     * @var VariableListInterface
+     */
+    protected $variables;
+
+    /**
      * Constructor.
      *
      * @param ExecutorInterface $executor
      * @param EventDispatcherInterface $eventDispatcher
      * @param SemaphoreInterface $semaphore
      * @param ReportInterface $report
+     * @param VariableListInterface $variables
      */
     public function __construct(
         ExecutorInterface $executor,
         EventDispatcherInterface $eventDispatcher,
         SemaphoreInterface $semaphore,
-        ReportInterface $report
+        ReportInterface $report,
+        VariableListInterface $variables
     ) {
         $this->executor = $executor;
         $this->eventDispatcher = $eventDispatcher;
         $this->semaphore = $semaphore;
         $this->report = $report;
+        $this->variables = $variables;
     }
 
     /**
@@ -101,6 +110,7 @@ class Deployer implements DeployerInterface
                 $this->executor->execute($scenario->getActions());
             } catch (\Exception $e) {
                 $this->semaphore->reportError();
+                $this->variables->add('exception', $e);
                 $this->executor->execute($scenario->getFailbackActions());
             }
 
