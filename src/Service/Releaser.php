@@ -257,11 +257,29 @@ class Releaser
     /**
      * @param $path
      *
-     * @return string
+     * @return string|null
      */
     public function getCurrentPath($path)
     {
         return $this->shell->exists("$path/current") ? $this->shell->realpath("$path/current") : null;
+    }
+
+    /**
+     * @param $path
+     *
+     * @return string|null
+     */
+    public function getCurrentRelease($path)
+    {
+        $path = $this->getCurrentPath($path);
+
+        $rplc = ['/' => '\/', '.' => '\.'];
+        $pattern = strtr("$path/releases/", $rplc) . '(.+)' . strtr('/release.lock', $rplc);
+        if (preg_match("~$pattern~", $path, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 
     /**

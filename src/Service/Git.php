@@ -133,6 +133,17 @@ class Git
     }
 
     /**
+     * @param $path
+     *
+     * @return string
+     */
+    public function getCurrentBranch($path)
+    {
+        $git = $this->getGitPath();
+        return $this->shell->exec("cd $path && $git rev-parse --abbrev-ref HEAD 2>&1");
+    }
+
+    /**
      * @return string
      */
     protected function getGitPath()
