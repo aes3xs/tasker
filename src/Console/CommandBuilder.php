@@ -30,13 +30,20 @@ class CommandBuilder implements EventSubscriberInterface
     protected $scenarios;
 
     /**
+     * @var array
+     */
+    protected $command_classes;
+
+    /**
      * Constructor.
      *
      * @param ScenarioListInterface $scenarios
+     * @param array $command_classes
      */
-    public function __construct(ScenarioListInterface $scenarios)
+    public function __construct(ScenarioListInterface $scenarios, array $command_classes)
     {
         $this->scenarios = $scenarios;
+        $this->command_classes = $command_classes;
     }
 
     /**
@@ -44,7 +51,7 @@ class CommandBuilder implements EventSubscriberInterface
      */
     public function onConsoleRun(ConsoleRunEvent $event)
     {
-        $event->getApplication()->addCommands($this->build($event->getInput(), $event->getOutput()));
+        $event->getApplication()->addCommands($this->build());
     }
 
     /**
@@ -65,6 +72,9 @@ class CommandBuilder implements EventSubscriberInterface
         $commands = [];
         foreach ($this->scenarios->all() as $scenario) {
             $commands[] = $this->buildScenarioCommand($scenario);
+        }
+        foreach ($this->command_classes as $command_class) {
+            $commands[] = new $command_class();
         }
         return $commands;
     }
