@@ -161,7 +161,6 @@ services:
         arguments:
             - '@executor'
             - '@event_dispatcher'
-            - '@connection_factory'
             - '@semaphore'
             - '@report'
 

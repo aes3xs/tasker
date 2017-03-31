@@ -41,11 +41,6 @@ class Deployer implements DeployerInterface
     protected $eventDispatcher;
 
     /**
-     * @var ConnectionFactoryInterface
-     */
-    protected $connectionFactory;
-
-    /**
      * @var SemaphoreInterface
      */
     protected $semaphore;
@@ -60,20 +55,17 @@ class Deployer implements DeployerInterface
      *
      * @param ExecutorInterface $executor
      * @param EventDispatcherInterface $eventDispatcher
-     * @param ConnectionFactoryInterface $connectionFactory
      * @param SemaphoreInterface $semaphore
      * @param ReportInterface $report
      */
     public function __construct(
         ExecutorInterface $executor,
         EventDispatcherInterface $eventDispatcher,
-        ConnectionFactoryInterface $connectionFactory,
         SemaphoreInterface $semaphore,
         ReportInterface $report
     ) {
         $this->executor = $executor;
         $this->eventDispatcher = $eventDispatcher;
-        $this->connectionFactory = $connectionFactory;
         $this->semaphore = $semaphore;
         $this->report = $report;
     }
