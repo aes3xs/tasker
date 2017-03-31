@@ -114,7 +114,7 @@ class Deployer implements DeployerInterface
                 $this->executor->execute($scenario->getFailbackActions());
             }
 
-            return false;
+            return;
         }
 
         $this->semaphore->run($childPids);
@@ -123,6 +123,6 @@ class Deployer implements DeployerInterface
             pcntl_waitpid($pid, $status);
         }
 
-        return true;
+        $this->executor->execute($scenario->getTerminateActions());
     }
 }

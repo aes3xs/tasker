@@ -42,6 +42,13 @@ interface ScenarioInterface
     public function getFailbackActions();
 
     /**
+     * Return list of actions to execute once on scenario termination.
+     *
+     * @return ActionListInterface
+     */
+    public function getTerminateActions();
+
+    /**
      * Return list of variables.
      *
      * @return VariableListInterface

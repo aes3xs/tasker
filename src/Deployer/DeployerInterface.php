@@ -25,7 +25,7 @@ interface DeployerInterface
      * @param ScenarioInterface $scenario
      * @param ConnectionListInterface $connections
      *
-     * @return bool
+     * @return void
      */
     public function deploy(ScenarioInterface $scenario, ConnectionListInterface $connections);
 }

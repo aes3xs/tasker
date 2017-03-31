@@ -15,6 +15,7 @@ use Aes3xs\Yodler\Annotation\After;
 use Aes3xs\Yodler\Annotation\Before;
 use Aes3xs\Yodler\Annotation\Condition;
 use Aes3xs\Yodler\Annotation\Failback;
+use Aes3xs\Yodler\Annotation\Terminate;
 use Aes3xs\Yodler\Exception\ClassMismatchException;
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
 use Aes3xs\Yodler\Recipe\RecipeInterface;
@@ -69,6 +70,7 @@ class ScenarioFactory implements ScenarioFactoryInterface
             $variables = $this->variableFactory->createList();
             $actions = new ActionList();
             $failbackActions = new ActionList();
+            $terminateActions = new ActionList();
 
             $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
@@ -109,7 +111,7 @@ class ScenarioFactory implements ScenarioFactoryInterface
                             continue;
                         }
                         if ($after && $before) {
-                            throw new \RuntimeException('After and Before annotations cannot be used together: ' . $after . ', ' . $before);
+                            throw new \RuntimeException('After and Before annotations cannot be used together: ' . $parentClass->getName() . '::' . $method->getName());
                         }
 
                         unset($methods[$method->getName()]);
@@ -142,11 +144,18 @@ class ScenarioFactory implements ScenarioFactoryInterface
                 $condition = $conditionAnnotation ? $conditionAnnotation->value : null;
 
                 $isFailback = !!$annotationReader->getMethodAnnotation($method, Failback::class);
+                $isTerminate = !!$annotationReader->getMethodAnnotation($method, Terminate::class);
+
+                if ($isFailback && $isTerminate) {
+                    throw new \RuntimeException('Failback and Terminate annotations cannot be used together: ' . $class . '::' . $methodName);
+                }
 
                 $action = new Action($method->getName(), $callback, $condition);
 
                 if ($isFailback) {
                     $failbackActions->add($action);
+                } elseif ($isTerminate) {
+                    $terminateActions->add($action);
                 } else {
                     $actions->add($action);
                 }
@@ -157,7 +166,7 @@ class ScenarioFactory implements ScenarioFactoryInterface
                 $variables->add($property->getName(), $property->getValue($source));
             }
 
-            $scenario = new Scenario($name, $actions, $failbackActions, $variables);
+            $scenario = new Scenario($name, $actions, $failbackActions, $terminateActions, $variables);
 
             $scenarios->add($scenario);
         }

@@ -34,6 +34,11 @@ class Scenario implements ScenarioInterface
     protected $failbackActions;
 
     /**
+     * @var ActionListInterface
+     */
+    protected $terminateActions;
+
+    /**
      * @var VariableListInterface
      */
     protected $variables;
@@ -44,17 +49,20 @@ class Scenario implements ScenarioInterface
      * @param $name
      * @param ActionListInterface $actions
      * @param ActionListInterface $failbackActions
+     * @param ActionListInterface $terminateActions
      * @param VariableListInterface $variables
      */
     public function __construct(
         $name,
         ActionListInterface $actions,
         ActionListInterface $failbackActions,
+        ActionListInterface $terminateActions,
         VariableListInterface $variables
     ) {
         $this->name = $name;
         $this->actions = $actions;
         $this->failbackActions = $failbackActions;
+        $this->terminateActions = $terminateActions;
         $this->variables = $variables;
     }
 
@@ -80,6 +88,14 @@ class Scenario implements ScenarioInterface
     public function getFailbackActions()
     {
         return $this->failbackActions;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTerminateActions()
+    {
+        return $this->terminateActions;
     }
 
     /**

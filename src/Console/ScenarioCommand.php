@@ -91,8 +91,6 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
             $connections->add($connection);
         }
 
-        if ($this->getContainer()->get('deployer')->deploy($this->scenario, $connections)) {
-            ReportPrinter::printResult($this->getContainer()->get('report')->getRawData(), $input, $output);
-        }
+        $this->getContainer()->get('deployer')->deploy($this->scenario, $connections);
     }
 }
