@@ -36,6 +36,7 @@ parameters:
     git.class: Aes3xs\Yodler\Service\Git
     composer.class: Aes3xs\Yodler\Service\Composer
     symfony.class: Aes3xs\Yodler\Service\Symfony
+    reporter.class: Aes3xs\Yodler\Service\Reporter
 
     verbosity_level_map:
         0: 400      # VERBOSITY_QUIET:          ERROR
@@ -218,3 +219,8 @@ services:
         class: '%symfony.class%'
         arguments:
             - "@shell"
+
+    reporter:
+        class: '%reporter.class%'
+        arguments:
+            - "@report"

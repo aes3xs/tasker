@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Common;
+namespace Aes3xs\Yodler\Service;
 
 use Aes3xs\Yodler\Deployer\ReportInterface;
 use Symfony\Component\Console\Helper\Table;
@@ -19,14 +19,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Report printer is used to print deploy results to console.
+ * Class Reporter
  */
-class ReportPrinter
+class Reporter
 {
-    /**
-     * @var array
-     */
-    protected static $pics = [
+    const PICS = [
         ReportInterface::ACTION_STATE_NONE    => ' ',
         ReportInterface::ACTION_STATE_SKIPPED => '⇣',
         ReportInterface::ACTION_STATE_RUNNING => '➤',
@@ -34,10 +31,7 @@ class ReportPrinter
         ReportInterface::ACTION_STATE_ERROR   => '✘',
     ];
 
-    /**
-     * @var array
-     */
-    protected static $actionDefaults = [
+    const ACTION_DEFAULTS = [
         'name'   => null,
         'pic'    => '❓',
         'state'  => null,
@@ -47,13 +41,29 @@ class ReportPrinter
     ];
 
     /**
-     * @param $result
+     * @var ReportInterface
+     */
+    protected $report;
+
+    /**
+     * Constructor.
+     *
+     * @param ReportInterface $report
+     */
+    public function __construct(ReportInterface $report)
+    {
+        $this->report = $report;
+    }
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      */
-    public static function printResult($result, InputInterface $input, OutputInterface $output)
+    public function printReport(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
+
+        $result = $this->report->getRawData();
 
         $i = 0;
         foreach ($result['deploys'] as $pid => $deploy) {
@@ -96,19 +106,21 @@ class ReportPrinter
         }
     }
 
-    protected static function buildRows(array $actionData, &$succeed, &$total)
+    protected function buildRows(array $actionData, &$succeed, &$total)
     {
+        $pics = self::PICS;
+
         $succeed = true;
         $rows = [];
         foreach ($actionData as $key => $action) {
-            $action = $action + self::$actionDefaults;
+            $action = $action + self::ACTION_DEFAULTS;
             $start = new \DateTime($action['start']);
             $finish = new \DateTime($action['finish']);
             $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
             $diff = $finish->getTimestamp() - $start->getTimestamp();
             $rows[] = [
                 'name'     => $action['name'],
-                'pic'      => isset(self::$pics[$action['state']]) ? self::$pics[$action['state']] : $action['pic'],
+                'pic'      => isset($pics[$action['state']]) ? $pics[$action['state']] : $action['pic'],
                 'state'    => $action['state'],
                 'start'    => $start->format('H:i:s'),
                 'duration' => $diff . 's',
