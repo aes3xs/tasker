@@ -25,15 +25,6 @@ class CallableHelperTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['arg1', 'arg2', 'arg3'], $arguments);
     }
 
-    public function testExtractDuplicateArguments()
-    {
-        $callable = function ($arg1, $arg1) {};
-
-        $arguments = CallableHelper::extractArguments($callable);
-
-        $this->assertEquals(['arg1', 'arg1'], $arguments);
-    }
-
     public function stubMethodToTest($arg1, $arg2)
     {
     }
@@ -76,16 +67,5 @@ class CallableHelperTest extends \PHPUnit_Framework_TestCase
         $result = CallableHelper::call($callable, ['arg1' => 1, 'arg2' => 2]);
 
         $this->assertEquals(3, $result);
-    }
-
-    public function testCallDuplicateArguments()
-    {
-        $callable = function ($arg1, $arg1) {
-            return $arg1 + $arg1;
-        };
-
-        $result = CallableHelper::call($callable, ['arg1' => 1]);
-
-        $this->assertEquals(2, $result);
     }
 }
