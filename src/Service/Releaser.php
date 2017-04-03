@@ -137,6 +137,15 @@ class Releaser
 
     /**
      * @param $path
+     * @param $name
+     */
+    public function link($path, $name)
+    {
+        $this->shell->ln("$path/releases/$name", "$path/current");
+    }
+
+    /**
+     * @param $path
      *
      * @return string
      */
