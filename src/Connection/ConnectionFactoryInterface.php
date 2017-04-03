@@ -19,6 +19,13 @@ use Aes3xs\Yodler\Exception\FileReadException;
 interface ConnectionFactoryInterface
 {
     /**
+     * Return connection to local environment.
+     *
+     * @return ConnectionInterface
+     */
+    public function createLocalConnection();
+
+    /**
      * Return empty list.
      *
      * @return ConnectionListInterface

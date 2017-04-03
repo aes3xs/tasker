@@ -35,23 +35,23 @@ class HeapFactory implements HeapFactoryInterface
     /**
      * @var VariableListInterface
      */
-    protected $variables;
+    protected $runtime;
 
     /**
      * Constructor.
      *
      * @param Container $container
      * @param VariableFactoryInterface $variableFactory
-     * @param VariableListInterface $variables
+     * @param VariableListInterface $runtime
      */
     public function __construct(
         Container $container,
         VariableFactoryInterface $variableFactory,
-        VariableListInterface $variables
+        VariableListInterface $runtime
     ) {
         $this->container = $container;
         $this->variableFactory = $variableFactory;
-        $this->variables = $variables;
+        $this->runtime = $runtime;
     }
 
     /**
@@ -85,7 +85,7 @@ class HeapFactory implements HeapFactoryInterface
         $heap->addVariables($this->getArgumentVariables($input));
         $heap->addVariables($this->getOptionVariables($input));
 
-        $heap->addVariables($this->variables);
+        $heap->addVariables($this->runtime);
 
         return $heap;
     }

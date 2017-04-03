@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 use Aes3xs\Yodler\Connection\ConnectionListInterface;
 use Aes3xs\Yodler\Event\DeployEvent;
 use Aes3xs\Yodler\Exception\RuntimeException;
@@ -53,7 +54,12 @@ class Deployer implements DeployerInterface
     /**
      * @var VariableListInterface
      */
-    protected $variables;
+    protected $runtime;
+
+    /**
+     * @var ConnectionInterface
+     */
+    protected $localConnection;
 
     /**
      * Constructor.
@@ -62,20 +68,23 @@ class Deployer implements DeployerInterface
      * @param EventDispatcherInterface $eventDispatcher
      * @param SemaphoreInterface $semaphore
      * @param ReportInterface $report
-     * @param VariableListInterface $variables
+     * @param VariableListInterface $runtime
+     * @param ConnectionInterface $localConnection
      */
     public function __construct(
         ExecutorInterface $executor,
         EventDispatcherInterface $eventDispatcher,
         SemaphoreInterface $semaphore,
         ReportInterface $report,
-        VariableListInterface $variables
+        VariableListInterface $runtime,
+        ConnectionInterface $localConnection
     ) {
         $this->executor = $executor;
         $this->eventDispatcher = $eventDispatcher;
         $this->semaphore = $semaphore;
         $this->report = $report;
-        $this->variables = $variables;
+        $this->runtime = $runtime;
+        $this->localConnection = $localConnection;
     }
 
     /**
@@ -109,7 +118,7 @@ class Deployer implements DeployerInterface
                 $this->executor->execute($scenario->getActions());
             } catch (\Exception $e) {
                 $this->semaphore->reportError();
-                $this->variables->add('exception', $e);
+                $this->runtime->add('exception', $e);
                 $this->executor->execute($scenario->getFailbackActions());
             }
 
@@ -121,6 +130,9 @@ class Deployer implements DeployerInterface
         foreach ($childPids as $pid) {
             pcntl_waitpid($pid, $status);
         }
+
+        $event = new DeployEvent($scenario, $this->localConnection);
+        $this->eventDispatcher->dispatch(DeployEvent::NAME, $event);
 
         $this->report->initialize(getmypid());
         $this->executor->execute($scenario->getTerminateActions());

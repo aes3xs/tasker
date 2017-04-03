@@ -40,6 +40,18 @@ class ConnectionFactory implements ConnectionFactoryInterface
     /**
      * {@inheritdoc}
      */
+    public function createLocalConnection()
+    {
+        $variables = $this->variableFactory->createList();
+
+        $connection = new Connection('local', new Server(null, null), new User(null), $variables);
+
+        return $connection;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function createList()
     {
         return new ConnectionList();

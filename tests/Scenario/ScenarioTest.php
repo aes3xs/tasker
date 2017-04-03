@@ -21,13 +21,15 @@ class ScenarioTest extends \PHPUnit_Framework_TestCase
     {
         $actionsMock = $this->createMock(ActionListInterface::class);
         $fallbackActionsMock = $this->createMock(ActionListInterface::class);
+        $terminateActionsMock = $this->createMock(ActionListInterface::class);
         $variablesMock = $this->createMock(VariableListInterface::class);
 
-        $scenario = new Scenario('test', $actionsMock, $fallbackActionsMock, $variablesMock);
+        $scenario = new Scenario('test', $actionsMock, $fallbackActionsMock, $terminateActionsMock, $variablesMock);
 
         $this->assertEquals('test', $scenario->getName());
         $this->assertSame($actionsMock, $scenario->getActions());
         $this->assertSame($fallbackActionsMock, $scenario->getFailbackActions());
+        $this->assertSame($terminateActionsMock, $scenario->getTerminateActions());
         $this->assertSame($variablesMock, $scenario->getVariables());
     }
 }
