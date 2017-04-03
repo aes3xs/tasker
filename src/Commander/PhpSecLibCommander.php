@@ -41,7 +41,7 @@ class PhpSecLibCommander implements CommanderInterface
         restore_error_handler();
 
         if ($this->sftp->getExitStatus() !== 0) {
-            $e = new PhpSecLibCommandException(__METHOD__, func_get_args());
+            $e = new PhpSecLibCommandException($command);
             $e->addError($this->sftp->getSFTPErrors());
             $e->addError($this->sftp->getStdError() ?: $result);
             if ($error = error_get_last()) {
@@ -64,7 +64,7 @@ class PhpSecLibCommander implements CommanderInterface
         restore_error_handler();
 
         if (!$result) {
-            $e = new PhpSecLibCommandException(__METHOD__, func_get_args());
+            $e = new PhpSecLibCommandException($command);
             $e->addError($this->sftp->getSFTPErrors());
             if ($error = error_get_last()) {
                 $e->addError($error['message']);
@@ -84,7 +84,7 @@ class PhpSecLibCommander implements CommanderInterface
         restore_error_handler();
 
         if (!$result) {
-            $e = new PhpSecLibCommandException(__METHOD__, func_get_args());
+            $e = new PhpSecLibCommandException($command);
             $e->addError($this->sftp->getSFTPErrors());
             if ($error = error_get_last()) {
                 $e->addError($error['message']);

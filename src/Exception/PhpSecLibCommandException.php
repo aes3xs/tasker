@@ -24,25 +24,18 @@ class PhpSecLibCommandException extends \RuntimeException implements ExceptionIn
     /**
      * @var array
      */
-    protected $arguments;
-
-    /**
-     * @var array
-     */
     protected $errors = [];
 
     /**
      * Constructor.
      *
      * @param string $command
-     * @param array $arguments
      */
-    public function __construct($command, array $arguments)
+    public function __construct($command)
     {
         $this->command = $command;
-        $this->arguments = $arguments;
 
-        parent::__construct(sprintf('Error occured while executing command "%s" with arguments: %s', $command, implode(', ', $arguments)));
+        parent::__construct(sprintf('Error occured while executing command "%s"', $command));
     }
 
     /**
@@ -51,14 +44,6 @@ class PhpSecLibCommandException extends \RuntimeException implements ExceptionIn
     public function getCommand()
     {
         return $this->command;
-    }
-
-    /**
-     * @return array
-     */
-    public function getArguments()
-    {
-        return $this->arguments;
     }
 
     /**
@@ -78,9 +63,8 @@ class PhpSecLibCommandException extends \RuntimeException implements ExceptionIn
             $this->errors[] = (string) $error;
         }
 
-        $this->message = sprintf('Error occured while executing command "%s" with arguments: %s %s',
+        $this->message = sprintf('Error occured while executing command "%s" %s',
             $this->command,
-            implode(', ', $this->arguments),
             PHP_EOL . 'Errors: ' . PHP_EOL . implode(PHP_EOL, $this->errors)
         );
     }
