@@ -73,7 +73,7 @@ class ScenarioFactory implements ScenarioFactoryInterface
                 throw new \RuntimeException('Recipe must have constuctor with no arguments: ' . $reflectionClass->getName());
             }
 
-            $source = $reflectionClass->newInstanceWithoutConstructor();
+            $source = $reflectionClass->newInstance();
 
             if (null === $methods) {
                 $methods = [];

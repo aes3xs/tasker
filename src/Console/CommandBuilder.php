@@ -78,14 +78,20 @@ class CommandBuilder implements EventSubscriberInterface
     {
         $command = new ScenarioCommand($scenario);
 
+        $arguments = $command->getDefinition()->getArguments();
+        $options = $command->getDefinition()->getOptions();
+
         foreach ($scenario->getVariables()->all() as $name => $value) {
-            if ($value instanceof InputArgument && !$command->getDefinition()->hasArgument($value->getName())) {
-                $command->getDefinition()->addArgument($value);
+            if ($value instanceof InputArgument) {
+                $arguments[$value->getName()] = $value;
             }
-            if ($value instanceof InputOption && !$command->getDefinition()->hasOption($value->getName())) {
-                $command->getDefinition()->addOption($value);
+            if ($value instanceof InputOption) {
+                $options[$value->getName()] = $value;
             }
         }
+
+        $command->getDefinition()->setArguments($arguments);
+        $command->getDefinition()->setOptions($options);
 
         return $command;
     }
