@@ -16,9 +16,7 @@ use Aes3xs\Yodler\Annotation\Before;
 use Aes3xs\Yodler\Annotation\Condition;
 use Aes3xs\Yodler\Annotation\Failback;
 use Aes3xs\Yodler\Annotation\Terminate;
-use Aes3xs\Yodler\Exception\ClassMismatchException;
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
-use Aes3xs\Yodler\Recipe\RecipeInterface;
 use Aes3xs\Yodler\Variable\VariableFactoryInterface;
 use Doctrine\Common\Annotations\AnnotationReader;
 
@@ -63,10 +61,6 @@ class ScenarioFactory implements ScenarioFactoryInterface
                 throw new ClassNotFoundException($class);
             }
 
-            if (!is_a($class, RecipeInterface::class, true)) {
-                throw new ClassMismatchException(RecipeInterface::class, $class);
-            }
-
             $variables = $this->variableFactory->createList();
             $actions = new ActionList();
             $failbackActions = new ActionList();
@@ -74,6 +68,10 @@ class ScenarioFactory implements ScenarioFactoryInterface
 
             $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
+
+            if ($reflectionClass->getConstructor()->getNumberOfParameters()) {
+                throw new \RuntimeException('Recipe must have constuctor with no arguments: ' . $reflectionClass->getName());
+            }
 
             if (null === $methods) {
                 $methods = [];

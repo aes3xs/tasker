@@ -13,15 +13,8 @@ namespace Aes3xs\Yodler\Recipe;
 
 use Aes3xs\Yodler\Service\Shell;
 
-abstract class AbstractRecipe implements RecipeInterface
+abstract class AbstractRecipe
 {
-    /**
-     * Constructor.
-     */
-    public function __construct()
-    {
-    }
-
     protected function removePaths(Shell $shell, array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
