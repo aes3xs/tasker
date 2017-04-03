@@ -66,12 +66,13 @@ class ScenarioFactory implements ScenarioFactoryInterface
             $failbackActions = new ActionList();
             $terminateActions = new ActionList();
 
-            $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
 
             if ($reflectionClass->getConstructor() && $reflectionClass->getConstructor()->getNumberOfParameters() > 0) {
                 throw new \RuntimeException('Recipe must have constuctor with no arguments: ' . $reflectionClass->getName());
             }
+
+            $source = new $class();
 
             if (null === $methods) {
                 $methods = [];
