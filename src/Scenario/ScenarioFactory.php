@@ -69,7 +69,7 @@ class ScenarioFactory implements ScenarioFactoryInterface
             $source = new $class();
             $reflectionClass = new \ReflectionClass($class);
 
-            if ($reflectionClass->getConstructor()->getNumberOfParameters()) {
+            if ($reflectionClass->getConstructor() && $reflectionClass->getConstructor()->getNumberOfParameters() > 0) {
                 throw new \RuntimeException('Recipe must have constuctor with no arguments: ' . $reflectionClass->getName());
             }
 
