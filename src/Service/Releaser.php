@@ -271,11 +271,11 @@ class Releaser
      */
     public function getCurrentRelease($path)
     {
-        $path = $this->getCurrentPath($path);
+        $current = $this->getCurrentPath($path);
 
         $rplc = ['/' => '\/', '.' => '\.'];
-        $pattern = strtr("$path/releases/", $rplc) . '(.+)' . strtr('/release.lock', $rplc);
-        if (preg_match("~$pattern~", $path, $matches)) {
+        $pattern = strtr("$path/releases/", $rplc) . '(.+)';
+        if (preg_match("~$pattern~", $current, $matches)) {
             return $matches[1];
         }
 
