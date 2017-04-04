@@ -26,7 +26,7 @@ class SharedMemoryHandler
     const MODE_READ_WRITE = 'w';
     const MODE_NEW = 'n';
 
-    const PERMISSIONS = 0755;
+    const PERMISSIONS = 0777;
 
     /**
      * @var int
