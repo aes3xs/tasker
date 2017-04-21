@@ -16,12 +16,6 @@ namespace Aes3xs\Yodler\Service;
  */
 class Symfony
 {
-    const DEFAULT_OPTIONS = [
-        'env'            => 'prod',
-        'no-interaction' => null,
-        'no-debug'       => null,
-    ];
-
     /**
      * @var Shell
      */
@@ -32,6 +26,24 @@ class Symfony
      */
     protected $phpPath;
 
+    /**
+     * @var string
+     */
+    protected $env = 'prod';
+
+    /**
+     * @var bool
+     */
+    protected $debug = false;
+
+    /**
+     * @var bool
+     */
+    protected $interaction = false;
+
+    /**
+     * @var array
+     */
     protected $options = [];
 
     /**
@@ -44,7 +56,34 @@ class Symfony
         $this->shell = $shell;
     }
 
-    public function setDefaultOptions($options = self::DEFAULT_OPTIONS)
+    /**
+     * @param $env
+     */
+    public function setEnv($env)
+    {
+        $this->env = $env;
+    }
+
+    /**
+     * @param $debug
+     */
+    public function setDebug($debug)
+    {
+        $this->debug = $debug;
+    }
+
+    /**
+     * @param $interaction
+     */
+    public function setInteraction($interaction)
+    {
+        $this->interaction = $interaction;
+    }
+
+    /**
+     * @param array $options
+     */
+    public function setOptions(array $options)
     {
         $this->options = $options;
     }
@@ -53,7 +92,15 @@ class Symfony
     {
         $php = $this->getPhpPath();
 
-        $options = $this->options + $options;
+        $predefinedOptions = ['env' => $this->env];
+        if (!$this->debug) {
+            $predefinedOptions['no-debug'] = null;
+        }
+        if (!$this->interaction) {
+            $predefinedOptions['no-interaction'] = null;
+        }
+
+        $options = $predefinedOptions + $this->options + $options;
 
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';
