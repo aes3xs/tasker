@@ -43,6 +43,10 @@ class Shell
         $this->commander = $commander;
     }
 
+    /**
+     * @param $user
+     * @param bool $sshForwarding
+     */
     public function setupUser($user, $sshForwarding = false)
     {
         $this->user = null;
@@ -64,6 +68,26 @@ class Shell
         }
 
         $this->user = $user;
+    }
+
+    /**
+     * @param $string
+     *
+     * @return string
+     */
+    public function escapeString($string)
+    {
+        return escapeshellarg($string);
+    }
+
+    /**
+     * @param $path
+     *
+     * @return mixed
+     */
+    public function escapePath($path)
+    {
+        return str_replace(" ", "\\ ", $path);
     }
 
     /**
@@ -108,8 +132,8 @@ class Shell
      */
     public function ln($origin, $link, $relative = true)
     {
-        $origin = escapeshellarg($origin);
-        $link = escapeshellarg($link);
+        $origin = $this->escapePath($origin);
+        $link = $this->escapePath($link);
         $relative = $relative ? '--relative' : '';
         $this->exec("ln -nfs $relative $origin $link");
     }
@@ -122,7 +146,7 @@ class Shell
      */
     public function chmod($path, $mode = 0755, $recursive = true, $sudo = false)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $mode = sprintf("%04o", $mode);
         $recursive = $recursive ? '-R' : '';
         $sudo  = $sudo ? 'sudo ' : '';
@@ -138,7 +162,7 @@ class Shell
      */
     public function chown($path, $user, $group = null, $recursive = true, $sudo = false)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $user = $group ? "$user:$group" : $user;
         $recursive = $recursive ? '-R' : '';
         $sudo  = $sudo ? 'sudo ' : '';
@@ -151,7 +175,7 @@ class Shell
      */
     public function rm($path, $sudo = false)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $sudo  = $sudo ? 'sudo ' : '';
         $this->exec($sudo . "rm -rf $path");
     }
@@ -162,7 +186,7 @@ class Shell
      */
     public function mkdir($path, $recursive = true)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $recursive = $recursive ? '-p' : '';
         $this->exec("mkdir $recursive $path");
     }
@@ -172,7 +196,7 @@ class Shell
      */
     public function touch($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $this->exec("touch $path");
     }
 
@@ -183,7 +207,7 @@ class Shell
      */
     public function readlink($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("readlink $path");
     }
 
@@ -194,7 +218,7 @@ class Shell
      */
     public function realpath($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("realpath $path");
     }
 
@@ -205,7 +229,7 @@ class Shell
      */
     public function dirname($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("dirname $path");
     }
 
@@ -216,7 +240,7 @@ class Shell
      */
     public function ls($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         $result = $this->exec("ls -A $path");
         return $result ? explode(PHP_EOL, $result) : [];
     }
@@ -238,7 +262,7 @@ class Shell
      */
     public function exists($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -e $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -249,7 +273,7 @@ class Shell
      */
     public function isFile($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -f $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -260,7 +284,7 @@ class Shell
      */
     public function isDir($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -d $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -271,7 +295,7 @@ class Shell
      */
     public function isLink($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -h $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -282,7 +306,7 @@ class Shell
      */
     public function isWritable($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -w $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -293,7 +317,7 @@ class Shell
      */
     public function isReadable($path)
     {
-        $path = escapeshellarg($path);
+        $path = $this->escapePath($path);
         return $this->exec("if [ -r $path ]; then echo 'true'; fi") === 'true';
     }
 
@@ -324,8 +348,8 @@ class Shell
 
     public function copy($source, $target)
     {
-        $source = escapeshellarg($source);
-        $target = escapeshellarg($target);
+        $source = $this->escapePath($source);
+        $target = $this->escapePath($target);
         $this->exec("cp -r $source $target");
     }
 }
