@@ -18,12 +18,14 @@ use Aes3xs\Yodler\Common\SharedMemoryHandler;
  */
 class SharedMemoryHandlerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testReadAndDump()
+    public function testReadWrite()
     {
         $sharedMemoryhandler = new SharedMemoryHandler('test');
 
-        $sharedMemoryhandler->dump(['value']);
+        $sharedMemoryhandler->write(['value']);
 
         $this->assertEquals(['value'], $sharedMemoryhandler->read());
+
+        $sharedMemoryhandler->delete();
     }
 }

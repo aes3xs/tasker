@@ -26,7 +26,7 @@ class SharedMemoryHandler
     const MODE_READ_WRITE = 'w';
     const MODE_NEW = 'n';
 
-    const PERMISSIONS = 0777;
+    const PERMISSIONS = 0666;
 
     /**
      * @var int
@@ -39,7 +39,10 @@ class SharedMemoryHandler
      */
     public function __construct($name)
     {
-        $this->key = $this->getIntegerHash($name);
+        // Shared memory can be configured to read by all users
+        // But it cannot be deleted (for resizing) by anyone except root and owner
+        // So we'll force shared memory create distinct ids by same key for different users
+        $this->key = $this->getIntegerHash(posix_getuid() . $name);
     }
 
     /**
@@ -79,8 +82,8 @@ class SharedMemoryHandler
         if ($size) {
             $content = shmop_read($shmid, 0, $size);
             $data = json_decode($content, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new RuntimeException('Json decode problem: ' . $content);
+            if (JSON_ERROR_NONE !== json_last_error()) {
+                throw new \InvalidArgumentException('json_decode error: ' . json_last_error_msg());
             }
         }
 
@@ -94,7 +97,7 @@ class SharedMemoryHandler
      *
      * @param $data
      */
-    public function dump($data)
+    public function write($data)
     {
         $shmid = @shmop_open($this->key, self::MODE_READ, self::PERMISSIONS, 0);
 
@@ -104,6 +107,9 @@ class SharedMemoryHandler
         }
 
         $content = json_encode($data);
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            throw new \InvalidArgumentException('json_encode error: ' . json_last_error_msg());
+        }
         $size = mb_strlen($content, 'UTF-8');
 
         $shmid = @shmop_open($this->key, self::MODE_CREATE, self::PERMISSIONS, $size);
@@ -114,5 +120,15 @@ class SharedMemoryHandler
 
         shmop_write($shmid, $content, 0);
         shmop_close($shmid);
+    }
+
+    public function delete()
+    {
+        $shmid = @shmop_open($this->key, self::MODE_READ, self::PERMISSIONS, 0);
+
+        if ($shmid) {
+            shmop_delete($shmid);
+            shmop_close($shmid);
+        }
     }
 }
