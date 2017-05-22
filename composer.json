@@ -20,6 +20,7 @@
         "symfony/event-dispatcher": "~2.7|~3.0",
         "symfony/process": "~2.7|~3.0",
         "symfony/yaml": "~2.7|~3.0",
+        "symfony/lock": "3.3.x-dev",
         "twig/twig": "~1.32",
         "doctrine/annotations": "1.*",
         "doctrine/inflector": "^1.1",
