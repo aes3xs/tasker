@@ -11,16 +11,17 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
+use Aes3xs\Yodler\Common\LockableStorage;
 use Aes3xs\Yodler\Exception\ErrorInterruptException;
 use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Common\SharedMemoryHandler;
 use Aes3xs\Yodler\Exception\TimeoutInterruptException;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Processor;
-use Symfony\Component\Filesystem\LockHandler;
 
 /**
  * Semaphore implementation.
+ *
+ * Coordinates and synchronizes process execution.
  */
 class Semaphore implements SemaphoreInterface
 {
@@ -29,22 +30,14 @@ class Semaphore implements SemaphoreInterface
 
     const SLEEP_MS = 100;
     const TIMEOUT = 300;
+
+    const CHECKPOINT_INIT = '@init';
     const CHECKPOINT_ERROR = '@error';
 
     /**
-     * @var LockHandler
+     * @var LockableStorage
      */
-    protected $lockHandler;
-
-    /**
-     * @var SharedMemoryHandler
-     */
-    protected $sharedMemoryHandler;
-
-    /**
-     * @var string
-     */
-    protected $id;
+    protected $storage;
 
     /**
      * @var int
@@ -54,13 +47,11 @@ class Semaphore implements SemaphoreInterface
     /**
      * Constructor.
      *
-     * @param LockHandler $lockHandler
-     * @param SharedMemoryHandler $sharedMemoryHandler
+     * @param LockableStorage $storage
      */
-    public function __construct(LockHandler $lockHandler, SharedMemoryHandler $sharedMemoryHandler)
+    public function __construct(LockableStorage $storage)
     {
-        $this->lockHandler = $lockHandler;
-        $this->sharedMemoryHandler = $sharedMemoryHandler;
+        $this->storage = $storage;
     }
 
     /**
@@ -68,57 +59,77 @@ class Semaphore implements SemaphoreInterface
      */
     public function reset()
     {
-        $this->lockHandler->lock(true);
-        $this->sharedMemoryHandler->dump([
-            'state'          => self::STATE_SUSPENDED,
-            'concurrent_ids' => [],
-            'checkpoints'    => [],
+        $this->lock();
+        $this->setData([
+            'state'       => self::STATE_SUSPENDED,
+            'checkpoints' => [],
         ]);
-        $this->lockHandler->release();
+        $this->release();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function run(array $concurrentIds)
+    public function addProcess($pid)
+    {
+        $this->lock();
+        $data = $this->getData();
+        if (!array_key_exists($pid, $data['checkpoints'])) {
+            $data['checkpoints'][$pid] = [];
+        }
+        $this->setData($data);
+        $this->release();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function run()
     {
         $timer = 0;
         while (true) {
-            $this->lockHandler->lock(true);
-            $data = $this->getData(false);
-            $this->lockHandler->release();
-            if (!array_diff($concurrentIds, array_keys($data['checkpoints']))) {
-                break;
+            $this->lock();
+            $data = $this->getData();
+            $this->release();
+            foreach ($data['checkpoints'] as $checkpoints) {
+                if (!in_array(self::CHECKPOINT_INIT, $checkpoints)) {
+                    $this->sleep($timer);
+                    break;
+                }
             }
-            $this->sleep($timer);
+            break;
         }
 
-        $this->lockHandler->lock(true);
-        $data = $this->getData(false);
+        $this->lock();
+        $data = $this->getData();
         $data['state'] = self::STATE_RUNNING;
-        $data['concurrent_ids'] = $concurrentIds;
-        $this->sharedMemoryHandler->dump($data);
-        $this->lockHandler->release();
+        $this->setData($data);
+        $this->release();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function reportReady($id)
+    public function reportReady()
     {
-        if (!is_scalar($id) || !$id) {
-            throw new RuntimeException('ID must be scalar and non-empty');
-        }
-
-        $this->id = $id;
-
         $timer = 0;
         while (true) {
-            $this->lockHandler->lock(true);
-            $data = $this->getData(false);
-            $data['checkpoints'][$id] = [];
-            $this->sharedMemoryHandler->dump($data);
-            $this->lockHandler->release();
+
+            $this->lock();
+            $data = $this->getData();
+
+            if (!isset($data['checkpoints'][getmypid()])) {
+                $this->release();
+                $this->sleep($timer);
+                continue;
+            }
+            if (!in_array(self::CHECKPOINT_INIT, $data['checkpoints'][getmypid()])) {
+                $data['checkpoints'][getmypid()][] = self::CHECKPOINT_INIT;
+                $this->setData($data);
+            }
+
+            $this->release();
+
             if ($data['state'] === self::STATE_RUNNING) {
                 break;
             }
@@ -131,28 +142,39 @@ class Semaphore implements SemaphoreInterface
      */
     public function reportCheckpoint($name)
     {
-        $id = $this->getId();
-
-        $this->lockHandler->lock(true);
+        $this->lock();
         $data = $this->getData();
-        $data['checkpoints'][$id][] = $name;
-        $this->sharedMemoryHandler->dump($data);
-        $this->lockHandler->release();
+        if (!isset($data['checkpoints'][getmypid()])) {
+            throw new RuntimeException('No checkpoint data found for ID: ' . getmypid());
+        }
+        $data['checkpoints'][getmypid()][] = $name;
+        $this->setData($data);
+        $this->release();
+
+        if (self::CHECKPOINT_ERROR === $name) {
+            return;
+        }
 
         $timer = 0;
         while (true) {
 
-            $this->lockHandler->lock(true);
+            $this->lock();
             $data = $this->getData();
+            if (!isset($data['checkpoints'][getmypid()])) {
+                throw new RuntimeException('No checkpoint data found for ID: ' . getmypid());
+            }
+            $currentCheckpoints = $data['checkpoints'][getmypid()];
+            $this->release();
+
             $wait = false;
             $error = false;
-            foreach ($data['concurrent_ids'] as $concurrentId) {
-                $missCheckpoints = !empty(array_diff($data['checkpoints'][$id], $data['checkpoints'][$concurrentId]));
-                $hasError = in_array(self::CHECKPOINT_ERROR, $data['checkpoints'][$concurrentId]);
+
+            foreach ($data['checkpoints'] as $checkpoints) {
+                $missCheckpoints = !empty(array_diff($currentCheckpoints, $checkpoints));
+                $hasError = in_array(self::CHECKPOINT_ERROR, $checkpoints);
                 $wait = $wait || $missCheckpoints;
                 $error = $error || $hasError;
             }
-            $this->lockHandler->release();
 
             if ($error) {
                 throw new ErrorInterruptException();
@@ -165,19 +187,12 @@ class Semaphore implements SemaphoreInterface
         }
     }
 
-
     /**
      * {@inheritdoc}
      */
     public function reportError()
     {
-        $id = $this->getId();
-
-        $this->lockHandler->lock(true);
-        $data = $this->getData();
-        $data['checkpoints'][$id][] = self::CHECKPOINT_ERROR;
-        $this->sharedMemoryHandler->dump($data);
-        $this->lockHandler->release();
+        $this->reportCheckpoint(self::CHECKPOINT_ERROR);
     }
 
     /**
@@ -209,39 +224,23 @@ class Semaphore implements SemaphoreInterface
     }
 
     /**
-     * Return process configured ID.
-     *
-     * @return int
-     */
-    protected function getId()
-    {
-        if (!$this->id) {
-            throw new RuntimeException('Semaphore is not properly initialized. Process must call reportReady() first.');
-        }
-
-        return $this->id;
-    }
-
-    /**
-     * Retrieve and validate data from shared memory.
-     *
-     * By default checks configured ID to be presented.
-     *
-     * @param bool $checkId
+     * Retrieve and validate data from storage.
      *
      * @return array
      */
-    protected function getData($checkId = true)
+    protected function getData()
     {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('semaphore');
 
         $rootNode
             ->children()
-            ->scalarNode('state')->end()
-            ->arrayNode('concurrent_ids')
+            ->scalarNode('state')
                 ->isRequired()
-                ->prototype('scalar')->end()
+                ->validate()
+                    ->ifNotInArray([self::STATE_SUSPENDED, self::STATE_RUNNING])
+                    ->thenInvalid('State is invalid')
+                ->end()
             ->end()
             ->arrayNode('checkpoints')
                 ->isRequired()
@@ -251,15 +250,71 @@ class Semaphore implements SemaphoreInterface
             ->end()
         ;
 
-        $data = $this->sharedMemoryHandler->read();
+        $data = $this->storage->read();
 
         $processor = new Processor();
-        $processor->process($treeBuilder->buildTree(), [$data]);
+        $data = $processor->process($treeBuilder->buildTree(), [$data]);
 
-        if ($checkId && !isset($data['checkpoints'][$this->getId()])) {
-            throw new RuntimeException('No checkpoint data found for ID: ' . $this->getId());
+        return $data;
+    }
+
+    /**
+     * Set data to storage.
+     *
+     * @param $data
+     */
+    protected function setData($data)
+    {
+        $this->storage->write($data);
+    }
+
+    /**
+     * Lock storage with blocking.
+     */
+    protected function lock()
+    {
+        $this->storage->acquire(true);
+    }
+
+    /**
+     * Release storage lock.
+     */
+    protected function release()
+    {
+        $this->storage->release();
+    }
+
+    /**
+     * Get current process checkpoints.
+     *
+     * @return array
+     */
+    protected function getCurrentProcessCheckpoints()
+    {
+        $data = $this->getData();
+
+        if (!isset($data['checkpoints'][getmypid()])) {
+            throw new RuntimeException('No checkpoint data found for ID: ' . getmypid());
         }
 
         return $data;
+    }
+
+    /**
+     * Add checkpoint to current process.
+     *
+     * @param $checkpoint
+     */
+    protected function addCurrentProcessCheckpoint($checkpoint)
+    {
+        $data = $this->getData();
+
+        if (!isset($data['checkpoints'][getmypid()])) {
+            throw new RuntimeException('No checkpoint data found for ID: ' . getmypid());
+        }
+
+        $data['checkpoints'][getmypid()][] = $checkpoint;
+
+        $this->setData($data);
     }
 }

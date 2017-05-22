@@ -11,122 +11,153 @@
 
 namespace Aes3xs\Yodler\Tests\Deployer;
 
-use Aes3xs\Yodler\Common\SharedMemoryHandler;
 use Aes3xs\Yodler\Deployer\Semaphore;
 use Aes3xs\Yodler\Exception\ErrorInterruptException;
 use Aes3xs\Yodler\Exception\TimeoutInterruptException;
-use Symfony\Component\Filesystem\LockHandler;
+use Aes3xs\Yodler\Tests\LockableStorageDummy;
 
 class SemaphoreTest extends \PHPUnit_Framework_TestCase
 {
     public function testReset()
     {
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = new LockableStorageDummy();
 
-        $sharedMemoryHandlerMock
-            ->expects($this->at(0))
-            ->method('dump')
-            ->with([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [],
-            ]);
-
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
+        $semaphore = new Semaphore($storage);
         $semaphore->reset();
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [],
+        ], $storage->getData());
+    }
+
+    public function testAddProcess()
+    {
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [],
+        ]);
+
+        $semaphore = new Semaphore($storage);
+        $semaphore->addProcess(getmypid());
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [getmypid() => []],
+        ], $storage->getData());
+    }
+
+    public function testReportReady()
+    {
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => [getmypid() => []],
+        ]);
+
+        $semaphore = new Semaphore($storage);
+        $semaphore->reportReady();
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => [getmypid() => [Semaphore::CHECKPOINT_INIT]],
+        ], $storage->getData());
     }
 
     public function testReportReadyWaitOnce()
     {
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [],
+                'state'       => Semaphore::STATE_SUSPENDED,
+                'checkpoints' => [],
             ]);
-        $sharedMemoryHandlerMock
+
+        $storage
+            ->expects($this->at(1))
+            ->method('read')
+            ->willReturn([
+                'state'       => Semaphore::STATE_SUSPENDED,
+                'checkpoints' => [getmypid() => [], 'wqe' => null],
+            ]);
+
+        $storage
             ->expects($this->at(2))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [],
-                'checkpoints'    => [1 => []],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => []],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
-        $semaphore->reportReady(1);
+        $semaphore = new Semaphore($storage);
+        $semaphore->reportReady();
     }
 
     public function testReportReadyWaitTimeout()
     {
         $this->expectException(TimeoutInterruptException::class);
 
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [getmypid() => []],
+        ]);
 
-        $sharedMemoryHandlerMock
-            ->expects($this->any())
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [1 => []],
-            ]);
-
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
+        $semaphore = new Semaphore($storage);
         $semaphore->setTimeout(0);
-        $semaphore->reportReady(1);
+        $semaphore->reportReady();
+    }
+
+    public function testReportCheckpoint()
+    {
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => [getmypid() => []],
+        ]);
+
+        $semaphore = new Semaphore($storage);
+        $semaphore->reportCheckpoint('test');
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => [getmypid() => ['test']],
+        ], $storage->getData());
     }
 
     public function testReportCheckpointWaitOnce()
     {
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        // Called from reportReady()
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => [], 2 => []],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => [], 'another_process' => []],
             ]);
 
-        // Called from reportCheckpoint()
-        $sharedMemoryHandlerMock
+        $storage
+            ->expects($this->at(1))
+            ->method('read')
+            ->willReturn([
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => ['test'], 'another_process' => []],
+            ]);
+
+        $storage
             ->expects($this->at(2))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => ['test'], 2 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(4))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => ['test'], 2 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(5))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => ['test'], 2 => ['test']],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => ['test'], 'another_process' => ['test']],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
-        $semaphore->reportReady(1);
+        $semaphore = new Semaphore($storage);
         $semaphore->reportCheckpoint('test');
     }
 
@@ -134,40 +165,26 @@ class SemaphoreTest extends \PHPUnit_Framework_TestCase
     {
         $this->expectException(TimeoutInterruptException::class);
 
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        // Called from reportReady()
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => [], 2 => []],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => [], 'another_process' => []],
             ]);
 
-        // Called from reportCheckpoint()
-        $sharedMemoryHandlerMock
-            ->expects($this->at(2))
+        $storage
+            ->expects($this->at(1))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => ['test'], 2 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(4))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => ['test'], 2 => []],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => ['test'], 'another_process' => []],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
+        $semaphore = new Semaphore($storage);
         $semaphore->setTimeout(0);
-        $semaphore->reportReady(1);
         $semaphore->reportCheckpoint('test');
     }
 
@@ -175,132 +192,107 @@ class SemaphoreTest extends \PHPUnit_Framework_TestCase
     {
         $this->expectException(ErrorInterruptException::class);
 
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        // Called from reportReady()
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => [], 2 => []],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => [], 'another_process' => []],
             ]);
 
-        // Called from reportCheckpoint()
-        $sharedMemoryHandlerMock
-            ->expects($this->at(2))
+        $storage
+            ->expects($this->at(1))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => [], 2 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(4))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1, 2],
-                'checkpoints'    => [1 => [], 2 => ['@error']],
+                'state'       => Semaphore::STATE_RUNNING,
+                'checkpoints' => [getmypid() => ['test'], 'another_process' => [Semaphore::CHECKPOINT_ERROR]],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
-        $semaphore->reportReady(1);
+        $semaphore = new Semaphore($storage);
         $semaphore->reportCheckpoint('test');
     }
 
     public function testReportError()
     {
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [getmypid() => []],
+        ]);
 
-        // Called from reportReady()
-        $sharedMemoryHandlerMock
-            ->expects($this->at(0))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1],
-                'checkpoints'    => [1 => []],
-            ]);
-
-        // Called from reportCheckpoint()
-        $sharedMemoryHandlerMock
-            ->expects($this->at(2))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1],
-                'checkpoints'    => [1 => ['@error']],
-            ]);
-
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
-        $semaphore->reportReady(1);
+        $semaphore = new Semaphore($storage);
         $semaphore->reportError();
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => [getmypid() => [Semaphore::CHECKPOINT_ERROR]],
+        ], $storage->getData());
+    }
+
+    public function testRun()
+    {
+        $storage = new LockableStorageDummy();
+        $storage->setData([
+            'state'       => Semaphore::STATE_SUSPENDED,
+            'checkpoints' => ['process' => [Semaphore::CHECKPOINT_INIT]],
+        ]);
+
+        $semaphore = new Semaphore($storage);
+        $semaphore->run();
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => ['process' => [Semaphore::CHECKPOINT_INIT]],
+        ], $storage->getData());
     }
 
     public function testRunWaitOnce()
     {
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [],
+                'state'       => Semaphore::STATE_SUSPENDED,
+                'checkpoints' => ['process' => []],
             ]);
-        $sharedMemoryHandlerMock
+
+        $storage
             ->expects($this->at(1))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [1 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(2))
-            ->method('read')
-            ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [1 => []],
-            ]);
-        $sharedMemoryHandlerMock
-            ->expects($this->at(3))
-            ->method('dump')
-            ->willReturn([
-                'state'          => Semaphore::STATE_RUNNING,
-                'concurrent_ids' => [1],
-                'checkpoints'    => [1 => []],
+                'state'       => Semaphore::STATE_SUSPENDED,
+                'checkpoints' => ['process' => [Semaphore::CHECKPOINT_INIT]],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
-        $semaphore->run([1]);
+        $semaphore = new Semaphore($storage);
+        $semaphore->run();
+
+        $this->assertEquals([
+            'state'       => Semaphore::STATE_RUNNING,
+            'checkpoints' => ['process' => [Semaphore::CHECKPOINT_INIT]],
+        ], $storage->getData());
     }
 
     public function testRunWaitTimeout()
     {
         $this->expectException(TimeoutInterruptException::class);
 
-        $lockHandlerMock = $this->createMock(LockHandler::class);
-        $sharedMemoryHandlerMock = $this->createMock(SharedMemoryHandler::class);
+        $storage = $this->getMockBuilder(LockableStorageDummy::class)->setMethods(['read'])->getMock();
 
-        $sharedMemoryHandlerMock
+        $storage
             ->expects($this->at(0))
             ->method('read')
             ->willReturn([
-                'state'          => Semaphore::STATE_SUSPENDED,
-                'concurrent_ids' => [],
-                'checkpoints'    => [],
+                'state'       => Semaphore::STATE_SUSPENDED,
+                'checkpoints' => ['process' => []],
             ]);
 
-        $semaphore = new Semaphore($lockHandlerMock, $sharedMemoryHandlerMock);
+        $semaphore = new Semaphore($storage);
         $semaphore->setTimeout(0);
-        $semaphore->run([1]);
+        $semaphore->run();
     }
 }

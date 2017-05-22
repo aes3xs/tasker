@@ -17,7 +17,7 @@ use Aes3xs\Yodler\Exception\TimeoutInterruptException;
 /**
  * Interface to semaphore manager.
  *
- * Semaphore is used to coordinate and synchronize parallel deploy builds.
+ * Semaphore is used to coordinate and synchronize parallel processes.
  * It's work based on checkpoint reporting.
  */
 interface SemaphoreInterface
@@ -28,25 +28,26 @@ interface SemaphoreInterface
     public function reset();
 
     /**
-     * Start deploy with passed builds IDs.
+     * Add process PID to semaphore regulation.
      *
-     * All processes with passed IDs will start simultaneously.
-     *
-     * @param array $concurrentIds
+     * @param $pid
      */
-    public function run(array $concurrentIds);
+    public function addProcess($pid);
 
     /**
-     * Initialize and confirm deploy ready to start.
+     * Trigger processes execution.
      *
-     * Every deploy process must report about itself and pass it's ID.
-     *
-     * @param $id
+     * All processes will start simultaneously.
      */
-    public function reportReady($id);
+    public function run();
 
     /**
-     * Report about reaching deploy checkpoint.
+     * Initialize and confirm process ready to start.
+     */
+    public function reportReady();
+
+    /**
+     * Report about reaching checkpoint.
      *
      * @param $name
      *
@@ -56,7 +57,7 @@ interface SemaphoreInterface
     public function reportCheckpoint($name);
 
     /**
-     * Report about error occured during deploy.
+     * Report about error occured during execution.
      */
     public function reportError();
 }
