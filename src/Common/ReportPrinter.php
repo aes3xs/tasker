@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Service;
+namespace Aes3xs\Yodler\Common;
 
-use Aes3xs\Yodler\Deployer\ReportInterface;
+use Aes3xs\Yodler\Deployer\Reporter;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,14 +21,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Class Reporter
  */
-class Reporter
+class ReportPrinter
 {
     const PICS = [
-        ReportInterface::ACTION_STATE_NONE    => ' ',
-        ReportInterface::ACTION_STATE_SKIPPED => '⇣',
-        ReportInterface::ACTION_STATE_RUNNING => '➤',
-        ReportInterface::ACTION_STATE_SUCCEED => '✔',
-        ReportInterface::ACTION_STATE_ERROR   => '✘',
+        Reporter::ACTION_STATE_NONE    => ' ',
+        Reporter::ACTION_STATE_SKIPPED => '⇣',
+        Reporter::ACTION_STATE_RUNNING => '➤',
+        Reporter::ACTION_STATE_SUCCEED => '✔',
+        Reporter::ACTION_STATE_ERROR   => '✘',
     ];
 
     const ACTION_DEFAULTS = [
@@ -41,48 +41,29 @@ class Reporter
     ];
 
     /**
-     * @var ReportInterface
-     */
-    protected $report;
-
-    /**
-     * Constructor.
+     * Print report.
      *
-     * @param ReportInterface $report
-     */
-    public function __construct(ReportInterface $report)
-    {
-        $this->report = $report;
-    }
-
-    /**
+     * @param Reporter $reporter
      * @param InputInterface $input
      * @param OutputInterface $output
      */
-    public function printReport(InputInterface $input, OutputInterface $output)
+    public static function printReport(Reporter $reporter, InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
 
-        $result = $this->report->getRawData();
+        $result = $reporter->getRawData();
 
         $i = 0;
-        foreach ($result['deploys'] as $pid => $deploy) {
+        foreach ($result as $pid => $deploy) {
             $i++;
             $io->title('Deploy #' . $i);
             $io->text('<info>Scenario:</info> ' . $deploy['scenario']);
             $io->text('<info>Connection:</info> ' . $deploy['connection']);
 
-            foreach ($deploy['actions'] as $key => $action) {
-                $deploy['actions'][$key] = $result['actions'][$pid][$key] + $action;
-            }
-            foreach ($deploy['failback'] as $key => $action) {
-                $deploy['failback'][$key] = $result['actions'][$pid][$key] + $action;
-            }
-
             $total = 0;
 
             $rows = $actionsRows = self::buildRows($deploy['actions'], $actionsSucceed, $total);
-            if ($actionsRows = self::buildRows($deploy['failback'], $failbackSucceed, $total)) {
+            if ($actionsRows = self::buildRows($deploy['failbacks'], $failbackSucceed, $total)) {
                 $rows[] = new TableSeparator();
                 $rows = array_merge($rows, $actionsRows);
             }
@@ -106,7 +87,7 @@ class Reporter
         }
     }
 
-    protected function buildRows(array $actionData, &$succeed, &$total)
+    protected static function buildRows(array $actionData, &$succeed, &$total)
     {
         $pics = self::PICS;
 
@@ -126,7 +107,7 @@ class Reporter
                 'duration' => $diff . 's',
                 'output'   => mb_substr($action['output'], 0, 64),
             ];
-            $succeed = $succeed && in_array($action['state'], [ReportInterface::ACTION_STATE_SKIPPED, ReportInterface::ACTION_STATE_SUCCEED]);
+            $succeed = $succeed && in_array($action['state'], [Reporter::ACTION_STATE_SKIPPED, Reporter::ACTION_STATE_SUCCEED]);
             $total += $diff;
         }
         return $rows;

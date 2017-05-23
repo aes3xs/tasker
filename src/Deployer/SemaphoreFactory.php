@@ -11,22 +11,22 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Common\SharedMemoryHandler;
-use Symfony\Component\Filesystem\LockHandler;
+use Aes3xs\Yodler\Common\LockableStorage;
 
 /**
- * Semaphore factory implementation.
+ * Semaphore factory.
  */
-class SemaphoreFactory implements SemaphoreFactoryInterface
+class SemaphoreFactory
 {
     /**
-     * {@inheritdoc}
+     * Create semaphore instance.
+     *
+     * @param $lockName
+     *
+     * @return SemaphoreInterface
      */
     public function create($lockName)
     {
-        $lockHandler = new LockHandler($lockName);
-        $sharedMemoryHandler = new SharedMemoryHandler($lockName);
-
-        return new Semaphore($lockHandler, $sharedMemoryHandler);
+        return new Semaphore(new LockableStorage('semaphore_' . $lockName));
     }
 }

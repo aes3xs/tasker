@@ -11,6 +11,9 @@
 
 namespace Aes3xs\Yodler\Heap;
 
+use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
+use Aes3xs\Yodler\Exception\VariableNotFoundException;
+
 /**
  * Interface to implement heap storage.
  *
@@ -20,20 +23,51 @@ namespace Aes3xs\Yodler\Heap;
 interface HeapInterface
 {
     /**
-     * Check if contains variable with specified name.
+     * Return all variables in key-indexed array.
+     *
+     * @return array
+     */
+    public function all();
+
+    /**
+     * Add variable to a list.
      *
      * @param $name
+     * @param $value
+     *
+     * @throws VariableAlreadyExistsException
+     */
+    public function add($name, $value);
+
+    /**
+     * Set variable in a list.
+     * If variable already exists, overwrites it.
+     *
+     * @param $name
+     * @param $value
+     * @return mixed
+     */
+    public function set($name, $value);
+
+    /**
+     * Get variable from a list by name.
+     *
+     * @param string $name
+     *
+     * @return mixed
+     *
+     * @throws VariableNotFoundException
+     */
+    public function get($name);
+
+    /**
+     * Check if list contains variable with specified name.
+     *
+     * @param $name
+     *
      * @return bool
      */
     public function has($name);
-
-    /**
-     * Get variable value.
-     *
-     * @param $name
-     * @return mixed
-     */
-    public function get($name);
 
     /**
      * Resolve string using twig syntax.

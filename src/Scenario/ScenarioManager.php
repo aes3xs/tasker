@@ -15,41 +15,76 @@ use Aes3xs\Yodler\Annotation\After;
 use Aes3xs\Yodler\Annotation\Before;
 use Aes3xs\Yodler\Annotation\Condition;
 use Aes3xs\Yodler\Annotation\Failback;
-use Aes3xs\Yodler\Annotation\Terminate;
 use Aes3xs\Yodler\Exception\ClassNotFoundException;
-use Aes3xs\Yodler\Variable\VariableFactoryInterface;
+use Aes3xs\Yodler\Exception\ScenarioNotFoundException;
+use Aes3xs\Yodler\Variable\VariableList;
 use Doctrine\Common\Annotations\AnnotationReader;
 
 /**
- * Scenario factory implementation.
+ * Scenario manager implementation.
  */
-class ScenarioFactory implements ScenarioFactoryInterface
+class ScenarioManager
 {
     /**
-     * @var VariableFactoryInterface
+     * @var Scenario[]
      */
-    protected $variableFactory;
+    protected $scenarios = [];
 
     /**
      * Constructor.
      *
-     * @param VariableFactoryInterface $variableFactory
+     * @param $configuration
      */
-    public function __construct(VariableFactoryInterface $variableFactory)
+    public function __construct($configuration)
     {
-        $this->variableFactory = $variableFactory;
+        $this->scenarios = $this->createListFromConfiguration($configuration);
     }
 
     /**
-     * {@inheritdoc}
+     * Get scenario from a list by name.
+     *
+     * @param $name
+     *
+     * @return Scenario
+     *
+     * @throws ScenarioNotFoundException
      */
-    public function createListFromConfiguration($scenarioConfiguration)
+    public function get($name)
     {
-        $scenarios = new ScenarioList();
+        if (!isset($this->scenarios[$name])) {
+            throw new ScenarioNotFoundException($name);
+        }
+
+        return $this->scenarios[$name];
+    }
+
+    /**
+     * Return all scenarios in key-indexed array.
+     *
+     * @return Scenario[]
+     */
+    public function all()
+    {
+        return $this->scenarios;
+    }
+
+    /**
+     * Create list from configuration parsed from YAML.
+     *
+     * @param $configuration
+     *
+     * @return Scenario[]
+     */
+    protected function createListFromConfiguration($configuration)
+    {
+        $scenarios = [];
 
         $annotationReader = new AnnotationReader();
 
-        foreach ($scenarioConfiguration as $name => $class) {
+        foreach ($configuration as $name => $class) {
+
+            $scenario = new Scenario($name);
+            $scenarios[$name] = $scenario;
 
             $methods = null;
             if (strpos($class, '::') !== false) {
@@ -60,11 +95,6 @@ class ScenarioFactory implements ScenarioFactoryInterface
             if (!class_exists($class)) {
                 throw new ClassNotFoundException($class);
             }
-
-            $variables = $this->variableFactory->createList();
-            $actions = new ActionList();
-            $failbackActions = new ActionList();
-            $terminateActions = new ActionList();
 
             $reflectionClass = new \ReflectionClass($class);
 
@@ -144,31 +174,23 @@ class ScenarioFactory implements ScenarioFactoryInterface
                 $condition = $conditionAnnotation ? $conditionAnnotation->value : null;
 
                 $isFailback = !!$annotationReader->getMethodAnnotation($method, Failback::class);
-                $isTerminate = !!$annotationReader->getMethodAnnotation($method, Terminate::class);
-
-                if ($isFailback && $isTerminate) {
-                    throw new \RuntimeException('Failback and Terminate annotations cannot be used together: ' . $class . '::' . $methodName);
-                }
 
                 $action = new Action($method->getName(), $callback, $condition);
 
                 if ($isFailback) {
-                    $failbackActions->add($action);
-                } elseif ($isTerminate) {
-                    $terminateActions->add($action);
+                    $scenario->addFailback($action);
                 } else {
-                    $actions->add($action);
+                    $scenario->addAction($action);
                 }
             }
 
             $reflectionProperties = $reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC);
+            $variables = new VariableList();
             foreach ($reflectionProperties as $property) {
                 $variables->add($property->getName(), $property->getValue($source));
             }
 
-            $scenario = new Scenario($name, $actions, $failbackActions, $terminateActions, $variables);
-
-            $scenarios->add($scenario);
+            $scenario->setVariables($variables);
         }
 
         return $scenarios;

@@ -21,7 +21,6 @@ use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Aes3xs\Yodler\Annotation\Terminate;
 
 /**
  * Example recipe.
@@ -124,13 +123,5 @@ class Symfony2Recipe extends AbstractRecipe
     public function cleanup(Releaser $releaser, $deploy_path, $keep_releases = 5)
     {
         $releaser->cleanup($deploy_path, $keep_releases);
-    }
-
-    /**
-     * @Terminate
-     */
-    public function report(Reporter $reporter, InputInterface $input, OutputInterface $output)
-    {
-        $reporter->printReport($input, $output);
     }
 }

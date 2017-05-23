@@ -11,9 +11,12 @@
 
 namespace Aes3xs\Yodler\Tests\Service;
 
-use Aes3xs\Yodler\Tests\AbstractFunctionalTest;
+use Aes3xs\Yodler\Commander\LocalCommander;
+use Aes3xs\Yodler\Common\ProcessFactory;
+use Aes3xs\Yodler\Service\Shell;
+use Symfony\Component\Filesystem\Filesystem;
 
-class ShellTest extends AbstractFunctionalTest
+class ShellTest extends \PHPUnit_Framework_TestCase
 {
     protected function createTempDir()
     {
@@ -25,26 +28,30 @@ class ShellTest extends AbstractFunctionalTest
         return $dir;
     }
 
+    protected function createShell()
+    {
+        return new Shell(new LocalCommander(new Filesystem(), new ProcessFactory()));
+    }
+
     public function testExec()
     {
-        $shell = $this->getContainer()->get('shell');
+        $shell = $this->createShell();
 
         $result = $shell->exec("echo 'test'");
-        $output = $this->getOutput();
 
-        $this->assertEquals('test', $result, $output);
+        $this->assertEquals('test', $result);
     }
 
     public function testLn()
     {
-        $shell = $this->getContainer()->get('shell');
+        $shell = $this->createShell();
+
         $dir = $this->createTempDir();
         mkdir("$dir/test");
 
         $shell->ln("$dir/test", "$dir/link");
-        $output = $this->getOutput();
 
-        $this->assertFileExists("$dir/link", $output);
-        $this->assertEquals("$dir/test", realpath("$dir/link"), $output);
+        $this->assertFileExists("$dir/link");
+        $this->assertEquals("$dir/test", realpath("$dir/link"));
     }
 }

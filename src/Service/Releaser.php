@@ -22,6 +22,11 @@ class Releaser
     protected $shell;
 
     /**
+     * @var string
+     */
+    protected $deployPath;
+
+    /**
      * Constructor.
      *
      * @param Shell $shell
@@ -32,11 +37,37 @@ class Releaser
     }
 
     /**
+     * Set deploy path.
+     *
      * @param $path
      */
-    public function lock($path)
+    public function setDeployPath($path)
     {
-        if ($this->isLocked($path)) {
+        $this->deployPath = $path;
+    }
+
+    /**
+     * Get deploy path.
+     *
+     * @return string
+     */
+    public function getDeployPath()
+    {
+        if (null === $this->deployPath) {
+            throw new \RuntimeException('Deploy path is not defined');
+        }
+
+        return $this->deployPath;
+    }
+
+    /**
+     * Lock deploy.
+     */
+    public function lock()
+    {
+        $path = $this->getDeployPath();
+
+        if ($this->isLocked()) {
             throw new \RuntimeException("Deploy locked. Unlock to proceed.");
         } else {
             $this->shell->touch("$path/deploy.lock");
@@ -44,28 +75,34 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Check if deploy is locked.
      *
      * @return bool
      */
-    public function isLocked($path)
+    public function isLocked()
     {
+        $path = $this->getDeployPath();
+
         return $this->shell->exists("$path/deploy.lock");
     }
 
     /**
-     * @param $path
+     * Unlock deploy.
      */
-    public function unlock($path)
+    public function unlock()
     {
+        $path = $this->getDeployPath();
+
         $this->shell->rm("$path/deploy.lock");
     }
 
     /**
-     * @param $path
+     * Prepare directory structure for deploy.
      */
-    public function prepare($path)
+    public function prepare()
     {
+        $path = $this->getDeployPath();
+
         if (!$this->shell->isDir($path)) {
             throw new \RuntimeException('Not a directory: ' . $path);
         }
@@ -81,11 +118,14 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Delete old and broken releases.
+     *
      * @param int $keep
      */
-    public function cleanup($path, $keep = null)
+    public function cleanup($keep = null)
     {
+        $path = $this->getDeployPath();
+
         $releases = $this->getReleaseList($path);
 
         $list = $this->shell->ls("$path/releases");
@@ -106,13 +146,16 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Create release.
+     *
      * @param $name
      *
      * @return string
      */
-    public function create($path, $name = null)
+    public function create($name = null)
     {
+        $path = $this->getDeployPath();
+
         $name = $name ?: date('YmdHis');
 
         if ($this->shell->exists("$path/releases/$name")) {
@@ -125,32 +168,40 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Make a release.
+     *
      * @param $name
      */
-    public function release($path, $name)
+    public function release($name)
     {
+        $path = $this->getDeployPath();
+
         $this->shell->ln("$path/releases/$name", "$path/current");
         $date = date('Y-m-d H:i:s');
         $this->shell->exec("echo -n '$date' > $path/releases/$name/release.lock");
     }
 
     /**
-     * @param $path
+     * Directly link release.
+     *
      * @param $name
      */
-    public function link($path, $name)
+    public function link($name)
     {
+        $path = $this->getDeployPath();
+
         $this->shell->ln("$path/releases/$name", "$path/current");
     }
 
     /**
-     * @param $path
+     * Rollback to previous release.
      *
      * @return string
      */
-    public function rollback($path)
+    public function rollback()
     {
+        $path = $this->getDeployPath();
+
         $releases = $this->getReleaseList($path);
         krsort($releases);
 
@@ -168,13 +219,16 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Update release shares.
+     *
      * @param $name
      * @param array $sharedDirs
      * @param array $sharedFiles
      */
-    public function updateReleaseShares($path, $name, $sharedDirs = [], $sharedFiles = [])
+    public function updateReleaseShares($name, $sharedDirs = [], $sharedFiles = [])
     {
+        $path = $this->getDeployPath();
+
         foreach ($sharedDirs as $a) {
             foreach ($sharedDirs as $b) {
                 if ($a !== $b && strpos($a, $b) === 0) {
@@ -229,12 +283,14 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Get release list.
      *
      * @return array
      */
-    public function getReleaseList($path)
+    public function getReleaseList()
     {
+        $path = $this->getDeployPath();
+
         $path = rtrim($path, '/');
 
         if (!$this->shell->isDir("$path/releases")) {
@@ -264,23 +320,27 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Get current release path.
      *
      * @return string|null
      */
-    public function getCurrentPath($path)
+    public function getCurrentPath()
     {
+        $path = $this->getDeployPath();
+
         return $this->shell->exists("$path/current") ? $this->shell->realpath("$path/current") : null;
     }
 
     /**
-     * @param $path
+     * Get current release name.
      *
      * @return string|null
      */
-    public function getCurrentRelease($path)
+    public function getCurrentRelease()
     {
-        $current = $this->getCurrentPath($path);
+        $path = $this->getDeployPath();
+
+        $current = $this->getCurrentPath();
 
         $rplc = ['/' => '\/', '.' => '\.'];
         $pattern = strtr("$path/releases/", $rplc) . '(.+)';
@@ -292,13 +352,16 @@ class Releaser
     }
 
     /**
-     * @param $path
+     * Get release path by name.
+     *
      * @param $name
      *
      * @return string
      */
-    public function getReleasePath($path, $name)
+    public function getReleasePath($name)
     {
+        $path = $this->getDeployPath();
+
         return $this->shell->exists("$path/releases/$name") ? $this->shell->realpath("$path/releases/$name") : null;
     }
 }

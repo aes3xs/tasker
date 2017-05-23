@@ -11,9 +11,6 @@
 
 namespace Aes3xs\Yodler\Logger;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Heap\HeapInterface;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Logger;
 
@@ -26,25 +23,10 @@ class ConsoleFormatter extends LineFormatter
     const SIMPLE_FORMAT = "%head%[%datetime%] %level_name% %channel%:%/head% %body%%message%%/body% %aux%%context%%/aux% %aux%%extra%%/aux%\n";
 
     /**
-     * @var HeapInterface
-     */
-    protected $heap;
-
-    /**
-     * @param HeapInterface $heap
-     */
-    public function setHeap(HeapInterface $heap)
-    {
-        $this->heap = $heap;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function format(array $record)
     {
-        $record['channel'] = $this->getChannelName($this->heap->get('scenario'), $this->heap->get('connection'));
-
         $record['head'] = "";
         $record['/head'] = "";
         $record['body'] = "";
@@ -91,16 +73,6 @@ class ConsoleFormatter extends LineFormatter
         }
 
         return var_export($this->normalize($data), true);
-    }
-
-    /**
-     * @param ScenarioInterface $scenario
-     * @param ConnectionInterface $connection
-     * @return string
-     */
-    protected function getChannelName(ScenarioInterface $scenario, ConnectionInterface $connection)
-    {
-        return sprintf('%s@%s', $scenario->getName(), $connection->getName());
     }
 
     /**

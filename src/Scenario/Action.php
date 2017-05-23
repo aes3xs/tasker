@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Scenario;
 /**
  * Action implementation.
  */
-class Action implements ActionInterface
+class Action
 {
     /**
      * @var string
@@ -46,7 +46,9 @@ class Action implements ActionInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Return name for action.
+     *
+     * @return string
      */
     public function getName()
     {
@@ -54,7 +56,9 @@ class Action implements ActionInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Return callback.
+     *
+     * @return callable
      */
     public function getCallback()
     {
@@ -62,7 +66,9 @@ class Action implements ActionInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Return condition.
+     *
+     * @return string|null
      */
     public function getCondition()
     {

@@ -15,9 +15,12 @@ use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
 use Aes3xs\Yodler\Exception\VariableNotFoundException;
 
 /**
- * Default implementation for variable list.
+ * Implementation for variable list.
+ *
+ * Variable list provides basic methods to add and retrieve variables by name.
+ * There is no method to override already defined variable.
  */
-class VariableList implements VariableListInterface
+class VariableList
 {
     /**
      * @var array
@@ -35,7 +38,9 @@ class VariableList implements VariableListInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Return all variables in key-indexed array.
+     *
+     * @return array
      */
     public function all()
     {
@@ -43,7 +48,12 @@ class VariableList implements VariableListInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Add variable to a list.
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws VariableAlreadyExistsException
      */
     public function add($name, $value)
     {
@@ -55,7 +65,26 @@ class VariableList implements VariableListInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Set variable in a list.
+     * If variable already exists, overwrites it.
+     *
+     * @param $name
+     * @param $value
+     * @return mixed
+     */
+    public function set($name, $value)
+    {
+        $this->variables[$name] = $value;
+    }
+
+    /**
+     * Get variable from a list by name.
+     *
+     * @param string $name
+     *
+     * @return mixed
+     *
+     * @throws VariableNotFoundException
      */
     public function get($name)
     {
@@ -67,7 +96,11 @@ class VariableList implements VariableListInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Check if list contains variable with specified name.
+     *
+     * @param $name
+     *
+     * @return bool
      */
     public function has($name)
     {

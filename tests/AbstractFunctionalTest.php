@@ -22,6 +22,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
@@ -30,6 +31,11 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
      * @var Kernel
      */
     protected $kernel;
+
+    /**
+     * @var InputInterface
+     */
+    protected $input;
 
     /**
      * @var BufferedOutput
@@ -48,21 +54,15 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
                 $map_loader->register();
             }
 
-            $connection = $this->getContainer()->get('connections')->get('local');
-            $scenario = $this->getContainer()->get('scenarios')->get('default');
-
-            $event = new DeployEvent($scenario, $connection);
-            $this->getContainer()->get('event_dispatcher')->dispatch(DeployEvent::NAME, $event);
-
             $application = new Application();
-            $input = new ArrayInput([]);
+            $this->input = new ArrayInput([]);
             $this->output = new BufferedOutput();
             $this->output->setVerbosity(Logger::DEBUG);
 
-            $event = new ConsoleRunEvent($application, $input, $this->output);
+            $event = new ConsoleRunEvent($application, $this->input, $this->output);
             $this->getContainer()->get('event_dispatcher')->dispatch(ConsoleRunEvent::NAME, $event);
 
-            $event = new ConsoleCommandEvent(new Command('test'), $input, $this->output);
+            $event = new ConsoleCommandEvent(new Command('test'), $this->input, $this->output);
             $this->getContainer()->get('event_dispatcher')->dispatch(ConsoleEvents::COMMAND, $event);
         }
 

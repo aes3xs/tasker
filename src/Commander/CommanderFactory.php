@@ -12,7 +12,7 @@
 namespace Aes3xs\Yodler\Commander;
 
 use Aes3xs\Yodler\Common\ProcessFactory;
-use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Exception\CommanderAuthenticationException;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use phpseclib\Crypt\RSA;
@@ -23,7 +23,7 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Commander factory implementation.
  */
-class CommanderFactory implements CommanderFactoryInterface
+class CommanderFactory
 {
     /**
      * @var SftpFactory
@@ -41,40 +41,53 @@ class CommanderFactory implements CommanderFactoryInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Create commander from connection definition.
+     *
+     * @param Connection $connection
+     *
+     * @return CommanderInterface
+     *
+     * @throws CommanderAuthenticationException
      */
-    public function create(ConnectionInterface $connection)
+    public function create(Connection $connection)
     {
-        $host = $connection->getServer()->getHost();
-        $port = $connection->getServer()->getPort();
-        $login = $connection->getUser()->getLogin();
-        $password = $connection->getUser()->getPassword();
-        $key = $connection->getUser()->getKey();
-        $passphrase = $connection->getUser()->getPassphrase();
-        $forwarding = $connection->getUser()->getForwarding();
-
         $filesystem = new Filesystem();
         $processFactory = new ProcessFactory();
 
-        $isLocalhost = $host === null || $host === 'localhost' || $host === '127.0.0.1';
+        $isLocalhost = in_array($connection->getHost(), [null, 'localhost', '127.0.0.1']);
 
         try {
             if ($isLocalhost) {
                 $commander = new LocalCommander($filesystem, $processFactory);
             } else {
                 switch (true) {
-                    case $forwarding:
-                        $sftp = $this->createPhpSecLibForwardingClient($host, $port, $login);
+                    case $connection->isForwarding():
+                        $sftp = $this->createPhpSecLibForwardingClient(
+                            $connection->getHost(),
+                            $connection->getPort(),
+                            $connection->getLogin()
+                        );
                         $commander = new PhpSecLibCommander($sftp);
                         break;
 
-                    case $key:
-                        $sftp = $this->createPhpSecLibKeyClient($host, $port, $login, $key, $passphrase);
+                    case $connection->getKey():
+                        $sftp = $this->createPhpSecLibKeyClient(
+                            $connection->getHost(),
+                            $connection->getPort(),
+                            $connection->getLogin(),
+                            $connection->getKey(),
+                            $connection->getPassphrase()
+                        );
                         $commander = new PhpSecLibCommander($sftp);
                         break;
 
-                    case $password:
-                        $sftp = $this->createPhpSecLibPasswordClient($host, $port, $login, $password);
+                    case $connection->getPassword():
+                        $sftp = $this->createPhpSecLibPasswordClient(
+                            $connection->getHost(),
+                            $connection->getPort(),
+                            $connection->getLogin(),
+                            $connection->getPassword()
+                        );
                         $commander = new PhpSecLibCommander($sftp);
                         break;
 

@@ -11,10 +11,8 @@
 
 namespace Aes3xs\Yodler\Heap;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Scenario\Scenario;
 
 /**
  * Interface to heap factory.
@@ -24,17 +22,10 @@ interface HeapFactoryInterface
     /**
      * Create and return deploy heap.
      *
-     * @param ScenarioInterface $scenario
-     * @param ConnectionInterface $connection
-     * @param InputInterface $input
-     * @param OutputInterface $output
+     * @param Scenario $scenario
+     * @param Connection $connection
      *
      * @return HeapInterface
      */
-    public function create(
-        ScenarioInterface $scenario,
-        ConnectionInterface $connection,
-        InputInterface $input,
-        OutputInterface $output
-    );
+    public function create(Scenario $scenario, Connection $connection);
 }

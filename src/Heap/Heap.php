@@ -13,9 +13,8 @@ namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
-use Aes3xs\Yodler\Exception\VariableNotFoundException;
 use Aes3xs\Yodler\Common\CallableHelper;
-use Aes3xs\Yodler\Variable\VariableListInterface;
+use Aes3xs\Yodler\Variable\VariableList;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\Node\NameNode;
 use Symfony\Component\ExpressionLanguage\Node\Node;
@@ -26,9 +25,9 @@ use Symfony\Component\ExpressionLanguage\Node\Node;
 class Heap implements HeapInterface
 {
     /**
-     * @var VariableListInterface[]
+     * @var VariableList
      */
-    protected $collection = [];
+    protected $source;
 
     /**
      * @var \Twig_Environment
@@ -43,37 +42,39 @@ class Heap implements HeapInterface
     /**
      * Constructor.
      *
+     * @param VariableList $source
      * @param \Twig_Environment $twig
      * @param ExpressionLanguage $expressionLanguage
      */
-    public function __construct(\Twig_Environment $twig, ExpressionLanguage $expressionLanguage)
+    public function __construct(VariableList $source, \Twig_Environment $twig, ExpressionLanguage $expressionLanguage)
     {
+        $this->source = $source;
         $this->twig = $twig;
         $this->expressionLanguage = $expressionLanguage;
     }
 
     /**
-     * Add variable list to heap with first priority.
-     *
-     * @param VariableListInterface $variables
+     * {@inheritdoc}
      */
-    public function addVariables(VariableListInterface $variables)
+    public function all()
     {
-        array_unshift($this->collection, $variables);
+        return $this->source->all();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function has($name)
+    public function add($name, $value)
     {
-        foreach ($this->collection as $variables) {
-            if ($variables->has($name)) {
-                return true;
-            }
-        }
+        $this->source->add($name, $value);
+    }
 
-        return false;
+    /**
+     * {@inheritdoc}
+     */
+    public function set($name, $value)
+    {
+        $this->source->add($name, $value);
     }
 
     /**
@@ -81,8 +82,16 @@ class Heap implements HeapInterface
      */
     public function get($name)
     {
-        $value = $this->getRaw($name);
+        $value = $this->source->get($name);
         return is_callable($value) ? $this->resolveCallback($value) : $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function has($name)
+    {
+        return $this->source->has($name);
     }
 
     /**
@@ -186,37 +195,6 @@ class Heap implements HeapInterface
     }
 
     /**
-     * Return all variables flatten to single list by name and priority.
-     *
-     * @return array
-     */
-    protected function all()
-    {
-        $result = [];
-
-        foreach ($this->collection as $variables) {
-            $result += $variables->all();
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param $name
-     * @return mixed
-     */
-    public function getRaw($name)
-    {
-        foreach ($this->collection as $variables) {
-            if ($variables->has($name)) {
-                return $variables->get($name);
-            }
-        }
-
-        throw new VariableNotFoundException($name);
-    }
-
-    /**
      * Resolve callback using arguments from the heap.
      *
      * Has circular reference detection.
@@ -240,7 +218,7 @@ class Heap implements HeapInterface
                 continue;
             }
 
-            $value = $this->getRaw($name);
+            $value = $this->source->get($name);
 
             if (is_callable($value)) {
 

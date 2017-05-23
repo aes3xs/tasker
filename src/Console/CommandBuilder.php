@@ -12,8 +12,8 @@
 namespace Aes3xs\Yodler\Console;
 
 use Aes3xs\Yodler\Event\ConsoleRunEvent;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
-use Aes3xs\Yodler\Scenario\ScenarioListInterface;
+use Aes3xs\Yodler\Scenario\Scenario;
+use Aes3xs\Yodler\Scenario\ScenarioManager;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -25,18 +25,18 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CommandBuilder implements EventSubscriberInterface
 {
     /**
-     * @var ScenarioListInterface
+     * @var ScenarioManager
      */
-    protected $scenarios;
+    protected $scenarioManager;
 
     /**
      * Constructor.
      *
-     * @param ScenarioListInterface $scenarios
+     * @param ScenarioManager $scenarioManager
      */
-    public function __construct(ScenarioListInterface $scenarios)
+    public function __construct(ScenarioManager $scenarioManager)
     {
-        $this->scenarios = $scenarios;
+        $this->scenarioManager = $scenarioManager;
     }
 
     /**
@@ -63,18 +63,18 @@ class CommandBuilder implements EventSubscriberInterface
     public function build()
     {
         $commands = [];
-        foreach ($this->scenarios->all() as $scenario) {
+        foreach ($this->scenarioManager->all() as $scenario) {
             $commands[] = $this->buildScenarioCommand($scenario);
         }
         return $commands;
     }
 
     /**
-     * @param ScenarioInterface $scenario
+     * @param Scenario $scenario
      *
      * @return ScenarioCommand
      */
-    protected function buildScenarioCommand(ScenarioInterface $scenario)
+    protected function buildScenarioCommand(Scenario $scenario)
     {
         $command = new ScenarioCommand($scenario);
 

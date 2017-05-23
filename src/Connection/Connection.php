@@ -10,14 +10,12 @@
  */
 
 namespace Aes3xs\Yodler\Connection;
-
-use Aes3xs\Yodler\Variable\VariableListInterface;
-use Aes3xs\Yodler\Variable\VariableSuppliedInterface;
+use Aes3xs\Yodler\Variable\VariableList;
 
 /**
  * Connection definition implementation.
  */
-class Connection implements ConnectionInterface
+class Connection
 {
     /**
      * @var string
@@ -25,17 +23,42 @@ class Connection implements ConnectionInterface
     protected $name;
 
     /**
-     * @var ServerInterface
+     * @var string
      */
-    protected $server;
+    protected $host;
 
     /**
-     * @var UserInterface
+     * @var int
      */
-    protected $user;
+    protected $port;
 
     /**
-     * @var VariableListInterface
+     * @var string
+     */
+    protected $login;
+
+    /**
+     * @var string
+     */
+    protected $password;
+
+    /**
+     * @var string
+     */
+    protected $key;
+
+    /**
+     * @var string
+     */
+    protected $passphrase;
+
+    /**
+     * @var bool
+     */
+    protected $forwarding;
+
+    /**
+     * @var VariableList
      */
     protected $variables;
 
@@ -43,20 +66,14 @@ class Connection implements ConnectionInterface
      * Constructor.
      *
      * @param $name
-     * @param ServerInterface $server
-     * @param UserInterface $user
-     * @param VariableListInterface $variables
      */
-    public function __construct($name, ServerInterface $server, UserInterface $user, VariableListInterface $variables)
+    public function __construct($name)
     {
         $this->name = $name;
-        $this->server = $server;
-        $this->user = $user;
-        $this->variables = $variables;
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
     public function getName()
     {
@@ -64,26 +81,162 @@ class Connection implements ConnectionInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @return string
      */
-    public function getServer()
+    public function getHost()
     {
-        return $this->server;
+        return $this->host;
     }
 
     /**
-     * {@inheritdoc}
+     * @param string $host
+     *
+     * @return Connection
      */
-    public function getUser()
+    public function setHost($host)
     {
-        return $this->user;
+        $this->host = $host;
+
+        return $this;
     }
 
     /**
-     * {@inheritdoc}
+     * @return int
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
+     * @param int $port
+     *
+     * @return Connection
+     */
+    public function setPort($port)
+    {
+        $this->port = $port;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLogin()
+    {
+        return $this->login;
+    }
+
+    /**
+     * @param string $login
+     *
+     * @return Connection
+     */
+    public function setLogin($login)
+    {
+        $this->login = $login;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    /**
+     * @param string $password
+     *
+     * @return Connection
+     */
+    public function setPassword($password)
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getKey()
+    {
+        return $this->key;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return Connection
+     */
+    public function setKey($key)
+    {
+        $this->key = $key;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPassphrase()
+    {
+        return $this->passphrase;
+    }
+
+    /**
+     * @param string $passphrase
+     *
+     * @return Connection
+     */
+    public function setPassphrase($passphrase)
+    {
+        $this->passphrase = $passphrase;
+
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isForwarding()
+    {
+        return $this->forwarding;
+    }
+
+    /**
+     * @param boolean $forwarding
+     *
+     * @return Connection
+     */
+    public function setForwarding($forwarding)
+    {
+        $this->forwarding = $forwarding;
+
+        return $this;
+    }
+
+    /**
+     * @return VariableList
      */
     public function getVariables()
     {
         return $this->variables;
+    }
+
+    /**
+     * @param VariableList $variables
+     *
+     * @return Connection
+     */
+    public function setVariables($variables)
+    {
+        $this->variables = $variables;
+
+        return $this;
     }
 }

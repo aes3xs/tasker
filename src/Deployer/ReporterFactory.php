@@ -11,17 +11,22 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
+use Aes3xs\Yodler\Common\LockableStorage;
+
 /**
- * Interface to semaphore factory.
+ * Reporter factory.
  */
-interface SemaphoreFactoryInterface
+class ReporterFactory
 {
     /**
-     * Create semaphore instance.
+     * Create report instance.
      *
      * @param $lockName
      *
-     * @return Semaphore
+     * @return ReporterInterface
      */
-    public function create($lockName);
+    public function create($lockName)
+    {
+        return new Reporter(new LockableStorage('reporter_' . $lockName));
+    }
 }

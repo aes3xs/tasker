@@ -47,7 +47,7 @@ class Shell
      * @param $user
      * @param bool $sshForwarding
      */
-    public function setupUser($user, $sshForwarding = false)
+    public function setUser($user, $sshForwarding = false)
     {
         $this->user = null;
 
@@ -122,7 +122,7 @@ class Shell
         if (false !== strpos($result, 'stdin: is not a tty')) {
             throw new \RuntimeException('stdin: is not a tty');
         }
-        return $result;
+        return trim($result);
     }
 
     /**

@@ -18,6 +18,6 @@ class TimeoutInterruptException extends \RuntimeException implements ExceptionIn
 {
     public function __construct()
     {
-        parent::__construct('Deploy interrupted by timeout while waiting other builds');
+        parent::__construct('Execution interrupted by timeout while waiting other processes');
     }
 }

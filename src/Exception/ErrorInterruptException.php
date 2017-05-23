@@ -18,6 +18,6 @@ class ErrorInterruptException extends \RuntimeException implements ExceptionInte
 {
     public function __construct()
     {
-        parent::__construct('Deploy interrupted because of error in another build');
+        parent::__construct('Execution interrupted because of error in another process');
     }
 }

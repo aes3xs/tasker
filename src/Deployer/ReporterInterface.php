@@ -11,16 +11,16 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Scenario\ActionInterface;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
+use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Scenario\Action;
+use Aes3xs\Yodler\Scenario\Scenario;
 
 /**
  * Interface to report.
  *
  * Report is used to collect information about deploy process.
  */
-interface ReportInterface
+interface ReporterInterface
 {
     const ACTION_STATE_NONE = 'None';
     const ACTION_STATE_SKIPPED = 'Skipped';
@@ -34,52 +34,40 @@ interface ReportInterface
     public function reset();
 
     /**
-     * Initialize report instance with given ID.
-     *
-     * @param $id
-     */
-    public function initialize($id);
-
-    /**
      * Report about deploy.
      *
-     * @param ScenarioInterface $scenario
-     * @param ConnectionInterface $connection
+     * @param Scenario $scenario
+     * @param Connection $connection
      */
-    public function reportDeploy(ScenarioInterface $scenario, ConnectionInterface $connection);
+    public function reportDeploy(Scenario $scenario, Connection $connection);
 
     /**
      * Report about running action.
      *
-     * @param ActionInterface $action
+     * @param Action $action
      */
-    public function reportActionRunning(ActionInterface $action);
+    public function reportActionRunning(Action $action);
 
     /**
      * Report about succeed action.
      *
-     * @param ActionInterface $action
+     * @param Action $action
      * @param $output
      */
-    public function reportActionSucceed(ActionInterface $action, $output);
+    public function reportActionSucceed(Action $action, $output);
 
     /**
      * Report about error occured while running action.
      *
-     * @param ActionInterface $action
+     * @param Action $action
      * @param \Exception $e
      */
-    public function reportActionError(ActionInterface $action, \Exception $e);
+    public function reportActionError(Action $action, \Exception $e);
 
     /**
      * Report about skipped action.
      *
-     * @param ActionInterface $action
+     * @param Action $action
      */
-    public function reportActionSkipped(ActionInterface $action);
-
-    /**
-     * Get report data.
-     */
-    public function getRawData();
+    public function reportActionSkipped(Action $action);
 }

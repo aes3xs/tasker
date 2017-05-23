@@ -11,130 +11,106 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Connection\ConnectionListInterface;
-use Aes3xs\Yodler\Event\DeployEvent;
-use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
-use Aes3xs\Yodler\Variable\VariableListInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Heap\HeapFactoryInterface;
+use Aes3xs\Yodler\Heap\HeapInterface;
+use Aes3xs\Yodler\Scenario\Action;
+use Aes3xs\Yodler\Scenario\Scenario;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 /**
  * Deployer implementation.
  */
 class Deployer implements DeployerInterface
 {
-    const STATE_NONE = 'None';
-    const STATE_SKIP = 'Skip';
-    const STATE_EXECUTE = 'Execute';
-    const STATE_SUCCESS = 'Success';
-    const STATE_ERROR = 'Error';
-    const STATE_INTERRUPT = 'Interrupted';
+    /**
+     * @var HeapFactoryInterface
+     */
+    protected $heapFactory;
 
     /**
-     * @var ExecutorInterface
+     * @var Logger
      */
-    protected $executor;
-
-    /**
-     * @var EventDispatcherInterface
-     */
-    protected $eventDispatcher;
-
-    /**
-     * @var SemaphoreInterface
-     */
-    protected $semaphore;
-
-    /**
-     * @var ReportInterface
-     */
-    protected $report;
-
-    /**
-     * @var VariableListInterface
-     */
-    protected $runtime;
-
-    /**
-     * @var ConnectionInterface
-     */
-    protected $localConnection;
+    protected $logger;
 
     /**
      * Constructor.
      *
-     * @param ExecutorInterface $executor
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param SemaphoreInterface $semaphore
-     * @param ReportInterface $report
-     * @param VariableListInterface $runtime
-     * @param ConnectionInterface $localConnection
+     * @param HeapFactoryInterface $heapFactory
+     * @param Logger $logger
      */
-    public function __construct(
-        ExecutorInterface $executor,
-        EventDispatcherInterface $eventDispatcher,
-        SemaphoreInterface $semaphore,
-        ReportInterface $report,
-        VariableListInterface $runtime,
-        ConnectionInterface $localConnection
-    ) {
-        $this->executor = $executor;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->semaphore = $semaphore;
-        $this->report = $report;
-        $this->runtime = $runtime;
-        $this->localConnection = $localConnection;
+    public function __construct(HeapFactoryInterface $heapFactory, Logger $logger)
+    {
+        $this->heapFactory = $heapFactory;
+        $this->logger = $logger;
     }
 
     /**
-     * {@inheritdoc}
+     * Run deploy process.
+     *
+     * @param Scenario $scenario
+     * @param Connection $connection
+     * @param SemaphoreInterface $semaphore
+     * @param ReporterInterface $reporter
      */
-    public function deploy(ScenarioInterface $scenario, ConnectionListInterface $connections)
-    {
-        $this->semaphore->reset();
-        $this->report->reset();
+    public function deploy(
+        Scenario $scenario,
+        Connection $connection,
+        SemaphoreInterface $semaphore,
+        ReporterInterface $reporter
+    ) {
+        $logger = $this->logger->withName(sprintf('%s@%s', $scenario->getName(), $connection->getName()));
+        $heap = $this->heapFactory->create($scenario, $connection);
 
-        $childPids = [];
+        $semaphore->reportReady();
+        $reporter->reportDeploy($scenario, $connection);
 
-        foreach ($connections->all() as $connection) {
+        try {
+            $this->execute($scenario->getActions(), $heap, $reporter, $logger);
+        } catch (\Exception $e) {
+            $semaphore->reportError();
+            $heap->set('exception', $e);
+            $this->execute($scenario->getFailbacks(), $heap, $reporter, $logger);
+        }
+    }
 
-            $pid = pcntl_fork();
-            if ($pid == -1) {
-                throw new RuntimeException('Could not fork');
-            } else if ($pid) {
-                $childPids[] = $pid; // Parent process code
-                continue;
-            }
-
-            $event = new DeployEvent($scenario, $connection);
-            $this->eventDispatcher->dispatch(DeployEvent::NAME, $event);
-
-            $this->report->initialize(getmypid());
-            $this->report->reportDeploy($scenario, $connection);
-            $this->semaphore->reportReady(getmypid());
-
+    /**
+     * Execute actions.
+     *
+     * @param array $actions
+     * @param HeapInterface $heap
+     * @param ReporterInterface $reporter
+     * @param LoggerInterface $logger
+     * @throws \Exception
+     */
+    protected function execute(
+        array $actions,
+        HeapInterface $heap,
+        ReporterInterface $reporter,
+        LoggerInterface $logger
+    ) {
+        foreach ($actions as $action) {
+            /** @var Action $action */
             try {
-                $this->executor->execute($scenario->getActions());
+                $reporter->reportActionRunning($action);
+                $logger->info('➤ ' . $action->getName());
+                if ($action->getCondition() && !$heap->resolveExpression($action->getCondition())) {
+                    $reporter->reportActionSkipped($action);
+                    $logger->info('⇣ ' . $action->getName());
+                    continue;
+                }
+                $output = $heap->resolveCallback($action->getCallback());
+                $reporter->reportActionSucceed($action, $output);
+                $logger->info('✔ ' . $action->getName());
+                if ($output) {
+                    $logger->info('• ' . $action->getName() . ': ' . (string) $output);
+                }
             } catch (\Exception $e) {
-                $this->semaphore->reportError();
-                $this->runtime->add('exception', $e);
-                $this->executor->execute($scenario->getFailbackActions());
+                $reporter->reportActionError($action, $e);
+                $logger->error('✘ ' . $action->getName(), ['exception' => $e]);
+                throw $e;
             }
-
-            return;
         }
-
-        $this->semaphore->run($childPids);
-
-        foreach ($childPids as $pid) {
-            pcntl_waitpid($pid, $status);
-        }
-
-        $event = new DeployEvent($scenario, $this->localConnection);
-        $this->eventDispatcher->dispatch(DeployEvent::NAME, $event);
-
-        $this->report->initialize(getmypid());
-        $this->executor->execute($scenario->getTerminateActions());
     }
 }

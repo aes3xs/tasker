@@ -1,44 +1,5 @@
 parameters:
 
-    command_builder.class: Aes3xs\Yodler\Console\CommandBuilder
-
-    event_dispatcher.class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
-
-    logger.class: Monolog\Logger
-    console_handler.class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
-    console_formatter.class: Aes3xs\Yodler\Logger\ConsoleFormatter
-
-    heap_factory.class: Aes3xs\Yodler\Heap\HeapFactory
-    lazy_heap_proxy.class: Aes3xs\Yodler\Heap\LazyHeapProxy
-
-    semaphore_factory.class: Aes3xs\Yodler\Deployer\SemaphoreFactory
-    semaphore.class: Aes3xs\Yodler\Deployer\SemaphoreInterface
-    report_factory.class: Aes3xs\Yodler\Deployer\ReportFactory
-    report.class: Aes3xs\Yodler\Deployer\ReportInterface
-
-    scenario_factory.class: Aes3xs\Yodler\Scenario\ScenarioFactory
-    connection_factory.class: Aes3xs\Yodler\Connection\ConnectionFactory
-    variable_factory.class: Aes3xs\Yodler\Variable\VariableFactory
-
-    scenario_list.class: Aes3xs\Yodler\Scenario\ScenarioListInterface
-    connection_list.class: Aes3xs\Yodler\Connection\ConnectionListInterface
-    variable_list.class: Aes3xs\Yodler\Variable\VariableList
-    connection.class: Aes3xs\Yodler\Connection\ConnectionInterface
-
-    sftp_factory.class: Aes3xs\Yodler\Commander\SftpFactory
-    commander_factory.class: Aes3xs\Yodler\Commander\CommanderFactory
-    lazy_commander_proxy.class: Aes3xs\Yodler\Commander\LazyCommanderProxy
-
-    deployer.class: Aes3xs\Yodler\Deployer\Deployer
-    executor.class: Aes3xs\Yodler\Deployer\Executor
-
-    shell.class: Aes3xs\Yodler\Service\Shell
-    releaser.class: Aes3xs\Yodler\Service\Releaser
-    git.class: Aes3xs\Yodler\Service\Git
-    composer.class: Aes3xs\Yodler\Service\Composer
-    symfony.class: Aes3xs\Yodler\Service\Symfony
-    reporter.class: Aes3xs\Yodler\Service\Reporter
-
     verbosity_level_map:
         0: 400      # VERBOSITY_QUIET:          ERROR
         1: 200      # VERBOSITY_NORMAL:         INFO
@@ -52,27 +13,24 @@ parameters:
         128: 100    # VERBOSITY_VERY_VERBOSE:   DEBUG
         256: 100    # VERBOSITY_DEBUG:          DEBUG
 
-    semaphore_lock_name: 'semaphore_lock_%config_dir%'
-    report_lock_name: 'report_lock_%config_dir%'
-
     autoload:
         - '%config_dir%'
 
 services:
 
     event_dispatcher:
-        class: '%event_dispatcher.class%'
+        class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
         arguments: ['@service_container']
 
     command_builder:
-        class: '%command_builder.class%'
+        class: Aes3xs\Yodler\Console\CommandBuilder
         arguments:
-            - '@scenarios'
+            - '@scenario_manager'
         tags:
             - { name: kernel.event_subscriber }
 
     logger.console_handler:
-        class: '%console_handler.class%'
+        class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
         arguments:
             - null
             - true
@@ -83,150 +41,50 @@ services:
             - { name: kernel.event_subscriber }
 
     logger.console_formatter:
-        class: '%console_formatter.class%'
+        class: Aes3xs\Yodler\Logger\ConsoleFormatter
         public: false
         arguments: [null, null, true, true]
-        calls:
-            - [setHeap, ['@heap']]
 
     logger:
-        class: '%logger.class%'
+        class: Monolog\Logger
         arguments: [main]
         calls:
             - [pushHandler, ['@logger.console_handler']]
 
     heap_factory:
-        class: '%heap_factory.class%'
-        public: false
+        class: Aes3xs\Yodler\Heap\HeapFactory
         arguments:
             - '@service_container'
-            - '@variable_factory'
-            - '@runtime'
-
-    lazy_heap_proxy:
-        class: '%lazy_heap_proxy.class%'
-        arguments:
-            - '@heap_factory'
+            - '@commander_factory'
         tags:
             - { name: kernel.event_subscriber }
 
-    heap: '@lazy_heap_proxy'
-
     semaphore_factory:
-        class: '%semaphore_factory.class%'
-        public: false
+        class: Aes3xs\Yodler\Deployer\SemaphoreFactory
 
-    report_factory:
-        class: '%report_factory.class%'
-        public: false
-
-    semaphore:
-        class: '%semaphore.class%'
-        factory: 'semaphore_factory:create'
-        arguments: ['%semaphore_lock_name%']
-
-    report:
-        class: '%report.class%'
-        factory: 'report_factory:create'
-        arguments: ['%report_lock_name%']
+    reporter_factory:
+        class: Aes3xs\Yodler\Deployer\ReporterFactory
 
     sftp_factory:
-        class: '%sftp_factory.class%'
+        class: Aes3xs\Yodler\Commander\SftpFactory
         public: false
 
     commander_factory:
-        class: '%commander_factory.class%'
+        class: Aes3xs\Yodler\Commander\CommanderFactory
         public: false
         arguments:
             - '@sftp_factory'
 
-    lazy_commander_proxy:
-        class: '%lazy_commander_proxy.class%'
-        public: false
-        arguments:
-            - '@heap'
-            - '@commander_factory'
-            - '@logger'
-
-    commander: '@lazy_commander_proxy'
-
-    executor:
-        class: '%executor.class%'
-        public: false
-        arguments:
-            - '@heap'
-            - '@report'
-            - '@logger'
-
     deployer:
-        class: '%deployer.class%'
+        class: Aes3xs\Yodler\Deployer\Deployer
         arguments:
-            - '@executor'
-            - '@event_dispatcher'
-            - '@semaphore'
-            - '@report'
-            - '@runtime'
-            - '@local_connection'
+            - '@heap_factory'
+            - '@logger'
 
-    scenario_factory:
-        class: '%scenario_factory.class%'
-        public: false
-        arguments:
-            - '@variable_factory'
-
-    connection_factory:
-        class: '%connection_factory.class%'
-        arguments:
-            - '@variable_factory'
-
-    variable_factory:
-        class: '%variable_factory.class%'
-        public: false
-
-    scenarios:
-        class: '%scenario_list.class%'
-        factory: 'scenario_factory:createListFromConfiguration'
+    scenario_manager:
+        class: Aes3xs\Yodler\Scenario\ScenarioManager
         arguments: ['%scenarios%']
 
-    connections:
-        class: '%connection_list.class%'
-        factory: 'connection_factory:createListFromConfiguration'
+    connection_manager:
+        class: Aes3xs\Yodler\Connection\ConnectionManager
         arguments: ['%connections%']
-
-    runtime:
-        class: '%variable_list.class%'
-        factory: 'variable_factory:createList'
-
-    local_connection:
-        class: '%connection.class%'
-        factory: 'connection_factory:createLocalConnection'
-
-    shell:
-        class: '%shell.class%'
-        arguments:
-            - "@commander"
-
-    releaser:
-        class: '%releaser.class%'
-        arguments:
-            - "@shell"
-
-    git:
-        class: '%git.class%'
-        arguments:
-            - "@shell"
-
-    composer:
-        class: '%composer.class%'
-        arguments:
-            - "@shell"
-
-    symfony:
-        class: '%symfony.class%'
-        arguments:
-            - "@shell"
-
-    reporter:
-        class: '%reporter.class%'
-        arguments:
-            - "@report"

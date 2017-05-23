@@ -64,7 +64,7 @@ class PhpSecLibCommander implements CommanderInterface
         restore_error_handler();
 
         if (!$result) {
-            $e = new PhpSecLibCommandException($command);
+            $e = new PhpSecLibCommandException('Error put: from local "%s" to remote "%s"', $local, $remote);
             $e->addError($this->sftp->getSFTPErrors());
             if ($error = error_get_last()) {
                 $e->addError($error['message']);
@@ -84,7 +84,7 @@ class PhpSecLibCommander implements CommanderInterface
         restore_error_handler();
 
         if (!$result) {
-            $e = new PhpSecLibCommandException($command);
+            $e = new PhpSecLibCommandException('Error recv: from remote "%s" to local "%s"', $remote, $local);
             $e->addError($this->sftp->getSFTPErrors());
             if ($error = error_get_last()) {
                 $e->addError($error['message']);

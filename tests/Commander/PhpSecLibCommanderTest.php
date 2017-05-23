@@ -20,8 +20,15 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
     public function testExec()
     {
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('exec')->with('command')->willReturn('output');
-        $sftpMock->method('getExitStatus')->willReturn(0);
+        $sftpMock
+            ->expects($this->at(1))
+            ->method('exec')
+            ->with('command')
+            ->willReturn('output');
+        $sftpMock
+            ->expects($this->at(2))
+            ->method('getExitStatus')
+            ->willReturn(0);
 
         $commander = new PhpSecLibCommander($sftpMock);
 
@@ -33,8 +40,15 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
         $this->expectException(PhpSecLibCommandException::class);
 
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('exec')->with('command')->willReturn('output');
-        $sftpMock->method('getExitStatus')->willReturn(1);
+        $sftpMock
+            ->expects($this->at(1))
+            ->method('exec')
+            ->with('command')
+            ->willReturn('output');
+        $sftpMock
+            ->expects($this->at(2))
+            ->method('getExitStatus')
+            ->willReturn(1);
 
         $commander = new PhpSecLibCommander($sftpMock);
 
@@ -44,7 +58,11 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
     public function testSend()
     {
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('put')->with('remote', 'local', SFTP::SOURCE_LOCAL_FILE)->willReturn(true);
+        $sftpMock
+            ->expects($this->at(0))
+            ->method('put')
+            ->with('remote', 'local', SFTP::SOURCE_LOCAL_FILE)
+            ->willReturn(true);
 
         $commander = new PhpSecLibCommander($sftpMock);
 
@@ -56,7 +74,11 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
         $this->expectException(PhpSecLibCommandException::class);
 
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('put')->with('remote', 'local', SFTP::SOURCE_LOCAL_FILE)->willReturn(false);
+        $sftpMock
+            ->expects($this->at(0))
+            ->method('put')
+            ->with('remote', 'local', SFTP::SOURCE_LOCAL_FILE)
+            ->willReturn(false);
 
         $commander = new PhpSecLibCommander($sftpMock);
 
@@ -66,7 +88,11 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
     public function testRecv()
     {
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('get')->with('remote', 'local')->willReturn(true);
+        $sftpMock
+            ->expects($this->at(0))
+            ->method('get')
+            ->with('remote', 'local')
+            ->willReturn(true);
 
         $commander = new PhpSecLibCommander($sftpMock);
 
@@ -78,7 +104,11 @@ class PhpSecLibCommanderTest extends \PHPUnit_Framework_TestCase
         $this->expectException(PhpSecLibCommandException::class);
 
         $sftpMock = $this->createMock(SFTP::class);
-        $sftpMock->method('get')->with('remote', 'local')->willReturn(false);
+        $sftpMock
+            ->expects($this->at(0))
+            ->method('get')
+            ->with('remote', 'local')
+            ->willReturn(false);
 
         $commander = new PhpSecLibCommander($sftpMock);
 

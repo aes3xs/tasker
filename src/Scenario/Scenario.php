@@ -10,13 +10,14 @@
  */
 
 namespace Aes3xs\Yodler\Scenario;
-
-use Aes3xs\Yodler\Variable\VariableListInterface;
+use Aes3xs\Yodler\Variable\VariableList;
 
 /**
  * Scenario implementation.
+ *
+ * Scenario contains action definitions to run.
  */
-class Scenario implements ScenarioInterface
+class Scenario
 {
     /**
      * @var string
@@ -24,22 +25,17 @@ class Scenario implements ScenarioInterface
     protected $name;
 
     /**
-     * @var ActionListInterface
+     * @var Action[]
      */
-    protected $actions;
+    protected $actions = [];
 
     /**
-     * @var ActionListInterface
+     * @var Action[]
      */
-    protected $failbackActions;
+    protected $failbacks = [];
 
     /**
-     * @var ActionListInterface
-     */
-    protected $terminateActions;
-
-    /**
-     * @var VariableListInterface
+     * @var VariableList
      */
     protected $variables;
 
@@ -47,27 +43,16 @@ class Scenario implements ScenarioInterface
      * Constructor.
      *
      * @param $name
-     * @param ActionListInterface $actions
-     * @param ActionListInterface $failbackActions
-     * @param ActionListInterface $terminateActions
-     * @param VariableListInterface $variables
      */
-    public function __construct(
-        $name,
-        ActionListInterface $actions,
-        ActionListInterface $failbackActions,
-        ActionListInterface $terminateActions,
-        VariableListInterface $variables
-    ) {
+    public function __construct($name)
+    {
         $this->name = $name;
-        $this->actions = $actions;
-        $this->failbackActions = $failbackActions;
-        $this->terminateActions = $terminateActions;
-        $this->variables = $variables;
     }
 
     /**
-     * {@inheritdoc}
+     * Return scenario name.
+     *
+     * @return string
      */
     public function getName()
     {
@@ -75,7 +60,9 @@ class Scenario implements ScenarioInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Return list of actions.
+     *
+     * @return Action[]
      */
     public function getActions()
     {
@@ -83,26 +70,60 @@ class Scenario implements ScenarioInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Add action.
+     *
+     * @param Action $action
+     *
+     * @return $this
      */
-    public function getFailbackActions()
+    public function addAction(Action $action)
     {
-        return $this->failbackActions;
+        $this->actions[] = $action;
+
+        return $this;
     }
 
     /**
-     * {@inheritdoc}
+     * Return list of actions to execute on error.
+     *
+     * @return Action[]
      */
-    public function getTerminateActions()
+    public function getFailbacks()
     {
-        return $this->terminateActions;
+        return $this->failbacks;
     }
 
     /**
-     * {@inheritdoc}
+     * Add failback action.
+     *
+     * @param Action $action
+     *
+     * @return $this
+     */
+    public function addFailback(Action $action)
+    {
+        $this->failbacks[] = $action;
+
+        return $this;
+    }
+
+    /**
+     * @return VariableList
      */
     public function getVariables()
     {
         return $this->variables;
+    }
+
+    /**
+     * @param VariableList $variables
+     *
+     * @return $this
+     */
+    public function setVariables($variables)
+    {
+        $this->variables = $variables;
+
+        return $this;
     }
 }

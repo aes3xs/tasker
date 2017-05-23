@@ -11,7 +11,7 @@
 
 namespace Aes3xs\Yodler\Exception;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Yodler\Connection\Connection;
 
 /**
  * This exception is thrown when commander authentication was failed.
@@ -19,7 +19,7 @@ use Aes3xs\Yodler\Connection\ConnectionInterface;
 class CommanderAuthenticationException extends \RuntimeException implements ExceptionInterface
 {
     /**
-     * @var ConnectionInterface
+     * @var Connection
      */
     protected $connection;
 
@@ -31,7 +31,7 @@ class CommanderAuthenticationException extends \RuntimeException implements Exce
         parent::__construct('Unable to login with provided credentials');
     }
 
-    public function setConnection(ConnectionInterface $connection)
+    public function setConnection(Connection $connection)
     {
         $this->connection = $connection;
 
@@ -39,7 +39,7 @@ class CommanderAuthenticationException extends \RuntimeException implements Exce
     }
 
     /**
-     * @return ConnectionInterface
+     * @return Connection
      */
     public function getConnection()
     {

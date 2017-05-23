@@ -81,11 +81,12 @@ class Symfony
     }
 
     /**
-     * @param array $options
+     * @param $name
+     * @param null $value
      */
-    public function setOptions(array $options)
+    public function setOption($name, $value = null)
     {
-        $this->options = $options;
+        $this->options[$name] = $value;
     }
 
     public function runCommand($console, $command, $arguments = [], $options = [])

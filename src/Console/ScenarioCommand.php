@@ -11,8 +11,9 @@
 
 namespace Aes3xs\Yodler\Console;
 
+use Aes3xs\Yodler\Common\ReportPrinter;
 use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
+use Aes3xs\Yodler\Scenario\Scenario;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,7 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class ScenarioCommand extends Command implements ContainerAwareInterface
 {
     /**
-     * @var ScenarioInterface
+     * @var Scenario
      */
     protected $scenario;
 
@@ -38,9 +39,9 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
     /**
      * Constructor.
      *
-     * @param ScenarioInterface $scenario
+     * @param Scenario $scenario
      */
-    public function __construct(ScenarioInterface $scenario)
+    public function __construct(Scenario $scenario)
     {
         $this->scenario = $scenario;
 
@@ -74,7 +75,7 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
     {
         $this
             ->setName($this->scenario->getName())
-            ->addArgument('conn', InputArgument::REQUIRED | InputArgument::IS_ARRAY, 'Define connections for scenario to run on');
+            ->addArgument('connect', InputArgument::REQUIRED, 'Define connection for scenario to run on');
 
         parent::configure();
     }
@@ -84,12 +85,31 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $connections = $this->getContainer()->get('connection_factory')->createList();
-        foreach ($input->getArgument('conn') as $connectionName) {
-            $connection = $this->getContainer()->get('connections')->get($connectionName);
-            $connections->add($connection);
+        $connection = $this->getContainer()->get('connection_manager')->get($input->getArgument('connect'));
+
+        $key = $this->scenario->getName() . $connection->getName();
+
+        $semaphore = $this->getContainer()->get('semaphore_factory')->create($key);
+        $reporter = $this->getContainer()->get('reporter_factory')->create($key);
+
+        $semaphore->reset();
+        $reporter->reset();
+
+        $pid = pcntl_fork();
+        if ($pid == -1) {
+            throw new RuntimeException('Could not fork');
+        } else if ($pid) {
+            // Parent process code
+            $semaphore->addProcess($pid);
+            $pids[] = $pid;
+            $semaphore->run();
+            pcntl_waitpid($pid, $status);
+        } else {
+            // Child process code
+            $this->getContainer()->get('deployer')->deploy($this->scenario, $connection, $semaphore, $reporter);
+            return;
         }
 
-        $this->getContainer()->get('deployer')->deploy($this->scenario, $connections);
+        ReportPrinter::printReport($reporter, $input, $output);
     }
 }

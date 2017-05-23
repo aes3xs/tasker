@@ -11,21 +11,26 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Connection\ConnectionListInterface;
-use Aes3xs\Yodler\Scenario\ScenarioInterface;
+use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Scenario\Scenario;
 
 /**
- * Interface to deployer.
+ * Interface to deploy executor.
  */
 interface DeployerInterface
 {
     /**
      * Run deploy process.
      *
-     * @param ScenarioInterface $scenario
-     * @param ConnectionListInterface $connections
-     *
-     * @return void
+     * @param Scenario $scenario
+     * @param Connection $connection
+     * @param SemaphoreInterface $semaphore
+     * @param ReporterInterface $reporter
      */
-    public function deploy(ScenarioInterface $scenario, ConnectionListInterface $connections);
+    public function deploy(
+        Scenario $scenario,
+        Connection $connection,
+        SemaphoreInterface $semaphore,
+        ReporterInterface $reporter
+    );
 }

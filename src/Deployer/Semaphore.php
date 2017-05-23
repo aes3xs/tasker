@@ -67,6 +67,14 @@ class Semaphore implements SemaphoreInterface
         $this->release();
     }
 
+    public function getRaw()
+    {
+        $this->lock();
+        $data = $this->storage->read();
+        $this->release();
+        return $data;
+    }
+
     /**
      * {@inheritdoc}
      */
