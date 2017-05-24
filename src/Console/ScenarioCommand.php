@@ -79,7 +79,7 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
 
         $this
             ->setName($this->scenario->getName())
-            ->addArgument('connection', InputArgument::REQUIRED, 'Define connection for scenario to run on', $defaultConnection);
+            ->addArgument('connection', InputArgument::OPTIONAL, 'Define connection for scenario to run on', $defaultConnection);
 
         parent::configure();
     }
@@ -89,7 +89,7 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $connection = $this->getContainer()->get('connection_manager')->get($input->getArgument('connect'));
+        $connection = $this->getContainer()->get('connection_manager')->get($input->getArgument('connection'));
 
         $key = $this->scenario->getName() . $connection->getName();
 
