@@ -126,7 +126,7 @@ class Releaser
     {
         $path = $this->getDeployPath();
 
-        $releases = $this->getReleaseList($path);
+        $releases = $this->getReleaseList();
 
         $list = $this->shell->ls("$path/releases");
 
@@ -202,7 +202,7 @@ class Releaser
     {
         $path = $this->getDeployPath();
 
-        $releases = $this->getReleaseList($path);
+        $releases = $this->getReleaseList();
         krsort($releases);
 
         $currentRelease = array_shift($releases);
@@ -237,7 +237,7 @@ class Releaser
             }
         }
 
-        $release = $this->getReleasePath($path, $name);
+        $release = $this->getReleasePath($name);
 
         foreach ($sharedDirs as $dir) {
 
