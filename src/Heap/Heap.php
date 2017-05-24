@@ -74,7 +74,7 @@ class Heap implements HeapInterface
      */
     public function set($name, $value)
     {
-        $this->source->add($name, $value);
+        $this->source->set($name, $value);
     }
 
     /**
