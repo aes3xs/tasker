@@ -49,7 +49,7 @@ class Git
     /**
      * @param $keyPath
      */
-    public function setKey($keyPath)
+    public function setKeyPath($keyPath)
     {
         $this->key = $keyPath;
     }
