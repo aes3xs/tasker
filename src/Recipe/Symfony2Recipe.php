@@ -28,7 +28,6 @@ class Symfony2Recipe
 {
     protected $releaseName;
     protected $releasePath;
-    protected $cacheDir;
 
     public function prepare(Releaser $releaser, $deploy_path)
     {
@@ -48,12 +47,10 @@ class Symfony2Recipe
         $releaser->lock();
     }
 
-    public function createRelease(Releaser $releaser, Symfony $symfony)
+    public function createRelease(Releaser $releaser)
     {
         $this->releaseName = $releaser->create();
         $this->releasePath = $releaser->getReleasePath($this->releaseName);
-        $this->cacheDir = "{$this->releasePath}/app/cache";
-        $symfony->setConsolePath("{$this->releasePath}/app/console");
     }
 
     public function updateCode(Git $git, $repository, $branch, Releaser $releaser)
@@ -69,11 +66,11 @@ class Symfony2Recipe
     {
         $shell->removePaths(['web/app_*.php', 'web/config.php'], $this->releasePath);
 
-        if ($shell->exists($this->cacheDir)) {
-            $shell->rm($this->cacheDir);
+        $cacheDir = "{$this->releasePath}/app/cache";
+        if ($shell->isDir($cacheDir)) {
+            $shell->rm("$cacheDir/*");
         }
-        $shell->mkdir($this->cacheDir);
-        $shell->chmod($this->cacheDir, 0775);
+        $shell->chmod($cacheDir, 0775);
     }
 
     public function updateShared(Releaser $releaser)
@@ -88,6 +85,8 @@ class Symfony2Recipe
 
     public function warmCache(Symfony $symfony)
     {
+        $symfony->setConsolePath("{$this->releasePath}/app/console");
+
         $symfony->runCommand('cache:warmup');
     }
 
@@ -105,11 +104,9 @@ class Symfony2Recipe
         $shell->isWritablePaths(['app/cache', 'app/logs'], $this->releasePath);
     }
 
-    public function migrate(Symfony $symfony, $migrate = false)
+    public function migrate(Symfony $symfony)
     {
-        if ($migrate) {
-            $symfony->runCommand('doctrine:migrations:migrate', [], ['allow-no-migration']);
-        }
+        $symfony->runCommand('doctrine:migrations:migrate', [], ['allow-no-migration']);
     }
 
     public function release(Releaser $releaser)

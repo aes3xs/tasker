@@ -20,12 +20,11 @@ use Aes3xs\Yodler\Service\Symfony;
  */
 class Symfony3Recipe extends Symfony2Recipe
 {
-    public function createRelease(Releaser $releaser, Symfony $symfony)
+    public function warmCache(Symfony $symfony)
     {
-        $this->releaseName = $releaser->create();
-        $this->releasePath = $releaser->getReleasePath($this->releaseName);
         $symfony->setConsolePath("{$this->releaseName}/bin/console");
-        $this->cacheDir = "{$this->releaseName}/var/cache";
+
+        $symfony->runCommand('cache:warmup');
     }
 
     public function updateShared(Releaser $releaser)
@@ -35,6 +34,6 @@ class Symfony3Recipe extends Symfony2Recipe
 
     public function checkPermissions(Shell $shell)
     {
-        $shell->writablePaths(['var/cache', 'var/logs', 'var/sessions'], $this->releasePath);
+        $shell->isWritablePaths(['var/cache', 'var/logs', 'var/sessions'], $this->releasePath);
     }
 }
