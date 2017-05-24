@@ -126,6 +126,8 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
 
         $heap = new Heap($variables, $twig, $expressionLanguage);
 
+        $heap->set('heap', $this);
+
         return $heap;
     }
 
