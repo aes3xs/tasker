@@ -73,9 +73,13 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
      */
     protected function configure()
     {
+        $defaultConnection = $this->scenario->getVariables() && $this->scenario->getVariables()->has('connection')
+            ? $this->scenario->getVariables()->get('connection')
+            : null;
+
         $this
             ->setName($this->scenario->getName())
-            ->addArgument('connect', InputArgument::REQUIRED, 'Define connection for scenario to run on');
+            ->addArgument('connection', InputArgument::REQUIRED, 'Define connection for scenario to run on', $defaultConnection);
 
         parent::configure();
     }

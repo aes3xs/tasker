@@ -83,22 +83,6 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
             $variables->set($name, $this->container->get($name));
         }
 
-        $variables->set('scenario', $scenario);
-        $variables->set('connection', $connection);
-        $variables->set('input', $this->input);
-        $variables->set('output', $this->output);
-
-        $commander = $this->commanderFactory->create($connection);
-        $variables->set('commander', $commander);
-
-        // Predefined helper services
-        $shell = new Shell($commander);
-        $variables->set('shell', $shell);
-        $variables->set('releaser', new Releaser($shell));
-        $variables->set('composer', new Composer($shell));
-        $variables->set('git', new Git($shell));
-        $variables->set('symfony', new Symfony($shell));
-
         // Scenario variables
         if ($scenario->getVariables()) {
             foreach ($scenario->getVariables()->all() as $name => $value) {
@@ -122,6 +106,22 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
         foreach ($this->input->getOptions() as $name => $value) {
             $variables->set($name, $value);
         }
+
+        $variables->set('scenario', $scenario);
+        $variables->set('connection', $connection);
+        $variables->set('input', $this->input);
+        $variables->set('output', $this->output);
+
+        $commander = $this->commanderFactory->create($connection);
+        $variables->set('commander', $commander);
+
+        // Predefined helper services
+        $shell = new Shell($commander);
+        $variables->set('shell', $shell);
+        $variables->set('releaser', new Releaser($shell));
+        $variables->set('composer', new Composer($shell));
+        $variables->set('git', new Git($shell));
+        $variables->set('symfony', new Symfony($shell));
 
         $twig = new \Twig_Environment(new \Twig_Loader_Array());
         $expressionLanguage = new ExpressionLanguage();
