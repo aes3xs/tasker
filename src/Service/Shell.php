@@ -252,7 +252,7 @@ class Shell
      */
     public function which($command)
     {
-        return $this->exec("which $command") ?: false;
+        return $this->exec("which $command || true") ?: false;
     }
 
     /**
