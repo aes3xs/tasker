@@ -179,10 +179,12 @@ class ScenarioManager
 
                 $action = new Action($method->getName(), $callback, $condition);
 
+                if (!$isFailback || $isAlways) {
+                    $scenario->addAction($action);
+                }
+
                 if ($isFailback || $isAlways) {
                     $scenario->addFailback($action);
-                } else {
-                    $scenario->addAction($action);
                 }
             }
 
