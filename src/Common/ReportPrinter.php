@@ -95,16 +95,25 @@ class ReportPrinter
         $rows = [];
         foreach ($actionData as $key => $action) {
             $action = $action + self::ACTION_DEFAULTS;
-            $start = new \DateTime($action['start']);
-            $finish = new \DateTime($action['finish']);
+
+            $diff = null;
+            $start = null;
+            if ($action['start'] && $action['finish']) {
+                $actionStart = new \DateTime($action['start']);
+                $actionFinish = new \DateTime($action['finish']);
+                $start = $actionStart->format('H:i:s');
+                $diff = $actionFinish->getTimestamp() - $actionStart->getTimestamp();
+                $diff = $diff . 's';
+            }
+
             $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
-            $diff = $finish->getTimestamp() - $start->getTimestamp();
+
             $rows[] = [
                 'name'     => $action['name'],
                 'pic'      => isset($pics[$action['state']]) ? $pics[$action['state']] : $action['pic'],
                 'state'    => $action['state'],
-                'start'    => $start->format('H:i:s'),
-                'duration' => $diff . 's',
+                'start'    => $start,
+                'duration' => $diff,
                 'output'   => mb_substr($action['output'], 0, 64),
             ];
             $succeed = $succeed && in_array($action['state'], [Reporter::ACTION_STATE_SKIPPED, Reporter::ACTION_STATE_SUCCEED]);
