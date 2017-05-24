@@ -12,6 +12,7 @@
 namespace Aes3xs\Yodler\Scenario;
 
 use Aes3xs\Yodler\Annotation\After;
+use Aes3xs\Yodler\Annotation\Always;
 use Aes3xs\Yodler\Annotation\Before;
 use Aes3xs\Yodler\Annotation\Condition;
 use Aes3xs\Yodler\Annotation\Failback;
@@ -174,10 +175,11 @@ class ScenarioManager
                 $condition = $conditionAnnotation ? $conditionAnnotation->value : null;
 
                 $isFailback = !!$annotationReader->getMethodAnnotation($method, Failback::class);
+                $isAlways = !!$annotationReader->getMethodAnnotation($method, Always::class);
 
                 $action = new Action($method->getName(), $callback, $condition);
 
-                if ($isFailback) {
+                if ($isFailback || $isAlways) {
                     $scenario->addFailback($action);
                 } else {
                     $scenario->addAction($action);
