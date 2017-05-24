@@ -45,26 +45,24 @@ class Shell
 
     /**
      * @param $user
-     * @param bool $sshForwarding
      */
-    public function setUser($user, $sshForwarding = false)
+    public function setUser($user)
     {
         $this->user = null;
 
-        if ($sshForwarding) {
+        $sshAuthSock = $this->exec('echo "$SSH_AUTH_SOCK"');
+        if ($sshAuthSock) {
+
             if (!$this->which('setfacl')) {
                 throw new \RuntimeException('ACL must be installed to share ssh forwarding. Run `sudo apt-get install acl`');
             }
-            $sshAuthSock = $this->exec('echo "$SSH_AUTH_SOCK"');
-            if ($sshAuthSock) {
 
-                /**
-                 * Share same ssh-agent between logged-in user and user switched to
-                 * http://serverfault.com/a/698042
-                 */
-                $this->exec('setfacl -m ' . $user . ':x $(dirname "$SSH_AUTH_SOCK")');
-                $this->exec('setfacl -m ' . $user . ':rwx "$SSH_AUTH_SOCK"');
-            }
+            /**
+             * Share same ssh-agent between logged-in user and user switched to
+             * http://serverfault.com/a/698042
+             */
+            $this->exec('setfacl -m ' . $user . ':x $(dirname "$SSH_AUTH_SOCK")');
+            $this->exec('setfacl -m ' . $user . ':rwx "$SSH_AUTH_SOCK"');
         }
 
         $this->user = $user;
