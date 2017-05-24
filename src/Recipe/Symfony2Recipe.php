@@ -102,7 +102,7 @@ class Symfony2Recipe
 
     public function checkPermissions(Shell $shell)
     {
-        $shell->writablePaths(['app/cache', 'app/logs'], $this->releasePath);
+        $shell->isWritablePaths(['app/cache', 'app/logs'], $this->releasePath);
     }
 
     public function migrate(Symfony $symfony, $migrate = false)

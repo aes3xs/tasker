@@ -417,7 +417,7 @@ class Shell
      * @param array $paths
      * @param null $basePath
      */
-    public function writablePaths(array $paths, $basePath = null)
+    public function isWritablePaths(array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
             if (!$this->isWritable($basePath ? "$basePath/$path" : $path)) {
@@ -430,7 +430,7 @@ class Shell
      * @param array $paths
      * @param null $basePath
      */
-    public function readablePaths(array $paths, $basePath = null)
+    public function isReadablePaths(array $paths, $basePath = null)
     {
         foreach ($paths as $path) {
             if (!$this->isReadable($basePath ? "$basePath/$path" : $path)) {
