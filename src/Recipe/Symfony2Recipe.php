@@ -14,7 +14,6 @@ namespace Aes3xs\Yodler\Recipe;
 use Aes3xs\Yodler\Service\Composer;
 use Aes3xs\Yodler\Service\Git;
 use Aes3xs\Yodler\Service\Releaser;
-use Aes3xs\Yodler\Service\Reporter;
 use Aes3xs\Yodler\Service\Shell;
 use Aes3xs\Yodler\Service\Symfony;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -25,50 +24,50 @@ use Symfony\Component\Console\Question\ConfirmationQuestion;
 /**
  * Example recipe.
  */
-class Symfony2Recipe extends AbstractRecipe
+class Symfony2Recipe
 {
     protected $releaseName;
     protected $releasePath;
-    protected $console;
     protected $cacheDir;
 
     public function prepare(Releaser $releaser, $deploy_path)
     {
-        $releaser->prepare($deploy_path);
+        $releaser->setDeployPath($deploy_path);
+        $releaser->prepare();
     }
 
-    public function lock(Releaser $releaser, InputInterface $input, OutputInterface $output, $deploy_path)
+    public function lock(Releaser $releaser, InputInterface $input, OutputInterface $output)
     {
-        if ($releaser->isLocked($deploy_path)) {
+        if ($releaser->isLocked()) {
             $helper = new QuestionHelper();
             $question = new ConfirmationQuestion('<info>Deploy is locked. Unlock?</info> <comment>(Y/n)</comment> ');
             if ($helper->ask($input, $output, $question)) {
-                $releaser->unlock($deploy_path);
+                $releaser->unlock();
             }
         }
-        $releaser->lock($deploy_path);
+        $releaser->lock();
     }
 
-    public function createRelease(Releaser $releaser, $deploy_path)
+    public function createRelease(Releaser $releaser, Symfony $symfony)
     {
-        $this->releaseName = $releaser->create($deploy_path);
-        $this->releasePath = $releaser->getReleasePath($deploy_path, $this->releaseName);
-        $this->console = "{$this->releasePath}/app/console";
+        $this->releaseName = $releaser->create();
+        $this->releasePath = $releaser->getReleasePath($this->releaseName);
         $this->cacheDir = "{$this->releasePath}/app/cache";
+        $symfony->setConsolePath("{$this->releasePath}/app/console");
     }
 
-    public function updateCode(Git $git, $repository, $branch, Releaser $releaser, $deploy_path)
+    public function updateCode(Git $git, $repository, $branch, Releaser $releaser)
     {
-        $releases = $releaser->getReleaseList($deploy_path);
+        $releases = $releaser->getReleaseList();
         $release = $releases ? reset($releases) : null;
-        $reference = $release ? $releaser->getReleasePath($deploy_path, $release) : null;
+        $reference = $release ? $releaser->getReleasePath($release) : null;
 
         $git->cloneAt($repository, $this->releasePath, $branch, $reference);
     }
 
     public function checkPaths(Shell $shell)
     {
-        $this->removePaths($shell, ['web/app_*.php', 'web/config.php'], $this->releasePath);
+        $shell->removePaths(['web/app_*.php', 'web/config.php'], $this->releasePath);
 
         if ($shell->exists($this->cacheDir)) {
             $shell->rm($this->cacheDir);
@@ -77,9 +76,9 @@ class Symfony2Recipe extends AbstractRecipe
         $shell->chmod($this->cacheDir, 0775);
     }
 
-    public function updateShared(Releaser $releaser, $deploy_path)
+    public function updateShared(Releaser $releaser)
     {
-        $releaser->updateReleaseShares($deploy_path, $this->releaseName, ['app/logs'], ['app/config/parameters.yml']);
+        $releaser->updateReleaseShares($this->releaseName, ['app/logs'], ['app/config/parameters.yml']);
     }
 
     public function installVendors(Composer $composer)
@@ -89,39 +88,38 @@ class Symfony2Recipe extends AbstractRecipe
 
     public function warmCache(Symfony $symfony)
     {
-        $symfony->setDefaultOptions(Symfony::DEFAULT_OPTIONS);
-        $symfony->runCommand($this->console, 'cache:warmup');
+        $symfony->runCommand('cache:warmup');
     }
 
     public function installAssets(Symfony $symfony, $assetic_dump = false)
     {
-        $symfony->runCommand($this->console, 'assets:install', [$this->releasePath . "/web"]);
+        $symfony->runCommand('assets:install', [$this->releasePath . "/web"]);
 
         if ($assetic_dump) {
-            $symfony->runCommand($this->console, 'assetic:dump');
+            $symfony->runCommand('assetic:dump');
         }
     }
 
     public function checkPermissions(Shell $shell)
     {
-        $this->writablePaths($shell, ['app/cache', 'app/logs'], $this->releasePath);
+        $shell->writablePaths(['app/cache', 'app/logs'], $this->releasePath);
     }
 
     public function migrate(Symfony $symfony, $migrate = false)
     {
         if ($migrate) {
-            $symfony->runCommand($this->console, 'doctrine:migrations:migrate', [], array_merge(Symfony::DEFAULT_OPTIONS, ['allow-no-migration']));
+            $symfony->runCommand('doctrine:migrations:migrate', [], ['allow-no-migration']);
         }
     }
 
-    public function release(Releaser $releaser, $deploy_path)
+    public function release(Releaser $releaser)
     {
-        $releaser->release($deploy_path, $this->releaseName);
-        $releaser->unlock($deploy_path);
+        $releaser->release($this->releaseName);
+        $releaser->unlock();
     }
 
-    public function cleanup(Releaser $releaser, $deploy_path, $keep_releases = 5)
+    public function cleanup(Releaser $releaser, $keep_releases = 5)
     {
-        $releaser->cleanup($deploy_path, $keep_releases);
+        $releaser->cleanup($keep_releases);
     }
 }

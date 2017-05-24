@@ -346,10 +346,96 @@ class Shell
         return $filesize ? fread($tmp, $filesize) : '';
     }
 
+    /**
+     * @param $source
+     * @param $target
+     */
     public function copy($source, $target)
     {
         $source = $this->escapePath($source);
         $target = $this->escapePath($target);
         $this->exec("cp -r $source $target");
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function removePaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $path) {
+            $this->rm($basePath ? "$basePath/$path" : $path);
+        }
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function copyPaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $source => $targets) {
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $this->copy(
+                    $basePath ? "$basePath/$source" : $source,
+                    $basePath ? "$basePath/$target" : $target
+                );
+            }
+        }
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function createPaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $path) {
+            $this->mkdir($basePath ? "$basePath/$path" : $path);
+        }
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function linkPaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $source => $targets) {
+            $targets = is_array($targets) ? $targets : [$targets];
+            foreach ($targets as $target) {
+                $this->ln(
+                    $basePath ? "$basePath/$source" : $source,
+                    $basePath ? "$basePath/$target" : $target
+                );
+            }
+        }
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function writablePaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $path) {
+            if (!$this->isWritable($basePath ? "$basePath/$path" : $path)) {
+                throw new \RuntimeException('Path not writable: ' . ($basePath ? "$basePath/$path" : $path));
+            }
+        }
+    }
+
+    /**
+     * @param array $paths
+     * @param null $basePath
+     */
+    public function readablePaths(array $paths, $basePath = null)
+    {
+        foreach ($paths as $path) {
+            if (!$this->isReadable($basePath ? "$basePath/$path" : $path)) {
+                throw new \RuntimeException('Path not readable: ' . ($basePath ? "$basePath/$path" : $path));
+            }
+        }
     }
 }

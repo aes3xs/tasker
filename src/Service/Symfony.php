@@ -29,6 +29,11 @@ class Symfony
     /**
      * @var string
      */
+    protected $consolePath;
+
+    /**
+     * @var string
+     */
     protected $env = 'prod';
 
     /**
@@ -42,11 +47,6 @@ class Symfony
     protected $interaction = false;
 
     /**
-     * @var array
-     */
-    protected $options = [];
-
-    /**
      * Constructor.
      *
      * @param Shell $shell
@@ -54,6 +54,30 @@ class Symfony
     public function __construct(Shell $shell)
     {
         $this->shell = $shell;
+    }
+
+    /**
+     * Set console path.
+     *
+     * @param $consolePath
+     */
+    public function setConsolePath($consolePath)
+    {
+        $this->consolePath = $consolePath;
+    }
+
+    /**
+     * Get console path.
+     *
+     * @return string
+     */
+    public function getConsolePath()
+    {
+        if (null === $this->consolePath) {
+            throw new \RuntimeException('Console path is not defined');
+        }
+
+        return $this->consolePath;
     }
 
     /**
@@ -80,18 +104,10 @@ class Symfony
         $this->interaction = $interaction;
     }
 
-    /**
-     * @param $name
-     * @param null $value
-     */
-    public function setOption($name, $value = null)
-    {
-        $this->options[$name] = $value;
-    }
-
-    public function runCommand($console, $command, $arguments = [], $options = [])
+    public function runCommand($command, $arguments = [], $options = [])
     {
         $php = $this->getPhpPath();
+        $console = $this->getConsolePath();
 
         $predefinedOptions = ['env' => $this->env];
         if (!$this->debug) {
@@ -101,7 +117,7 @@ class Symfony
             $predefinedOptions['no-interaction'] = null;
         }
 
-        $options = $predefinedOptions + $this->options + $options;
+        $options = $options + $predefinedOptions;
 
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';
