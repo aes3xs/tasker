@@ -14,7 +14,11 @@ namespace Aes3xs\Yodler\Commander;
 use Aes3xs\Yodler\Exception\PhpSecLibCommandException;
 use phpseclib\Net\SFTP;
 use phpseclib\System\SSH\Agent;
+use Psr\Log\LoggerInterface;
 
+/**
+ * PhpSecLib commander implementation.
+ */
 class PhpSecLibCommander implements CommanderInterface
 {
     const TIMEOUT = 300;
@@ -24,6 +28,16 @@ class PhpSecLibCommander implements CommanderInterface
      */
     protected $sftp;
 
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * Constructor.
+     *
+     * @param SFTP $sftp
+     */
     public function __construct(SFTP $sftp)
     {
         $this->sftp = $sftp;
@@ -32,25 +46,41 @@ class PhpSecLibCommander implements CommanderInterface
     /**
      * {@inheritdoc}
      */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function exec($command)
     {
+        if ($this->logger) {
+            $this->logger->debug('> ' . $command);
+        }
+
         // Silence error reporting
         set_error_handler(function () {});
         $this->sftp->setTimeout(self::TIMEOUT);
-        $result = $this->sftp->exec($command);
+        $output = $this->sftp->exec($command);
         restore_error_handler();
 
         if ($this->sftp->getExitStatus() !== 0) {
             $e = new PhpSecLibCommandException($command);
             $e->addError($this->sftp->getSFTPErrors());
-            $e->addError($this->sftp->getStdError() ?: $result);
+            $e->addError($this->sftp->getStdError() ?: $output);
             if ($error = error_get_last()) {
                 $e->addError($error['message']);
             }
             throw $e;
         }
 
-        return $result;
+        if ($this->logger) {
+            $this->logger->debug('< ' . $command . ': ' . $output);
+        }
+
+        return $output;
     }
 
     /**
@@ -58,6 +88,10 @@ class PhpSecLibCommander implements CommanderInterface
      */
     public function send($local, $remote)
     {
+        if ($this->logger) {
+            $this->logger->debug('Send: ' . $local . ' to ' . $remote);
+        }
+
         // Silence error reporting
         set_error_handler(function () {});
         $result = $this->sftp->put($remote, $local, SFTP::SOURCE_LOCAL_FILE);
@@ -78,6 +112,10 @@ class PhpSecLibCommander implements CommanderInterface
      */
     public function recv($remote, $local)
     {
+        if ($this->logger) {
+            $this->logger->debug('Recv: ' . $remote . ' to ' . $local);
+        }
+
         // Silence error reporting
         set_error_handler(function () {});
         $result = $this->sftp->get($remote, $local);

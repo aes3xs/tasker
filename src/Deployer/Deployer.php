@@ -61,7 +61,8 @@ class Deployer implements DeployerInterface
         ReporterInterface $reporter
     ) {
         $logger = $this->logger->withName(sprintf('%s@%s', $scenario->getName(), $connection->getName()));
-        $heap = $this->heapFactory->create($scenario, $connection);
+
+        $heap = $this->heapFactory->create($scenario, $connection, $logger);
 
         $semaphore->reportReady();
         $reporter->reportDeploy($scenario, $connection);

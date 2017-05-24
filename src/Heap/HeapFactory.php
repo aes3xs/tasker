@@ -21,6 +21,7 @@ use Aes3xs\Yodler\Service\Releaser;
 use Aes3xs\Yodler\Service\Shell;
 use Aes3xs\Yodler\Service\Symfony;
 use Aes3xs\Yodler\Variable\VariableList;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -62,14 +63,9 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
     }
 
     /**
-     * Create and return deploy heap.
-     *
-     * @param Scenario $scenario
-     * @param Connection $connection
-     *
-     * @return HeapInterface
+     * {@inheritdoc}
      */
-    public function create(Scenario $scenario, Connection $connection)
+    public function create(Scenario $scenario, Connection $connection, LoggerInterface $logger)
     {
         $variables = new VariableList();
 
@@ -111,8 +107,10 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
         $variables->set('connection', $connection);
         $variables->set('input', $this->input);
         $variables->set('output', $this->output);
+        $variables->set('logger', $logger);
 
         $commander = $this->commanderFactory->create($connection);
+        $commander->setLogger($logger);
         $variables->set('commander', $commander);
 
         // Predefined helper services

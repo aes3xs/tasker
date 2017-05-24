@@ -13,6 +13,7 @@ namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Scenario\Scenario;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interface to heap factory.
@@ -24,8 +25,9 @@ interface HeapFactoryInterface
      *
      * @param Scenario $scenario
      * @param Connection $connection
+     * @param LoggerInterface $logger
      *
      * @return HeapInterface
      */
-    public function create(Scenario $scenario, Connection $connection);
+    public function create(Scenario $scenario, Connection $connection, LoggerInterface $logger);
 }
