@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
  */
 class PhpSecLibCommander implements CommanderInterface
 {
-    const TIMEOUT = 300;
+    const TIMEOUT = 1200;
 
     /**
      * @var SFTP

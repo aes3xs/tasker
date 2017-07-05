@@ -20,7 +20,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class LocalCommander implements CommanderInterface
 {
-    const TIMEOUT = 300;
+    const TIMEOUT = 1200;
 
     /**
      * @var Filesystem
