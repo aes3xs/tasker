@@ -49,6 +49,7 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
                 'passphrase' => 'passphrase',
                 'forwarding' => true,
             ],
+            'parameters' => [],
         ];
 
         $builder = new DeployBuilder();
@@ -71,6 +72,7 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
                 'forwarding' => true,
                 'key'        => __DIR__ . '/../Fixtures/key/id_rsa'
             ],
+            'parameters' => [],
         ];
 
         $builder = new DeployBuilder($configuration);

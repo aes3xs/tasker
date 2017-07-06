@@ -30,7 +30,13 @@ class DeployBuilder
         $scenario = $this->createScenario($data['scenario']);
         $connection = $this->createConnection($data['connection']);
 
-        return new Deploy($name, $scenario, $connection);
+        $deploy = new Deploy($name, $scenario, $connection);
+
+        foreach ($data['parameters'] as $name => $value) {
+            $deploy->getParameters()->set($name, $value);
+        }
+
+        return $deploy;
     }
 
     /**
