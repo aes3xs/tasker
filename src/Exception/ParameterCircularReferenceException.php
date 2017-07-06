@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when variables depends on itselves directly or through it's variable dependencies.
  */
-class VariableCircularReferenceException extends \RuntimeException implements ExceptionInterface
+class ParameterCircularReferenceException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

@@ -11,12 +11,9 @@
 
 namespace Aes3xs\Yodler\Console;
 
+use Aes3xs\Yodler\Deploy\DeployBuilder;
 use Aes3xs\Yodler\Event\ConsoleRunEvent;
-use Aes3xs\Yodler\Scenario\Scenario;
-use Aes3xs\Yodler\Scenario\ScenarioManager;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -25,18 +22,25 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class CommandBuilder implements EventSubscriberInterface
 {
     /**
-     * @var ScenarioManager
+     * @var DeployBuilder
      */
-    protected $scenarioManager;
+    protected $deployBuilder;
+
+    /**
+     * @var array
+     */
+    protected $deploys;
 
     /**
      * Constructor.
      *
-     * @param ScenarioManager $scenarioManager
+     * @param DeployBuilder $deployBuilder
+     * @param array $deploys
      */
-    public function __construct(ScenarioManager $scenarioManager)
+    public function __construct(DeployBuilder $deployBuilder, array $deploys)
     {
-        $this->scenarioManager = $scenarioManager;
+        $this->deployBuilder = $deployBuilder;
+        $this->deploys = $deploys;
     }
 
     /**
@@ -63,36 +67,18 @@ class CommandBuilder implements EventSubscriberInterface
     public function build()
     {
         $commands = [];
-        foreach ($this->scenarioManager->all() as $scenario) {
-            $commands[] = $this->buildScenarioCommand($scenario);
+        foreach ($this->deploys as $name => $data) {
+
+            $command = new DeployCommand($name);
+
+            $deploy = $this->deployBuilder->build($name, $data);
+
+            $command->setDeploy($deploy);
+            $deploy->getScenario()->invokeInitializer($command);
+
+            $commands[] = $command;
         }
         return $commands;
     }
 
-    /**
-     * @param Scenario $scenario
-     *
-     * @return ScenarioCommand
-     */
-    protected function buildScenarioCommand(Scenario $scenario)
-    {
-        $command = new ScenarioCommand($scenario);
-
-        $arguments = $command->getDefinition()->getArguments();
-        $options = $command->getDefinition()->getOptions();
-
-        foreach ($scenario->getVariables()->all() as $name => $value) {
-            if ($value instanceof InputArgument) {
-                $arguments[$value->getName()] = $value;
-            }
-            if ($value instanceof InputOption) {
-                $options[$value->getName()] = $value;
-            }
-        }
-
-        $command->getDefinition()->setArguments($arguments);
-        $command->getDefinition()->setOptions($options);
-
-        return $command;
-    }
 }

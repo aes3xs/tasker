@@ -12,9 +12,9 @@
 namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
+use Aes3xs\Yodler\Exception\ParameterCircularReferenceException;
 use Aes3xs\Yodler\Common\CallableHelper;
-use Aes3xs\Yodler\Variable\VariableList;
+use Aes3xs\Yodler\ParameterList;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\ExpressionLanguage\Node\NameNode;
 use Symfony\Component\ExpressionLanguage\Node\Node;
@@ -25,9 +25,9 @@ use Symfony\Component\ExpressionLanguage\Node\Node;
 class Heap implements HeapInterface
 {
     /**
-     * @var VariableList
+     * @var ParameterList
      */
-    protected $source;
+    protected $parameters;
 
     /**
      * @var \Twig_Environment
@@ -42,13 +42,12 @@ class Heap implements HeapInterface
     /**
      * Constructor.
      *
-     * @param VariableList $source
      * @param \Twig_Environment $twig
      * @param ExpressionLanguage $expressionLanguage
      */
-    public function __construct(VariableList $source, \Twig_Environment $twig, ExpressionLanguage $expressionLanguage)
+    public function __construct(\Twig_Environment $twig, ExpressionLanguage $expressionLanguage)
     {
-        $this->source = $source;
+        $this->parameters = new ParameterList();
         $this->twig = $twig;
         $this->expressionLanguage = $expressionLanguage;
     }
@@ -58,15 +57,7 @@ class Heap implements HeapInterface
      */
     public function all()
     {
-        return $this->source->all();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function add($name, $value)
-    {
-        $this->source->add($name, $value);
+        return $this->parameters->all();
     }
 
     /**
@@ -74,7 +65,7 @@ class Heap implements HeapInterface
      */
     public function set($name, $value)
     {
-        $this->source->set($name, $value);
+        $this->parameters->set($name, $value);
     }
 
     /**
@@ -82,7 +73,7 @@ class Heap implements HeapInterface
      */
     public function get($name)
     {
-        $value = $this->source->get($name);
+        $value = $this->parameters->get($name);
         return is_callable($value) ? $this->resolveCallback($value) : $value;
     }
 
@@ -91,7 +82,7 @@ class Heap implements HeapInterface
      */
     public function has($name)
     {
-        return $this->source->has($name);
+        return $this->parameters->has($name);
     }
 
     /**
@@ -204,7 +195,7 @@ class Heap implements HeapInterface
      *
      * @return mixed
      *
-     * @throws VariableCircularReferenceException
+     * @throws ParameterCircularReferenceException
      */
     protected function resolveCallbackWithCallstack(callable $callback, &$callstack = [])
     {
@@ -218,12 +209,12 @@ class Heap implements HeapInterface
                 continue;
             }
 
-            $value = $this->source->get($name);
+            $value = $this->parameters->get($name);
 
             if (is_callable($value)) {
 
                 if (in_array($name, $callstack)) {
-                    throw new VariableCircularReferenceException($name, $callstack);
+                    throw new ParameterCircularReferenceException($name, $callstack);
                 }
 
                 $callstack[] = $name;

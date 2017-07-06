@@ -11,11 +11,10 @@
 
 namespace Aes3xs\Yodler\Deployer;
 
-use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Heap\HeapFactoryInterface;
 use Aes3xs\Yodler\Heap\HeapInterface;
 use Aes3xs\Yodler\Scenario\Action;
-use Aes3xs\Yodler\Scenario\Scenario;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 
@@ -49,30 +48,25 @@ class Deployer implements DeployerInterface
     /**
      * Run deploy process.
      *
-     * @param Scenario $scenario
-     * @param Connection $connection
+     * @param Deploy $deploy
      * @param SemaphoreInterface $semaphore
      * @param ReporterInterface $reporter
      */
-    public function deploy(
-        Scenario $scenario,
-        Connection $connection,
-        SemaphoreInterface $semaphore,
-        ReporterInterface $reporter
-    ) {
-        $logger = $this->logger->withName(sprintf('%s@%s', $scenario->getName(), $connection->getName()));
+    public function deploy(Deploy $deploy, SemaphoreInterface $semaphore, ReporterInterface $reporter)
+    {
+        $logger = $this->logger->withName($deploy->getName());
 
-        $heap = $this->heapFactory->create($scenario, $connection, $logger);
+        $heap = $this->heapFactory->create($deploy, $logger);
 
         $semaphore->reportReady();
-        $reporter->reportDeploy($scenario, $connection);
+        $reporter->reportDeploy($deploy);
 
         try {
-            $this->execute($scenario->getActions(), $heap, $reporter, $logger);
+            $this->execute($deploy->getScenario()->getActions(), $heap, $reporter, $logger);
         } catch (\Exception $e) {
             $semaphore->reportError();
             $heap->set('exception', $e);
-            $this->execute($scenario->getFailbacks(), $heap, $reporter, $logger);
+            $this->execute($deploy->getScenario()->getFailbacks(), $heap, $reporter, $logger);
         }
     }
 

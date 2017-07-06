@@ -12,9 +12,8 @@
 namespace Aes3xs\Yodler\Deployer;
 
 use Aes3xs\Yodler\Common\LockableStorage;
-use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Scenario\Action;
-use Aes3xs\Yodler\Scenario\Scenario;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\Processor;
 
@@ -53,28 +52,27 @@ class Reporter implements ReporterInterface
     /**
      * {@inheritdoc}
      */
-    public function reportDeploy(Scenario $scenario, Connection $connection)
+    public function reportDeploy(Deploy $deploy)
     {
         $this->storage->acquire(true);
 
-        $deploy = [
-            'scenario'   => $scenario->getName(),
-            'connection' => $connection->getName(),
-            'actions'    => [],
-            'failbacks'  => [],
+        $info = [
+            'name'      => $deploy->getName(),
+            'actions'   => [],
+            'failbacks' => [],
         ];
 
-        foreach ($scenario->getActions() as $action) {
+        foreach ($deploy->getScenario()->getActions() as $action) {
             $key = spl_object_hash($action);
-            $deploy['actions'][$key] = ['name' => $action->getName()];
+            $info['actions'][$key] = ['name' => $action->getName()];
         }
-        foreach ($scenario->getFailbacks() as $action) {
+        foreach ($deploy->getScenario()->getFailbacks() as $action) {
             $key = spl_object_hash($action);
-            $deploy['failbacks'][$key] = ['name' => $action->getName()];
+            $info['failbacks'][$key] = ['name' => $action->getName()];
         }
 
         $data = $this->getData();
-        $data[getmypid()] = $deploy;
+        $data[getmypid()] = $info;
         $this->storage->write($data);
         $this->storage->release();
     }
@@ -167,8 +165,7 @@ class Reporter implements ReporterInterface
             ->useAttributeAsKey('id')
             ->prototype('array')
             ->children()
-                ->scalarNode('scenario')->isRequired()->end()
-                ->scalarNode('connection')->isRequired()->end()
+                ->scalarNode('name')->isRequired()->end()
                 ->arrayNode('actions')
                     ->isRequired()
                     ->prototype('array')

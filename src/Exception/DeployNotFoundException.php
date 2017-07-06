@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when scenario with the provided name doesn't exist in the list.
  */
-class ScenarioNotFoundException extends \RuntimeException implements ExceptionInterface
+class DeployNotFoundException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

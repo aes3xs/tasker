@@ -12,6 +12,7 @@
 namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Scenario\Scenario;
 use Psr\Log\LoggerInterface;
 
@@ -23,11 +24,10 @@ interface HeapFactoryInterface
     /**
      * Create and return deploy heap.
      *
-     * @param Scenario $scenario
-     * @param Connection $connection
+     * @param Deploy $deploy
      * @param LoggerInterface $logger
      *
      * @return HeapInterface
      */
-    public function create(Scenario $scenario, Connection $connection, LoggerInterface $logger);
+    public function create(Deploy $deploy, LoggerInterface $logger);
 }

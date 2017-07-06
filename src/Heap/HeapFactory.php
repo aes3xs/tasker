@@ -12,15 +12,13 @@
 namespace Aes3xs\Yodler\Heap;
 
 use Aes3xs\Yodler\Commander\CommanderFactory;
-use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Event\ConsoleRunEvent;
-use Aes3xs\Yodler\Scenario\Scenario;
 use Aes3xs\Yodler\Service\Composer;
 use Aes3xs\Yodler\Service\Git;
 use Aes3xs\Yodler\Service\Releaser;
 use Aes3xs\Yodler\Service\Shell;
 use Aes3xs\Yodler\Service\Symfony;
-use Aes3xs\Yodler\Variable\VariableList;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -65,66 +63,55 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public function create(Scenario $scenario, Connection $connection, LoggerInterface $logger)
+    public function create(Deploy $deploy, LoggerInterface $logger)
     {
-        $variables = new VariableList();
+        $twig = new \Twig_Environment(new \Twig_Loader_Array());
+        $expressionLanguage = new ExpressionLanguage();
+
+        $heap = new Heap($twig, $expressionLanguage);
 
         // Container parameters
         foreach ($this->container->getParameterBag()->all() as $name => $value) {
-            $variables->set($name, $value);
+            $heap->set($name, $value);
         }
 
         // Container services
         foreach ($this->container->getServiceIds() as $name) {
-            $variables->set($name, $this->container->get($name));
+            $heap->set($name, $this->container->get($name));
         }
 
-        // Scenario variables
-        if ($scenario->getVariables()) {
-            foreach ($scenario->getVariables()->all() as $name => $value) {
-                $variables->set($name, $value);
-            }
-        }
-
-        // Connection variables
-        if ($connection->getVariables()) {
-            foreach ($connection->getVariables()->all() as $name => $value) {
-                $variables->set($name, $value);
-            }
+        // Deploy parameters
+        foreach ($deploy->getParameters()->all() as $name => $value) {
+            $heap->set($name, $value);
         }
 
         // Input arguments
         foreach ($this->input->getArguments() as $name => $value) {
-            $variables->set($name, $value);
+            $heap->set($name, $value);
         }
 
         // Input options
         foreach ($this->input->getOptions() as $name => $value) {
-            $variables->set($name, $value);
+            $heap->set($name, $value);
         }
 
-        $variables->set('scenario', $scenario);
-        $variables->set('connection', $connection);
-        $variables->set('input', $this->input);
-        $variables->set('output', $this->output);
-        $variables->set('logger', $logger);
+        $heap->set('deploy', $deploy);
+        $heap->set('logger', $logger);
 
-        $commander = $this->commanderFactory->create($connection);
+        $heap->set('input', $this->input);
+        $heap->set('output', $this->output);
+
+        $commander = $this->commanderFactory->create($deploy->getConnection());
         $commander->setLogger($logger);
-        $variables->set('commander', $commander);
+        $heap->set('commander', $commander);
 
         // Predefined helper services
         $shell = new Shell($commander);
-        $variables->set('shell', $shell);
-        $variables->set('releaser', new Releaser($shell));
-        $variables->set('composer', new Composer($shell));
-        $variables->set('git', new Git($shell));
-        $variables->set('symfony', new Symfony($shell));
-
-        $twig = new \Twig_Environment(new \Twig_Loader_Array());
-        $expressionLanguage = new ExpressionLanguage();
-
-        $heap = new Heap($variables, $twig, $expressionLanguage);
+        $heap->set('shell', $shell);
+        $heap->set('releaser', new Releaser($shell));
+        $heap->set('composer', new Composer($shell));
+        $heap->set('git', new Git($shell));
+        $heap->set('symfony', new Symfony($shell));
 
         $heap->set('heap', $heap);
 
@@ -146,7 +133,7 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            ConsoleRunEvent::NAME => ['onConsoleRun', 255],
+            ConsoleRunEvent::NAME  => ['onConsoleRun', 255],
         ];
     }
 }

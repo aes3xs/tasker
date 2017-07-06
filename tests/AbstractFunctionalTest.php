@@ -46,13 +46,10 @@ abstract class AbstractFunctionalTest extends \PHPUnit_Framework_TestCase
     {
         if (!$this->kernel) {
             $this->kernel = new Kernel(__DIR__ . '/Fixtures/container/default.yml');
-            $this->kernel->boot();
 
-            foreach ($this->kernel->getContainer()->getParameter('autoload') as $dir) {
-                $map = ClassMapGenerator::createMap($dir);
-                $map_loader = new MapClassLoader($map);
-                $map_loader->register();
-            }
+            require_once __DIR__ . '/Fixtures/recipe/DefaultRecipe.php';
+
+            $this->kernel->boot();
 
             $application = new Application();
             $this->input = new ArrayInput([]);

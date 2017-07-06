@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when trying to get a variable that doesn't presented in a list.
  */
-class VariableNotFoundException extends \RuntimeException implements ExceptionInterface
+class ParameterNotFoundException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

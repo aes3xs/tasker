@@ -13,9 +13,6 @@ parameters:
         128: 100    # VERBOSITY_VERY_VERBOSE:   DEBUG
         256: 100    # VERBOSITY_DEBUG:          DEBUG
 
-    autoload:
-        - '%config_dir%'
-
 services:
 
     event_dispatcher:
@@ -25,9 +22,13 @@ services:
     command_builder:
         class: Aes3xs\Yodler\Console\CommandBuilder
         arguments:
-            - '@scenario_manager'
+            - '@deploy_builder'
+            - '%deploys%'
         tags:
             - { name: kernel.event_subscriber }
+
+    deploy_builder:
+        class: Aes3xs\Yodler\Deploy\DeployBuilder
 
     logger.console_handler:
         class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
@@ -80,11 +81,3 @@ services:
         arguments:
             - '@heap_factory'
             - '@logger'
-
-    scenario_manager:
-        class: Aes3xs\Yodler\Scenario\ScenarioManager
-        arguments: ['%scenarios%']
-
-    connection_manager:
-        class: Aes3xs\Yodler\Connection\ConnectionManager
-        arguments: ['%connections%']

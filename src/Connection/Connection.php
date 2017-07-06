@@ -10,18 +10,12 @@
  */
 
 namespace Aes3xs\Yodler\Connection;
-use Aes3xs\Yodler\Variable\VariableList;
 
 /**
  * Connection definition implementation.
  */
 class Connection
 {
-    /**
-     * @var string
-     */
-    protected $name;
-
     /**
      * @var string
      */
@@ -58,26 +52,10 @@ class Connection
     protected $forwarding;
 
     /**
-     * @var VariableList
-     */
-    protected $variables;
-
-    /**
      * Constructor.
-     *
-     * @param $name
      */
-    public function __construct($name)
+    public function __construct()
     {
-        $this->name = $name;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
     }
 
     /**
@@ -216,26 +194,6 @@ class Connection
     public function setForwarding($forwarding)
     {
         $this->forwarding = $forwarding;
-
-        return $this;
-    }
-
-    /**
-     * @return VariableList
-     */
-    public function getVariables()
-    {
-        return $this->variables;
-    }
-
-    /**
-     * @param VariableList $variables
-     *
-     * @return Connection
-     */
-    public function setVariables($variables)
-    {
-        $this->variables = $variables;
 
         return $this;
     }

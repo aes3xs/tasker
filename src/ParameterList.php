@@ -9,18 +9,17 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Variable;
+namespace Aes3xs\Yodler;
 
-use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
-use Aes3xs\Yodler\Exception\VariableNotFoundException;
+use Aes3xs\Yodler\Exception\ParameterAlreadyExistsException;
+use Aes3xs\Yodler\Exception\ParameterNotFoundException;
 
 /**
- * Implementation for variable list.
+ * Implementation for parameter list.
  *
- * Variable list provides basic methods to add and retrieve variables by name.
- * There is no method to override already defined variable.
+ * Parameter list provides basic methods to add and retrieve parameters by name.
  */
-class VariableList
+class ParameterList
 {
     /**
      * @var array
@@ -53,12 +52,12 @@ class VariableList
      * @param $name
      * @param $value
      *
-     * @throws VariableAlreadyExistsException
+     * @throws ParameterAlreadyExistsException
      */
     public function add($name, $value)
     {
         if ($this->has($name)) {
-            throw new VariableAlreadyExistsException($name);
+            throw new ParameterAlreadyExistsException($name);
         }
 
         $this->variables[$name] = $value;
@@ -70,7 +69,6 @@ class VariableList
      *
      * @param $name
      * @param $value
-     * @return mixed
      */
     public function set($name, $value)
     {
@@ -84,12 +82,12 @@ class VariableList
      *
      * @return mixed
      *
-     * @throws VariableNotFoundException
+     * @throws ParameterNotFoundException
      */
     public function get($name)
     {
         if (!$this->has($name)) {
-            throw new VariableNotFoundException($name);
+            throw new ParameterNotFoundException($name);
         }
 
         return $this->variables[$name];

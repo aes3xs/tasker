@@ -10,7 +10,7 @@
  */
 
 namespace Aes3xs\Yodler\Scenario;
-use Aes3xs\Yodler\Variable\VariableList;
+use Symfony\Component\Console\Command\Command;
 
 /**
  * Scenario implementation.
@@ -19,11 +19,6 @@ use Aes3xs\Yodler\Variable\VariableList;
  */
 class Scenario
 {
-    /**
-     * @var string
-     */
-    protected $name;
-
     /**
      * @var Action[]
      */
@@ -35,28 +30,46 @@ class Scenario
     protected $failbacks = [];
 
     /**
-     * @var VariableList
+     * @var callable
      */
-    protected $variables;
+    protected $initializer;
 
     /**
      * Constructor.
-     *
-     * @param $name
      */
-    public function __construct($name)
+    public function __construct()
     {
-        $this->name = $name;
     }
 
-    /**
-     * Return scenario name.
-     *
-     * @return string
-     */
-    public function getName()
+    public function setInitializer(callable $callback)
     {
-        return $this->name;
+        $reflectionFunction = new \ReflectionFunction($callback);
+
+        $tooManyArguments = $reflectionFunction->getNumberOfParameters() > 1;
+        if ($tooManyArguments) {
+            throw new \RuntimeException(sprintf('Constructor argument list must be empty or contain one \Symfony\Component\Console\Command\Command argument, given %d arguments', $reflectionFunction->getNumberOfParameters()));
+        }
+
+        if ($reflectionFunction->getNumberOfParameters()) {
+
+            $arg = $reflectionFunction->getParameters()[0];
+
+            $invalidArgument = $arg->getClass() && !is_a($arg->getClass()->getName(), Command::class, true);
+            if ($invalidArgument) {
+                throw new \RuntimeException('Constructor argument list must be empty or contain one \Symfony\Component\Console\Command\Command argument');
+            }
+        }
+
+        $this->initializer = $callback;
+
+        return $this;
+    }
+
+    public function invokeInitializer(Command $command)
+    {
+        if ($this->initializer) {
+            call_user_func($this->initializer, $command);
+        }
     }
 
     /**
@@ -103,26 +116,6 @@ class Scenario
     public function addFailback(Action $action)
     {
         $this->failbacks[] = $action;
-
-        return $this;
-    }
-
-    /**
-     * @return VariableList
-     */
-    public function getVariables()
-    {
-        return $this->variables;
-    }
-
-    /**
-     * @param VariableList $variables
-     *
-     * @return $this
-     */
-    public function setVariables($variables)
-    {
-        $this->variables = $variables;
 
         return $this;
     }

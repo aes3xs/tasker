@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Exception;
 /**
  * This exception is thrown when trying to add variable to a list, which already contains variable with the same name.
  */
-class VariableAlreadyExistsException extends \RuntimeException implements ExceptionInterface
+class ParameterAlreadyExistsException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * @var string

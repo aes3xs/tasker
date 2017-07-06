@@ -13,6 +13,7 @@ namespace Aes3xs\Yodler\Tests\Deployer;
 
 use Aes3xs\Yodler\Common\SharedMemoryHandler;
 use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Deployer\Reporter;
 use Aes3xs\Yodler\Scenario\Action;
 use Aes3xs\Yodler\Scenario\Scenario;
@@ -38,16 +39,16 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
 
         $scenario = new Scenario('test');
         $connection = new Connection('test');
+        $deploy = new Deploy('test', $scenario, $connection);
 
         $report = new Reporter($storage);
-        $report->reportDeploy($scenario, $connection);
+        $report->reportDeploy($deploy);
 
         $this->assertEquals([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [],
-                'failbacks'  => [],
+                'name'      => 'test',
+                'actions'   => [],
+                'failbacks' => [],
             ],
         ], $storage->getData());
     }
@@ -59,8 +60,7 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
         $storage = new LockableStorageDummy();
         $storage->setData([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
+                'name'       => 'test',
                 'actions'    => [
                     spl_object_hash($action) => [],
                 ],
@@ -73,9 +73,8 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [
                         'state'  => Reporter::ACTION_STATE_RUNNING,
                         'start'  => date(Reporter::DATE_FORMAT),
@@ -84,7 +83,7 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
                         'output' => null,
                     ],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ], $storage->getData());
     }
@@ -96,12 +95,11 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
         $storage = new LockableStorageDummy();
         $storage->setData([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ]);
 
@@ -110,9 +108,8 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [
                         'state'  => Reporter::ACTION_STATE_SUCCEED,
                         'start'  => null,
@@ -121,7 +118,7 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
                         'output' => 'output',
                     ],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ], $storage->getData());
     }
@@ -133,12 +130,11 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
         $storage = new LockableStorageDummy();
         $storage->setData([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ]);
 
@@ -147,9 +143,8 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [
                         'state'  => Reporter::ACTION_STATE_ERROR,
                         'start'  => null,
@@ -158,7 +153,7 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
                         'finish' => date(Reporter::DATE_FORMAT),
                     ],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ], $storage->getData());
     }
@@ -170,12 +165,11 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
         $storage = new LockableStorageDummy();
         $storage->setData([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ]);
 
@@ -184,9 +178,8 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals([
             getmypid() => [
-                'scenario'   => 'test',
-                'connection' => 'test',
-                'actions'    => [
+                'name'      => 'test',
+                'actions'   => [
                     spl_object_hash($action) => [
                         'state'  => Reporter::ACTION_STATE_SKIPPED,
                         'start'  => null,
@@ -195,7 +188,7 @@ class ReporterTest extends \PHPUnit_Framework_TestCase
                         'finish' => date(Reporter::DATE_FORMAT),
                     ],
                 ],
-                'failbacks'  => [],
+                'failbacks' => [],
             ],
         ], $storage->getData());
     }

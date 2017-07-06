@@ -92,7 +92,7 @@ class CommanderFactory
                         break;
 
                     default:
-                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection: %s', $connection->getName()));
+                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection'));
                 }
             }
         } catch (CommanderAuthenticationException $e) {

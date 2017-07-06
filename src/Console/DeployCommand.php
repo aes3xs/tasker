@@ -12,10 +12,9 @@
 namespace Aes3xs\Yodler\Console;
 
 use Aes3xs\Yodler\Common\ReportPrinter;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Exception\RuntimeException;
-use Aes3xs\Yodler\Scenario\Scenario;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -24,12 +23,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Scenario command exucutes configured scenario on selected connection.
  */
-class ScenarioCommand extends Command implements ContainerAwareInterface
+class DeployCommand extends Command implements ContainerAwareInterface
 {
     /**
-     * @var Scenario
+     * @var Deploy
      */
-    protected $scenario;
+    protected $deploy;
 
     /**
      * @var ContainerInterface
@@ -37,15 +36,11 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
     protected $container;
 
     /**
-     * Constructor.
-     *
-     * @param Scenario $scenario
+     * @param Deploy $deploy
      */
-    public function __construct(Scenario $scenario)
+    public function setDeploy(Deploy $deploy)
     {
-        $this->scenario = $scenario;
-
-        parent::__construct();
+        $this->deploy = $deploy;
     }
 
     /**
@@ -71,27 +66,9 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
     /**
      * {@inheritdoc}
      */
-    protected function configure()
-    {
-        $defaultConnection = $this->scenario->getVariables() && $this->scenario->getVariables()->has('connection')
-            ? $this->scenario->getVariables()->get('connection')
-            : null;
-
-        $this
-            ->setName($this->scenario->getName())
-            ->addArgument('connection', $defaultConnection ? InputArgument::OPTIONAL : InputArgument::REQUIRED, 'Define connection for scenario to run on', $defaultConnection);
-
-        parent::configure();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $connection = $this->getContainer()->get('connection_manager')->get($input->getArgument('connection'));
-
-        $key = $this->scenario->getName() . $connection->getName();
+        $key = $this->deploy->getName();
 
         $semaphore = $this->getContainer()->get('semaphore_factory')->create($key);
         $reporter = $this->getContainer()->get('reporter_factory')->create($key);
@@ -110,7 +87,7 @@ class ScenarioCommand extends Command implements ContainerAwareInterface
             pcntl_waitpid($pid, $status);
         } else {
             // Child process code
-            $this->getContainer()->get('deployer')->deploy($this->scenario, $connection, $semaphore, $reporter);
+            $this->getContainer()->get('deployer')->deploy($this->deploy, $semaphore, $reporter);
             return;
         }
 

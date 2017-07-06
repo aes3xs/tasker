@@ -11,6 +11,7 @@
 
 namespace Aes3xs\Yodler;
 
+use Aes3xs\Yodler\DependencyInjection\DeploysExtension;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -69,6 +70,9 @@ class Kernel
     protected function buildContainer($configFile)
     {
         $containerBuilder = new ContainerBuilder();
+
+        $containerBuilder->registerExtension(new DeploysExtension());
+
         $loader = new YamlFileLoader($containerBuilder, new FileLocator([__DIR__, getcwd()]));
 
         $loader->load('Resources/config/config.yml');

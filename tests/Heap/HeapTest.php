@@ -11,10 +11,9 @@
 
 namespace Aes3xs\Yodler\Tests\Heap;
 
-use Aes3xs\Yodler\Exception\VariableCircularReferenceException;
-use Aes3xs\Yodler\Exception\VariableNotFoundException;
+use Aes3xs\Yodler\Exception\ParameterCircularReferenceException;
+use Aes3xs\Yodler\Exception\ParameterNotFoundException;
 use Aes3xs\Yodler\Heap\Heap;
-use Aes3xs\Yodler\Variable\VariableList;
 use Symfony\Component\DependencyInjection\ExpressionLanguage;
 
 class HeapTest extends \PHPUnit_Framework_TestCase
@@ -24,7 +23,13 @@ class HeapTest extends \PHPUnit_Framework_TestCase
         $twig = new \Twig_Environment(new \Twig_Loader_Array());
         $expressionLanguage = new ExpressionLanguage();
 
-        return new Heap(new VariableList($values), $twig, $expressionLanguage);
+        $heap = new Heap($twig, $expressionLanguage);
+
+        foreach ($values as $name => $value) {
+            $heap->set($name, $value);
+        }
+
+        return $heap;
     }
 
     public function testHas()
@@ -36,7 +41,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-        $this->expectException(VariableNotFoundException::class);
+        $this->expectException(ParameterNotFoundException::class);
 
         $heap = $this->createHeap();
         $heap->get('test');
@@ -70,7 +75,7 @@ class HeapTest extends \PHPUnit_Framework_TestCase
 
     public function testGetCircularReferenceException()
     {
-        $this->expectException(VariableCircularReferenceException::class);
+        $this->expectException(ParameterCircularReferenceException::class);
 
         $callback1 = function ($test2) {
             return 'value';

@@ -35,7 +35,7 @@ class CommanderAuthenticationException extends \RuntimeException implements Exce
     {
         $this->connection = $connection;
 
-        $this->message = sprintf('Unable to login with provided credentials in connection: %s', $connection->getName());
+        $this->message = sprintf('Unable to login with provided credentials in connection');
     }
 
     /**

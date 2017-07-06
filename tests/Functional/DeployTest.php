@@ -18,9 +18,6 @@ class DeployTest extends AbstractFunctionalTest
 {
     public function testDeploy()
     {
-        $scenario = $this->getContainer()->get('scenario_manager')->get('default');
-        $connection = $this->getContainer()->get('connection_manager')->get('local');
-
         $semaphore = $this->getContainer()->get('semaphore_factory')->create('_test');
         $reporter = $this->getContainer()->get('reporter_factory')->create('_test');
 
@@ -29,7 +26,9 @@ class DeployTest extends AbstractFunctionalTest
         $semaphore->addProcess(getmypid());
         $semaphore->run();
 
-        $this->getContainer()->get('deployer')->deploy($scenario, $connection, $semaphore, $reporter);
+        $deploy = $this->getContainer()->get('deploy_builder')->build('test', $this->getContainer()->getParameter('deploys')['test']);
+
+        $this->getContainer()->get('deployer')->deploy($deploy, $semaphore, $reporter);
 
         ReportPrinter::printReport($reporter, $this->input, $this->output);
     }

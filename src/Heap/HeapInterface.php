@@ -11,8 +11,8 @@
 
 namespace Aes3xs\Yodler\Heap;
 
-use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
-use Aes3xs\Yodler\Exception\VariableNotFoundException;
+use Aes3xs\Yodler\Exception\ParameterAlreadyExistsException;
+use Aes3xs\Yodler\Exception\ParameterNotFoundException;
 
 /**
  * Interface to implement heap storage.
@@ -28,16 +28,6 @@ interface HeapInterface
      * @return array
      */
     public function all();
-
-    /**
-     * Add variable to a list.
-     *
-     * @param $name
-     * @param $value
-     *
-     * @throws VariableAlreadyExistsException
-     */
-    public function add($name, $value);
 
     /**
      * Set variable in a list.
@@ -56,7 +46,7 @@ interface HeapInterface
      *
      * @return mixed
      *
-     * @throws VariableNotFoundException
+     * @throws ParameterNotFoundException
      */
     public function get($name);
 

@@ -12,6 +12,7 @@
 namespace Aes3xs\Yodler\Deployer;
 
 use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Scenario\Action;
 use Aes3xs\Yodler\Scenario\Scenario;
 
@@ -36,10 +37,9 @@ interface ReporterInterface
     /**
      * Report about deploy.
      *
-     * @param Scenario $scenario
-     * @param Connection $connection
+     * @param Deploy $deploy
      */
-    public function reportDeploy(Scenario $scenario, Connection $connection);
+    public function reportDeploy(Deploy $deploy);
 
     /**
      * Report about running action.

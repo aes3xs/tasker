@@ -32,8 +32,6 @@ if (!$autoloader) {
 
 use Aes3xs\Yodler\Kernel;
 use Aes3xs\Yodler\Console\Application;
-use Symfony\Component\ClassLoader\ClassMapGenerator;
-use Symfony\Component\ClassLoader\MapClassLoader;
 use Symfony\Component\Console\Input\ArgvInput;
 
 $input = new ArgvInput();
@@ -41,12 +39,6 @@ $file = $input->getParameterOption(['--file'], 'deploy.yml');
 
 $kernel = new Kernel($file);
 $kernel->boot();
-
-foreach ($kernel->getContainer()->getParameter('autoload') as $dir) {
-    $map = ClassMapGenerator::createMap(new \RecursiveDirectoryIterator($dir));
-    $map_loader = new MapClassLoader($map);
-    $map_loader->register();
-}
 
 $application = new Application();
 $application->setDispatcher($kernel->getContainer()->get('event_dispatcher'));

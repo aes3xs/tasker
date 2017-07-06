@@ -11,22 +11,22 @@
 
 namespace Aes3xs\Yodler\Tests\Variable;
 
-use Aes3xs\Yodler\Exception\VariableAlreadyExistsException;
-use Aes3xs\Yodler\Exception\VariableNotFoundException;
-use Aes3xs\Yodler\Variable\VariableList;
+use Aes3xs\Yodler\Exception\ParameterAlreadyExistsException;
+use Aes3xs\Yodler\Exception\ParameterNotFoundException;
+use Aes3xs\Yodler\ParameterList;
 
-class VariableListTest extends \PHPUnit_Framework_TestCase
+class ParameterListTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstruct()
     {
-        $list = new VariableList(['test' => 'value']);
+        $list = new ParameterList(['test' => 'value']);
 
         $this->assertEquals('value', $list->get('test'));
     }
 
     public function testAddAndGet()
     {
-        $list = new VariableList();
+        $list = new ParameterList();
         $list->add('test', 'value');
 
         $this->assertEquals('value', $list->get('test'));
@@ -34,7 +34,7 @@ class VariableListTest extends \PHPUnit_Framework_TestCase
 
     public function testAll()
     {
-        $list = new VariableList();
+        $list = new ParameterList();
         $list->add('test1', 'value1');
         $list->add('test2', 'value2');
 
@@ -46,7 +46,7 @@ class VariableListTest extends \PHPUnit_Framework_TestCase
 
     public function testHas()
     {
-        $list = new VariableList();
+        $list = new ParameterList();
 
         $this->assertFalse($list->has('test'));
 
@@ -57,18 +57,18 @@ class VariableListTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-        $this->expectException(VariableNotFoundException::class);
+        $this->expectException(ParameterNotFoundException::class);
 
-        $list = new VariableList();
+        $list = new ParameterList();
 
         $list->get('test');
     }
 
     public function testAlreadyExistException()
     {
-        $this->expectException(VariableAlreadyExistsException::class);
+        $this->expectException(ParameterAlreadyExistsException::class);
 
-        $list = new VariableList();
+        $list = new ParameterList();
         $list->add('test1', 'value1');
         $list->add('test1', 'value1');
     }
