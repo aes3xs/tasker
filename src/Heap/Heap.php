@@ -63,6 +63,14 @@ class Heap implements HeapInterface
     /**
      * {@inheritdoc}
      */
+    public function add($name, $value)
+    {
+        $this->parameters->add($name, $value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function set($name, $value)
     {
         $this->parameters->set($name, $value);

@@ -30,6 +30,16 @@ interface HeapInterface
     public function all();
 
     /**
+     * Add variable to a list.
+     *
+     * @param $name
+     * @param $value
+     *
+     * @throws ParameterAlreadyExistsException
+     */
+    public function add($name, $value);
+
+    /**
      * Set variable in a list.
      * If variable already exists, overwrites it.
      *
