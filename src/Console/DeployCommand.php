@@ -36,11 +36,15 @@ class DeployCommand extends Command implements ContainerAwareInterface
     protected $container;
 
     /**
+     * Constructor.
+     *
      * @param Deploy $deploy
      */
-    public function setDeploy(Deploy $deploy)
+    public function __construct(Deploy $deploy)
     {
         $this->deploy = $deploy;
+
+        parent::__construct();
     }
 
     /**
@@ -61,6 +65,14 @@ class DeployCommand extends Command implements ContainerAwareInterface
         }
 
         return $this->container;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function configure()
+    {
+        $this->setName($this->deploy->getName());
     }
 
     /**

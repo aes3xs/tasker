@@ -11,9 +11,9 @@
 
 namespace Aes3xs\Yodler\Console;
 
+use Aes3xs\Yodler\Common\CallableHelper;
 use Aes3xs\Yodler\Deploy\DeployBuilder;
 use Aes3xs\Yodler\Event\ConsoleRunEvent;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -48,7 +48,24 @@ class CommandBuilder implements EventSubscriberInterface
      */
     public function onConsoleRun(ConsoleRunEvent $event)
     {
-        $event->getApplication()->addCommands($this->build());
+        foreach ($this->deploys as $name => $data) {
+
+            $deploy = $this->deployBuilder->build($name, $data);
+
+            $command = new DeployCommand($deploy);
+
+            if ($initializer = $deploy->getScenario()->getInitializer()) {
+                CallableHelper::call($initializer, [
+                    'command'     => $command,
+                    'deploy'      => $deploy,
+                    'application' => $event->getApplication(),
+                    'input'       => $event->getInput(),
+                    'output'      => $event->getOutput(),
+                ]);
+            }
+
+            $event->getApplication()->add($command);
+        }
     }
 
     /**
@@ -60,25 +77,4 @@ class CommandBuilder implements EventSubscriberInterface
             ConsoleRunEvent::NAME => ['onConsoleRun', 255],
         ];
     }
-
-    /**
-     * @return Command[]
-     */
-    public function build()
-    {
-        $commands = [];
-        foreach ($this->deploys as $name => $data) {
-
-            $command = new DeployCommand($name);
-
-            $deploy = $this->deployBuilder->build($name, $data);
-
-            $command->setDeploy($deploy);
-            $deploy->getScenario()->invokeInitializer($command);
-
-            $commands[] = $command;
-        }
-        return $commands;
-    }
-
 }

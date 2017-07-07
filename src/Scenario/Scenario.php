@@ -10,7 +10,6 @@
  */
 
 namespace Aes3xs\Yodler\Scenario;
-use Symfony\Component\Console\Command\Command;
 
 /**
  * Scenario implementation.
@@ -41,35 +40,28 @@ class Scenario
     {
     }
 
+    /**
+     * Set initializer callback.
+     *
+     * @param callable $callback
+     *
+     * @return $this
+     */
     public function setInitializer(callable $callback)
     {
-        $reflectionFunction = new \ReflectionFunction($callback);
-
-        $tooManyArguments = $reflectionFunction->getNumberOfParameters() > 1;
-        if ($tooManyArguments) {
-            throw new \RuntimeException(sprintf('Constructor argument list must be empty or contain one \Symfony\Component\Console\Command\Command argument, given %d arguments', $reflectionFunction->getNumberOfParameters()));
-        }
-
-        if ($reflectionFunction->getNumberOfParameters()) {
-
-            $arg = $reflectionFunction->getParameters()[0];
-
-            $invalidArgument = $arg->getClass() && !is_a($arg->getClass()->getName(), Command::class, true);
-            if ($invalidArgument) {
-                throw new \RuntimeException('Constructor argument list must be empty or contain one \Symfony\Component\Console\Command\Command argument');
-            }
-        }
-
         $this->initializer = $callback;
 
         return $this;
     }
 
-    public function invokeInitializer(Command $command)
+    /**
+     * Return initializer callback.
+     *
+     * @return callable
+     */
+    public function getInitializer()
     {
-        if ($this->initializer) {
-            call_user_func($this->initializer, $command);
-        }
+        return $this->initializer;
     }
 
     /**
