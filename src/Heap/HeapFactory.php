@@ -96,6 +96,7 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
         }
 
         $heap->set('deploy', $deploy);
+        $heap->set('connection', $deploy->getConnection());
         $heap->set('logger', $logger);
 
         $heap->set('input', $this->input);
