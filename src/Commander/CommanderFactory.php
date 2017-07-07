@@ -104,6 +104,16 @@ class CommanderFactory
     }
 
     /**
+     * @param Connection $connection
+     *
+     * @return LazyCommander
+     */
+    public function createLazy(Connection $connection)
+    {
+        return new LazyCommander($connection, $this);
+    }
+
+    /**
      * @param $host
      * @param $port
      * @param $login

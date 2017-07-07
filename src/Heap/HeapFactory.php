@@ -101,7 +101,7 @@ class HeapFactory implements HeapFactoryInterface, EventSubscriberInterface
         $heap->set('input', $this->input);
         $heap->set('output', $this->output);
 
-        $commander = $this->commanderFactory->create($deploy->getConnection());
+        $commander = $this->commanderFactory->createLazy($deploy->getConnection());
         $commander->setLogger($logger);
         $heap->set('commander', $commander);
 
