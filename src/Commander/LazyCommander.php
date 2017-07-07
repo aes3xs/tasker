@@ -17,6 +17,11 @@ use Psr\Log\LoggerInterface;
 class LazyCommander implements CommanderInterface
 {
     /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @var CommanderInterface
      */
     protected $commander;
@@ -50,6 +55,10 @@ class LazyCommander implements CommanderInterface
     {
         if (!$this->commander) {
             $this->commander = $this->commanderFactory->create($this->connection);
+
+            if ($this->logger) {
+                $this->commander->setLogger($this->logger);
+            }
         }
 
         return $this->commander;
@@ -60,7 +69,11 @@ class LazyCommander implements CommanderInterface
      */
     public function setLogger(LoggerInterface $logger)
     {
-        $this->getCommander()->setLogger($logger);
+        $this->logger = $logger;
+
+        if ($this->commander) {
+            $this->commander->setLogger($logger);
+        }
     }
 
     /**
