@@ -74,11 +74,11 @@ class ReportPrinter
             $io->text("<info>Total:</info> {$total}s");
 
             if ($actionsSucceed) {
-                $io->success('Deployed successfully');
+                $io->success('Success');
             } elseif ($failbackSucceed) {
-                $io->warning('Deploy failed, failback succeed');
+                $io->warning('Failed, failback succeed');
             } else {
-                $io->caution('Deploy failed, failback failed');
+                $io->caution('Failed, failback failed');
             }
         }
     }
