@@ -54,7 +54,7 @@ class ReportPrinter
         $result = $reporter->getRawData();
 
         foreach ($result as $pid => $deploy) {
-            $io->text("<info>Deploy:</info> {$deploy['name']}");
+            $io->text("<info>Task:</info> {$deploy['name']}");
 
             $total = 0;
 
