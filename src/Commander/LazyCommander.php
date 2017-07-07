@@ -39,6 +39,7 @@ class LazyCommander implements CommanderInterface
      */
     public function __construct(Connection $connection, CommanderFactory $commanderFactory)
     {
+        $this->connection = $connection;
         $this->commanderFactory = $commanderFactory;
     }
 
