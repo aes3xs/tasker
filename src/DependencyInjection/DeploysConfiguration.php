@@ -28,6 +28,7 @@ class DeploysConfiguration implements ConfigurationInterface
         /** @var ArrayNodeDefinition $arrayNode */
         $arrayNode = $rootNode
             ->useAttributeAsKey('name')
+            ->normalizeKeys(false)
             ->prototype('array');
 
         $arrayNode
