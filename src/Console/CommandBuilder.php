@@ -61,7 +61,7 @@ class CommandBuilder implements EventSubscriberInterface
                     'application' => $event->getApplication(),
                     'input'       => $event->getInput(),
                     'output'      => $event->getOutput(),
-                ]);
+                ] + $deploy->getParameters()->all());
             }
 
             $event->getApplication()->add($command);
