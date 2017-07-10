@@ -16,6 +16,7 @@ use Aes3xs\Yodler\Deploy\Deploy;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -73,6 +74,9 @@ class DeployCommand extends Command implements ContainerAwareInterface
     protected function configure()
     {
         $this->setName($this->deploy->getName());
+
+        $this->addOption('login', null, InputOption::VALUE_OPTIONAL);
+        $this->addOption('password', null, InputOption::VALUE_OPTIONAL);
     }
 
     /**
@@ -80,6 +84,13 @@ class DeployCommand extends Command implements ContainerAwareInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if ($login = $input->getOption('login')) {
+            $this->deploy->getConnection()->setLogin($login);
+        }
+        if ($password = $input->getOption('password')) {
+            $this->deploy->getConnection()->setPassword($password);
+        }
+
         $key = $this->deploy->getName();
 
         $semaphore = $this->getContainer()->get('semaphore_factory')->create($key);
