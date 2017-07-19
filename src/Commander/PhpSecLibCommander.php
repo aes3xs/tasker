@@ -13,8 +13,6 @@ namespace Aes3xs\Yodler\Commander;
 
 use Aes3xs\Yodler\Exception\PhpSecLibCommandException;
 use phpseclib\Net\SFTP;
-use phpseclib\System\SSH\Agent;
-use Psr\Log\LoggerInterface;
 
 /**
  * PhpSecLib commander implementation.
@@ -29,11 +27,6 @@ class PhpSecLibCommander implements CommanderInterface
     protected $sftp;
 
     /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * Constructor.
      *
      * @param SFTP $sftp
@@ -46,20 +39,8 @@ class PhpSecLibCommander implements CommanderInterface
     /**
      * {@inheritdoc}
      */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function exec($command)
     {
-        if ($this->logger) {
-            $this->logger->debug('> ' . $command);
-        }
-
         // Silence error reporting
         set_error_handler(function () {});
         $this->sftp->setTimeout(self::TIMEOUT);
@@ -76,10 +57,6 @@ class PhpSecLibCommander implements CommanderInterface
             throw $e;
         }
 
-        if ($this->logger) {
-            $this->logger->debug('< ' . $command . ': ' . $output);
-        }
-
         return $output;
     }
 
@@ -88,10 +65,6 @@ class PhpSecLibCommander implements CommanderInterface
      */
     public function send($local, $remote)
     {
-        if ($this->logger) {
-            $this->logger->debug('Send: ' . $local . ' to ' . $remote);
-        }
-
         // Silence error reporting
         set_error_handler(function () {});
         $result = $this->sftp->put($remote, $local, SFTP::SOURCE_LOCAL_FILE);
@@ -112,10 +85,6 @@ class PhpSecLibCommander implements CommanderInterface
      */
     public function recv($remote, $local)
     {
-        if ($this->logger) {
-            $this->logger->debug('Recv: ' . $remote . ' to ' . $local);
-        }
-
         // Silence error reporting
         set_error_handler(function () {});
         $result = $this->sftp->get($remote, $local);

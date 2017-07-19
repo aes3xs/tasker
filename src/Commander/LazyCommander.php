@@ -12,15 +12,11 @@
 namespace Aes3xs\Yodler\Commander;
 
 use Aes3xs\Yodler\Connection\Connection;
+use Aes3xs\Yodler\Heap\HeapInterface;
 use Psr\Log\LoggerInterface;
 
 class LazyCommander implements CommanderInterface
 {
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
-
     /**
      * @var CommanderInterface
      */
@@ -37,15 +33,29 @@ class LazyCommander implements CommanderInterface
     protected $commanderFactory;
 
     /**
+     * @var HeapInterface
+     */
+    protected $heap;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * Constructor.
      *
      * @param Connection $connection
      * @param CommanderFactory $commanderFactory
+     * @param HeapInterface $heap
+     * @param LoggerInterface $logger
      */
-    public function __construct(Connection $connection, CommanderFactory $commanderFactory)
+    public function __construct(Connection $connection, CommanderFactory $commanderFactory, HeapInterface $heap, LoggerInterface $logger)
     {
         $this->connection = $connection;
         $this->commanderFactory = $commanderFactory;
+        $this->heap = $heap;
+        $this->logger = $logger;
     }
 
     /**
@@ -55,10 +65,6 @@ class LazyCommander implements CommanderInterface
     {
         if (!$this->commander) {
             $this->commander = $this->commanderFactory->create($this->connection);
-
-            if ($this->logger) {
-                $this->commander->setLogger($this->logger);
-            }
         }
 
         return $this->commander;
@@ -67,21 +73,17 @@ class LazyCommander implements CommanderInterface
     /**
      * {@inheritdoc}
      */
-    public function setLogger(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-
-        if ($this->commander) {
-            $this->commander->setLogger($logger);
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function exec($command)
     {
-        return $this->getCommander()->exec($command);
+        $command = $this->heap->resolveString($command);
+
+        $this->logger->debug('> ' . $command);
+
+        $output = $this->getCommander()->exec($command);
+
+        $this->logger->debug('< ' . $command . ': ' . $output);
+
+        return $output;
     }
 
     /**
@@ -89,6 +91,11 @@ class LazyCommander implements CommanderInterface
      */
     public function send($local, $remote)
     {
+        $local = $this->heap->resolveString($local);
+        $remote = $this->heap->resolveString($remote);
+
+        $this->logger->debug('Send: ' . $local . ' to ' . $remote);
+
         $this->getCommander()->send($local, $remote);
     }
 
@@ -97,6 +104,11 @@ class LazyCommander implements CommanderInterface
      */
     public function recv($remote, $local)
     {
+        $remote = $this->heap->resolveString($remote);
+        $local = $this->heap->resolveString($local);
+
+        $this->logger->debug('Recv: ' . $remote . ' to ' . $local);
+
         $this->getCommander()->recv($remote, $local);
     }
 }

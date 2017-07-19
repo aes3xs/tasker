@@ -11,8 +11,6 @@
 
 namespace Aes3xs\Yodler\Commander;
 
-use Psr\Log\LoggerInterface;
-
 /**
  * Interface to commander.
  *
@@ -20,14 +18,6 @@ use Psr\Log\LoggerInterface;
  */
 interface CommanderInterface
 {
-    /**
-     * Set debug logger.
-     *
-     * @param LoggerInterface $logger
-     * @return mixed
-     */
-    public function setLogger(LoggerInterface $logger);
-
     /**
      * Execute command.
      *

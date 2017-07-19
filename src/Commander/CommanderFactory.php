@@ -15,9 +15,11 @@ use Aes3xs\Yodler\Common\ProcessFactory;
 use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Exception\CommanderAuthenticationException;
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Heap\HeapInterface;
 use phpseclib\Crypt\RSA;
 use phpseclib\Net\SFTP;
 use phpseclib\System\SSH\Agent;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -92,7 +94,7 @@ class CommanderFactory
                         break;
 
                     default:
-                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection'));
+                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection. Host: %s, key: %s, forwarding: %s', $connection->getHost(), $connection->getKey(), $connection->isForwarding()));
                 }
             }
         } catch (CommanderAuthenticationException $e) {
@@ -105,12 +107,14 @@ class CommanderFactory
 
     /**
      * @param Connection $connection
+     * @param HeapInterface $heap
+     * @param LoggerInterface $logger
      *
      * @return LazyCommander
      */
-    public function createLazy(Connection $connection)
+    public function createLazy(Connection $connection, HeapInterface $heap, LoggerInterface $logger)
     {
-        return new LazyCommander($connection, $this);
+        return new LazyCommander($connection, $this, $heap, $logger);
     }
 
     /**
