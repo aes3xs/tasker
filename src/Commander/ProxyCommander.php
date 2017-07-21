@@ -15,7 +15,7 @@ use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Heap\HeapInterface;
 use Psr\Log\LoggerInterface;
 
-class LazyCommander implements CommanderInterface
+class ProxyCommander implements CommanderInterface
 {
     /**
      * @var CommanderInterface

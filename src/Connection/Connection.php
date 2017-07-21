@@ -39,7 +39,12 @@ class Connection
     /**
      * @var string
      */
-    protected $key;
+    protected $publicKey;
+
+    /**
+     * @var string
+     */
+    protected $privateKey;
 
     /**
      * @var string
@@ -141,19 +146,39 @@ class Connection
     /**
      * @return string
      */
-    public function getKey()
+    public function getPublicKey()
     {
-        return $this->key;
+        return $this->publicKey;
     }
 
     /**
-     * @param string $key
+     * @param string $publicKey
      *
      * @return Connection
      */
-    public function setKey($key)
+    public function setPublicKey($publicKey)
     {
-        $this->key = $key;
+        $this->publicKey = $publicKey;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrivateKey()
+    {
+        return $this->privateKey;
+    }
+
+    /**
+     * @param string $privateKey
+     *
+     * @return Connection
+     */
+    public function setPrivateKey($privateKey)
+    {
+        $this->privateKey = $privateKey;
 
         return $this;
     }

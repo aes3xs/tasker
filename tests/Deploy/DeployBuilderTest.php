@@ -21,33 +21,19 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
         require_once __DIR__ . '/../Fixtures/recipe/DefaultRecipe.php';
     }
 
-    protected function assertConnection($connection, $host, $port, $login, $password, $key, $passphrase, $forwarding)
-    {
-        /** @var Connection $connection */
-
-        $this->assertInstanceOf(Connection::class, $connection);
-
-        $this->assertEquals($host, $connection->getHost());
-        $this->assertEquals($port, $connection->getPort());
-        $this->assertEquals($login, $connection->getLogin());
-        $this->assertEquals($password, $connection->getPassword());
-        $this->assertEquals($key, $connection->getKey());
-        $this->assertEquals($passphrase, $connection->getPassphrase());
-        $this->assertEquals($forwarding, $connection->isForwarding());
-    }
-
     public function testCreateListFromConfiguration()
     {
         $configuration = [
             'scenario'   => \DefaultRecipe::class,
             'connection' => [
-                'host'       => 'host',
-                'port'       => 1122,
-                'login'      => 'login',
-                'password'   => 'password',
-                'key'        => 'key',
-                'passphrase' => 'passphrase',
-                'forwarding' => true,
+                'host'        => 'host',
+                'port'        => 1122,
+                'login'       => 'login',
+                'password'    => 'password',
+                'public_key'  => 'public_key',
+                'private_key' => 'private_key',
+                'passphrase'  => 'passphrase',
+                'forwarding'  => true,
             ],
             'parameters' => [],
         ];
@@ -55,8 +41,20 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
         $builder = new DeployBuilder();
 
         $deploy = $builder->build('test', $configuration);
+        $connection = $deploy->getConnection();
 
-        $this->assertConnection($deploy->getConnection(), 'host', 1122, 'login', 'password', 'key', 'passphrase', true);
+        /** @var Connection $connection */
+
+        $this->assertInstanceOf(Connection::class, $connection);
+
+        $this->assertEquals('host', $connection->getHost());
+        $this->assertEquals(1122, $connection->getPort());
+        $this->assertEquals('login', $connection->getLogin());
+        $this->assertEquals('password', $connection->getPassword());
+        $this->assertEquals('public_key', $connection->getPublicKey());
+        $this->assertEquals('private_key', $connection->getPrivateKey());
+        $this->assertEquals('passphrase', $connection->getPassphrase());
+        $this->assertEquals(true, $connection->isForwarding());
     }
 
     public function testLoadKey()
@@ -64,13 +62,14 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
         $configuration = [
             'scenario'   => \DefaultRecipe::class,
             'connection' => [
-                'host'       => null,
-                'port'       => null,
-                'login'      => null,
-                'password'   => null,
-                'passphrase' => null,
-                'forwarding' => true,
-                'key'        => __DIR__ . '/../Fixtures/key/id_rsa'
+                'host'        => null,
+                'port'        => null,
+                'login'       => null,
+                'password'    => null,
+                'passphrase'  => null,
+                'forwarding'  => true,
+                'public_key'  => __DIR__ . '/../Fixtures/key/id_rsa.pub',
+                'private_key' => __DIR__ . '/../Fixtures/key/id_rsa',
             ],
             'parameters' => [],
         ];
@@ -81,10 +80,18 @@ class DeployBuilderTest extends \PHPUnit_Framework_TestCase
 
         $expected = <<<EOF
 -----BEGIN RSA PRIVATE KEY-----
+Public Key Contents
+-----END RSA PRIVATE KEY-----
+EOF;
+
+        $this->assertEquals($expected, $deploy->getConnection()->getPublicKey());
+
+        $expected = <<<EOF
+-----BEGIN RSA PRIVATE KEY-----
 Private Key Contents
 -----END RSA PRIVATE KEY-----
 EOF;
 
-        $this->assertEquals($expected, $deploy->getConnection()->getKey());
+        $this->assertEquals($expected, $deploy->getConnection()->getPrivateKey());
     }
 }

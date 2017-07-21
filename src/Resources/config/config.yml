@@ -66,15 +66,9 @@ services:
     reporter_factory:
         class: Aes3xs\Yodler\Deployer\ReporterFactory
 
-    sftp_factory:
-        class: Aes3xs\Yodler\Commander\SftpFactory
-        public: false
-
     commander_factory:
         class: Aes3xs\Yodler\Commander\CommanderFactory
         public: false
-        arguments:
-            - '@sftp_factory'
 
     deployer:
         class: Aes3xs\Yodler\Deployer\Deployer

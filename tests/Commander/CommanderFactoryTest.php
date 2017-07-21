@@ -13,13 +13,9 @@ namespace Aes3xs\Yodler\Tests\Commander;
 
 use Aes3xs\Yodler\Commander\CommanderFactory;
 use Aes3xs\Yodler\Commander\LocalCommander;
-use Aes3xs\Yodler\Commander\PhpSecLibCommander;
-use Aes3xs\Yodler\Commander\SftpFactory;
+use Aes3xs\Yodler\Commander\SshExtensionCommander;
 use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Exception\CommanderAuthenticationException;
-use phpseclib\Crypt\RSA;
-use phpseclib\Net\SFTP;
-use phpseclib\System\SSH\Agent;
 
 class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -28,9 +24,8 @@ class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
         $connection = new Connection('test');
         $connection
             ->setHost('localhost');
-        
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $factory = new CommanderFactory($sftpFactory);
+
+        $factory = new CommanderFactory();
         $commander = $factory->create($connection);
 
         $this->assertInstanceOf(LocalCommander::class, $commander);
@@ -42,8 +37,7 @@ class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
         $connection
             ->setHost('127.0.0.1');
 
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $factory = new CommanderFactory($sftpFactory);
+        $factory = new CommanderFactory();
         $commander = $factory->create($connection);
 
         $this->assertInstanceOf(LocalCommander::class, $commander);
@@ -53,8 +47,7 @@ class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $connection = new Connection('test');
 
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $factory = new CommanderFactory($sftpFactory);
+        $factory = new CommanderFactory();
         $commander = $factory->create($connection);
 
         $this->assertInstanceOf(LocalCommander::class, $commander);
@@ -68,12 +61,11 @@ class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
         $connection
             ->setHost('unknown');
 
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $factory = new CommanderFactory($sftpFactory);
+        $factory = new CommanderFactory();
         $factory->create($connection);
     }
 
-    public function testCreatePhpSecLibForwardingAuth()
+    public function testCreateSshExtension()
     {
         $connection = new Connection('test');
         $connection
@@ -82,156 +74,9 @@ class CommanderFactoryTest extends \PHPUnit_Framework_TestCase
             ->setLogin('login')
             ->setForwarding(true);
 
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', $this->isInstanceOf(Agent::class))
-            ->willReturn(true);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
+        $factory = new CommanderFactory();
         $commander = $factory->create($connection);
 
-        $this->assertInstanceOf(PhpSecLibCommander::class, $commander);
-    }
-
-    public function testCreatePhpSecLibForwardingAuthException()
-    {
-        $this->expectException(CommanderAuthenticationException::class);
-
-        $connection = new Connection('test');
-        $connection
-            ->setHost('host')
-            ->setPort('port')
-            ->setLogin('login')
-            ->setForwarding(true);
-
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', $this->isInstanceOf(Agent::class))
-            ->willReturn(false);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
-        $factory->create($connection);
-    }
-
-    public function testCreatePhpSecLibKeyAuth()
-    {
-        $connection = new Connection('test');
-        $connection
-            ->setHost('host')
-            ->setPort('port')
-            ->setLogin('login')
-            ->setKey('key');
-
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', $this->isInstanceOf(RSA::class))
-            ->willReturn(true);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
-        $commander = $factory->create($connection);
-
-        $this->assertInstanceOf(PhpSecLibCommander::class, $commander);
-    }
-
-    public function testCreatePhpSecLibKeyAuthException()
-    {
-        $this->expectException(CommanderAuthenticationException::class);
-
-        $connection = new Connection('test');
-        $connection
-            ->setHost('host')
-            ->setPort('port')
-            ->setLogin('login')
-            ->setKey('key');
-
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', $this->isInstanceOf(RSA::class))
-            ->willReturn(false);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
-        $factory->create($connection);
-    }
-
-    public function testCreatePhpSecLibPasswordAuth()
-    {
-        $connection = new Connection('test');
-        $connection
-            ->setHost('host')
-            ->setPort('port')
-            ->setLogin('login')
-            ->setPassword('password');
-
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', 'password')
-            ->willReturn(true);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
-        $commander = $factory->create($connection);
-
-        $this->assertInstanceOf(PhpSecLibCommander::class, $commander);
-    }
-
-    public function testCreatePhpSecLibPasswordAuthException()
-    {
-        $this->expectException(CommanderAuthenticationException::class);
-
-        $connection = new Connection('test');
-        $connection
-            ->setHost('host')
-            ->setPort('port')
-            ->setLogin('login')
-            ->setPassword('password');
-
-        $sftp = $this->createMock(SFTP::class);
-        $sftp
-            ->expects($this->at(0))
-            ->method('login')
-            ->with('login', 'password')
-            ->willReturn(false);
-        $sftpFactory = $this->createMock(SftpFactory::class);
-        $sftpFactory
-            ->expects($this->at(0))
-            ->method('create')
-            ->with('host', 'port')
-            ->willReturn($sftp);
-        $factory = new CommanderFactory($sftpFactory);
-        $factory->create($connection);
+        $this->assertInstanceOf(SshExtensionCommander::class, $commander);
     }
 }

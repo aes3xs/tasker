@@ -16,9 +16,6 @@ use Aes3xs\Yodler\Connection\Connection;
 use Aes3xs\Yodler\Exception\CommanderAuthenticationException;
 use Aes3xs\Yodler\Exception\RuntimeException;
 use Aes3xs\Yodler\Heap\HeapInterface;
-use phpseclib\Crypt\RSA;
-use phpseclib\Net\SFTP;
-use phpseclib\System\SSH\Agent;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -27,21 +24,6 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class CommanderFactory
 {
-    /**
-     * @var SftpFactory
-     */
-    protected $sftpFactory;
-
-    /**
-     * Constructor.
-     *
-     * @param SftpFactory $sftpFactory
-     */
-    public function __construct(SftpFactory $sftpFactory)
-    {
-        $this->sftpFactory = $sftpFactory;
-    }
-
     /**
      * Create commander from connection definition.
      *
@@ -62,39 +44,50 @@ class CommanderFactory
             if ($isLocalhost) {
                 $commander = new LocalCommander($filesystem, $processFactory);
             } else {
+
                 switch (true) {
                     case $connection->isForwarding():
-                        $sftp = $this->createPhpSecLibForwardingClient(
+                        $configuration = new \Ssh\Configuration(
                             $connection->getHost(),
-                            $connection->getPort(),
+                            $connection->getPort()
+                        );
+                        $authentication = new \Ssh\Authentication\Agent(
                             $connection->getLogin()
                         );
-                        $commander = new PhpSecLibCommander($sftp);
+                        $session = new \Ssh\Session($configuration, $authentication);
+                        $commander = new SshExtensionCommander($session);
                         break;
 
-                    case $connection->getKey():
-                        $sftp = $this->createPhpSecLibKeyClient(
+                    case $connection->getPublicKey():
+                        $configuration = new \Ssh\Configuration(
                             $connection->getHost(),
-                            $connection->getPort(),
+                            $connection->getPort()
+                        );
+                        $authentication = new \Ssh\Authentication\PublicKeyFile(
                             $connection->getLogin(),
-                            $connection->getKey(),
+                            $connection->getPublicKey(),
+                            $connection->getPrivateKey(),
                             $connection->getPassphrase()
                         );
-                        $commander = new PhpSecLibCommander($sftp);
+                        $session = new \Ssh\Session($configuration, $authentication);
+                        $commander = new SshExtensionCommander($session);
                         break;
 
                     case $connection->getPassword():
-                        $sftp = $this->createPhpSecLibPasswordClient(
+                        $configuration = new \Ssh\Configuration(
                             $connection->getHost(),
-                            $connection->getPort(),
+                            $connection->getPort()
+                        );
+                        $authentication = new \Ssh\Authentication\Password(
                             $connection->getLogin(),
                             $connection->getPassword()
                         );
-                        $commander = new PhpSecLibCommander($sftp);
+                        $session = new \Ssh\Session($configuration, $authentication);
+                        $commander = new SshExtensionCommander($session);
                         break;
 
                     default:
-                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection. Host: %s, key: %s, forwarding: %s', $connection->getHost(), $connection->getKey(), $connection->isForwarding()));
+                        throw new RuntimeException(sprintf('Auth method cannot be resolved for connection. Host: %s, public key? %s, forwarding? %s', $connection->getHost(), $connection->getPublicKey() ? 'yes' : 'no', $connection->isForwarding() ? 'yes' : 'no'));
                 }
             }
         } catch (CommanderAuthenticationException $e) {
@@ -110,72 +103,10 @@ class CommanderFactory
      * @param HeapInterface $heap
      * @param LoggerInterface $logger
      *
-     * @return LazyCommander
+     * @return ProxyCommander
      */
-    public function createLazy(Connection $connection, HeapInterface $heap, LoggerInterface $logger)
+    public function createProxy(Connection $connection, HeapInterface $heap, LoggerInterface $logger)
     {
-        return new LazyCommander($connection, $this, $heap, $logger);
-    }
-
-    /**
-     * @param $host
-     * @param $port
-     * @param $login
-     * @param $password
-     *
-     * @return SFTP
-     */
-    protected function createPhpSecLibPasswordClient($host, $port, $login, $password)
-    {
-        $sftp = $this->sftpFactory->create($host, $port);
-
-        if (!$sftp->login($login, $password)) {
-            throw new CommanderAuthenticationException();
-        }
-
-        return $sftp;
-    }
-
-    /**
-     * @param $host
-     * @param $port
-     * @param $login
-     * @param $key
-     * @param $passphrase
-     *
-     * @return SFTP
-     */
-    protected function createPhpSecLibKeyClient($host, $port, $login, $key, $passphrase)
-    {
-        $sftp = $this->sftpFactory->create($host, $port);
-        $rsa = new RSA();
-        $rsa->setPassword($passphrase);
-        $rsa->loadKey($key);
-
-        if (!$sftp->login($login, $rsa)) {
-            throw new CommanderAuthenticationException();
-        }
-
-        return $sftp;
-    }
-
-    /**
-     * @param $host
-     * @param $port
-     * @param $login
-     *
-     * @return SFTP
-     */
-    protected function createPhpSecLibForwardingClient($host, $port, $login)
-    {
-        $sftp = $this->sftpFactory->create($host, $port);
-        $agent = new Agent();
-        $agent->startSSHForwarding(null);
-
-        if (!$sftp->login($login, $agent)) {
-            throw new CommanderAuthenticationException();
-        }
-
-        return $sftp;
+        return new ProxyCommander($connection, $this, $heap, $logger);
     }
 }

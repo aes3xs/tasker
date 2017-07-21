@@ -60,16 +60,25 @@ class DeployBuilder
             ->setPassphrase($data['passphrase'])
             ->setForwarding($data['forwarding']);
 
-        $key = $data['key'];
-        if ($key && file_exists($key)) {
-            $keyContent = file_get_contents($key);
+        $publicKey = $data['public_key'];
+        if ($publicKey && file_exists($publicKey)) {
+            $keyContent = file_get_contents($publicKey);
             if ($keyContent === false) {
-                throw new FileReadException($key);
+                throw new FileReadException($publicKey);
             }
-            $key = $keyContent;
+            $publicKey = $keyContent;
         }
+        $connection->setPublicKey($publicKey);
 
-        $connection->setKey($key);
+        $privateKey = $data['private_key'];
+        if ($privateKey && file_exists($privateKey)) {
+            $keyContent = file_get_contents($privateKey);
+            if ($keyContent === false) {
+                throw new FileReadException($privateKey);
+            }
+            $privateKey = $keyContent;
+        }
+        $connection->setPrivateKey($privateKey);
 
         return $connection;
     }
