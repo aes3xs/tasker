@@ -53,9 +53,10 @@ class Composer
         $dev = $dev ? '' : '--no-dev';
         $options = "--verbose --prefer-dist --no-progress --no-interaction $dev --optimize-autoloader";
 
-        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir &&" : '';
+        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir; " : '';
+        $gitCommandEnv = 'export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"; ';
 
-        $this->shell->exec("cd $path && $cacheDirEnv $composer install $options");
+        $this->shell->exec("cd $path && $cacheDirEnv $gitCommandEnv $composer install $options");
     }
 
     /**
@@ -70,9 +71,10 @@ class Composer
         $dev = $dev ? '' : '--no-dev';
         $options = "--verbose --prefer-dist --no-progress --no-interaction $dev --optimize-autoloader";
 
-        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir &&" : '';
+        $cacheDirEnv = $cacheDir ? "export COMPOSER_CACHE_DIR=$cacheDir; " : '';
+        $gitCommandEnv = 'export GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"; ';
 
-        $this->shell->exec("cd $path && $cacheDirEnv $composer update $options");
+        $this->shell->exec("cd $path && $cacheDirEnv $gitCommandEnv $composer update $options");
         usleep(100); // Issue with output overlap with next command, needs check
     }
 
