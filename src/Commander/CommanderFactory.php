@@ -25,6 +25,30 @@ use Symfony\Component\Filesystem\Filesystem;
 class CommanderFactory
 {
     /**
+     * @var PhpSecLibClientFactory
+     */
+    protected $phpSecLibClientFactory;
+
+    /**
+     * @var SshExtensionSessionFactory
+     */
+    protected $sshExtensionSessionFactory;
+
+    /**
+     * Constructor.
+     *
+     * @param PhpSecLibClientFactory $phpSecLibClientFactory
+     * @param SshExtensionSessionFactory $sshExtensionSessionFactory
+     */
+    public function __construct(
+        PhpSecLibClientFactory $phpSecLibClientFactory,
+        SshExtensionSessionFactory $sshExtensionSessionFactory
+    ) {
+        $this->phpSecLibClientFactory = $phpSecLibClientFactory;
+        $this->sshExtensionSessionFactory = $sshExtensionSessionFactory;
+    }
+
+    /**
      * Create commander from connection definition.
      *
      * @param Connection $connection
@@ -47,43 +71,33 @@ class CommanderFactory
 
                 switch (true) {
                     case $connection->isForwarding():
-                        $configuration = new \Ssh\Configuration(
+                        $session = $this->phpSecLibClientFactory->createForwardingAuthClient(
                             $connection->getHost(),
-                            $connection->getPort()
-                        );
-                        $authentication = new \Ssh\Authentication\Agent(
+                            $connection->getPort(),
                             $connection->getLogin()
                         );
-                        $session = new \Ssh\Session($configuration, $authentication);
-                        $commander = new SshExtensionCommander($session);
+                        $commander = new PhpSecLibCommander($session);
                         break;
 
                     case $connection->getPublicKey():
-                        $configuration = new \Ssh\Configuration(
+                        $session = $this->phpSecLibClientFactory->createPublicKeyAuthClient(
                             $connection->getHost(),
-                            $connection->getPort()
-                        );
-                        $authentication = new \Ssh\Authentication\PublicKeyFile(
+                            $connection->getPort(),
                             $connection->getLogin(),
                             $connection->getPublicKey(),
-                            $connection->getPrivateKey(),
                             $connection->getPassphrase()
                         );
-                        $session = new \Ssh\Session($configuration, $authentication);
-                        $commander = new SshExtensionCommander($session);
+                        $commander = new PhpSecLibCommander($session);
                         break;
 
                     case $connection->getPassword():
-                        $configuration = new \Ssh\Configuration(
+                        $session = $this->phpSecLibClientFactory->createPasswordAuthClient(
                             $connection->getHost(),
-                            $connection->getPort()
-                        );
-                        $authentication = new \Ssh\Authentication\Password(
+                            $connection->getPort(),
                             $connection->getLogin(),
                             $connection->getPassword()
                         );
-                        $session = new \Ssh\Session($configuration, $authentication);
-                        $commander = new SshExtensionCommander($session);
+                        $commander = new PhpSecLibCommander($session);
                         break;
 
                     default:

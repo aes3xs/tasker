@@ -66,9 +66,20 @@ services:
     reporter_factory:
         class: Aes3xs\Yodler\Deployer\ReporterFactory
 
+    phpseclib_client_factory:
+        class: Aes3xs\Yodler\Commander\PhpSecLibClientFactory
+        public: false
+
+    ssh_extension_session_factory:
+        class: Aes3xs\Yodler\Commander\SshExtensionSessionFactory
+        public: false
+
     commander_factory:
         class: Aes3xs\Yodler\Commander\CommanderFactory
         public: false
+        arguments:
+            - '@phpseclib_client_factory'
+            - '@ssh_extension_session_factory'
 
     deployer:
         class: Aes3xs\Yodler\Deployer\Deployer
