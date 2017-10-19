@@ -50,7 +50,8 @@ class PhpSecLibCommander implements CommanderInterface
         if ($this->sftp->getExitStatus() !== 0) {
             $e = new PhpSecLibCommandException($command);
             $e->addError($this->sftp->getSFTPErrors());
-            $e->addError($this->sftp->getStdError() ?: $output);
+            $e->addError($output);
+            $e->addError($this->sftp->getStdError());
             if ($error = error_get_last()) {
                 $e->addError($error['message']);
             }
