@@ -26,22 +26,13 @@ class ConnectionFactory
     protected $phpSecLibClientFactory;
 
     /**
-     * @var SshExtensionSessionFactory
-     */
-    protected $sshExtensionSessionFactory;
-
-    /**
      * Constructor.
      *
      * @param PhpSecLibClientFactory $phpSecLibClientFactory
-     * @param SshExtensionSessionFactory $sshExtensionSessionFactory
      */
-    public function __construct(
-        PhpSecLibClientFactory $phpSecLibClientFactory,
-        SshExtensionSessionFactory $sshExtensionSessionFactory
-    ) {
+    public function __construct(PhpSecLibClientFactory $phpSecLibClientFactory)
+    {
         $this->phpSecLibClientFactory = $phpSecLibClientFactory;
-        $this->sshExtensionSessionFactory = $sshExtensionSessionFactory;
     }
 
     /**

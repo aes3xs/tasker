@@ -28,16 +28,11 @@ services:
         class: Aes3xs\Yodler\Connection\PhpSecLibClientFactory
         public: false
 
-    connection.ssh_extension_session_factory:
-        class: Aes3xs\Yodler\Connection\SshExtensionSessionFactory
-        public: false
-
     connection.factory:
         class: Aes3xs\Yodler\Connection\ConnectionFactory
         public: false
         arguments:
             - "@connection.phpseclib_client_factory"
-            - "@connection.ssh_extension_session_factory"
 
     connection.parameters:
         public: false
