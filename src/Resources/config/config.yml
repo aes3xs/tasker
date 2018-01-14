@@ -1,88 +1,118 @@
-parameters:
-
-    verbosity_level_map:
-        0: 400      # VERBOSITY_QUIET:          ERROR
-        1: 200      # VERBOSITY_NORMAL:         INFO
-        2: 100      # VERBOSITY_VERBOSE:        DEBUG
-        3: 100      # VERBOSITY_VERY_VERBOSE:   DEBUG
-        4: 100      # VERBOSITY_DEBUG:          DEBUG
-
-        16: 400     # VERBOSITY_QUIET:          ERROR
-        32: 200     # VERBOSITY_NORMAL:         INFO
-        64: 100     # VERBOSITY_VERBOSE:        DEBUG
-        128: 100    # VERBOSITY_VERY_VERBOSE:   DEBUG
-        256: 100    # VERBOSITY_DEBUG:          DEBUG
-
 services:
 
-    event_dispatcher:
-        class: Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher
-        arguments: ['@service_container']
+    recipe:
+        synthetic: true
 
-    command_builder:
-        class: Aes3xs\Yodler\Console\CommandBuilder
+    input:
+        class: Symfony\Component\Console\Input\ArgvInput
+        
+    output:
+        class: Symfony\Component\Console\Output\ConsoleOutput
+
+    style:
+        class: Symfony\Component\Console\Style\SymfonyStyle
+        arguments: ["@input", "@output"]
+
+    application.command:
+        class: Aes3xs\Yodler\Console\Command
+        public: false
+
+    application:
+        class: Symfony\Component\Console\Application
+        calls:
+            - ["add", ["@application.command"]]
+            - ["setDefaultCommand", ["@=service('application.command').getName()", true]]
+            - ["setAutoExit", [false]]
+
+    connection.phpseclib_client_factory:
+        class: Aes3xs\Yodler\Connection\PhpSecLibClientFactory
+        public: false
+
+    connection.ssh_extension_session_factory:
+        class: Aes3xs\Yodler\Connection\SshExtensionSessionFactory
+        public: false
+
+    connection.factory:
+        class: Aes3xs\Yodler\Connection\ConnectionFactory
+        public: false
         arguments:
-            - '@deploy_builder'
-            - '%deploys%'
-        tags:
-            - { name: kernel.event_subscriber }
+            - "@connection.phpseclib_client_factory"
+            - "@connection.ssh_extension_session_factory"
 
-    deploy_builder:
-        class: Aes3xs\Yodler\Deploy\DeployBuilder
+    connection.parameters:
+        public: false
+        class: Aes3xs\Yodler\Connection\ConnectionParameters
+
+    connection:
+        class: Aes3xs\Yodler\Connection\Connection
+        arguments: ["@connection.factory", "@resource_resolver", "@logger"]
+        calls:
+            - ["setParameters", ["@connection.parameters"]]
+
+    resource_locator.container_locator:
+        class: Aes3xs\Yodler\ResourceLocator\ContainerResourceLocator
+        public: false
+        arguments: ["@service_container"]
+
+    resource_locator.input_locator:
+        class: Aes3xs\Yodler\ResourceLocator\InputResourceLocator
+        public: false
+        arguments: ["@input"]
+
+    resource_locator.recipe_locator:
+        class: Aes3xs\Yodler\ResourceLocator\RecipeResourceLocator
+        public: false
+        arguments: ["@recipe"]
+
+    resource_locator.stacked_locator:
+        class: Aes3xs\Yodler\ResourceLocator\StackedResourceLocator
+        public: false
+        calls:
+            - ["addLocator", ["@resource_locator.recipe_locator"]]
+            - ["addLocator", ["@resource_locator.input_locator"]]
+            - ["addLocator", ["@resource_locator.container_locator"]]
+
+    resource_locator: "@resource_locator.stacked_locator"
+
+    resource_resolver:
+        class: Aes3xs\Yodler\Resolver\ResourceResolver
+        arguments: ["@resource_locator"]
 
     logger.console_handler:
-        class: Symfony\Bridge\Monolog\Handler\ConsoleHandler
-        arguments:
-            - null
-            - true
-            - '%verbosity_level_map%'
-        calls:
-            - [setFormatter, ['@logger.console_formatter']]
-        tags:
-            - { name: kernel.event_subscriber }
-
-    logger.console_formatter:
-        class: Aes3xs\Yodler\Logger\ConsoleFormatter
+        class: Aes3xs\Yodler\Logger\ConsoleHandler
         public: false
-        arguments: [null, null, true, true]
+        arguments: ["@output"]
 
     logger:
         class: Monolog\Logger
-        arguments: [main]
+        arguments: ["@=service('application.command').getName()"]
         calls:
-            - [pushHandler, ['@logger.console_handler']]
+            - [pushHandler, ["@logger.console_handler"]]
 
-    heap_factory:
-        class: Aes3xs\Yodler\Heap\HeapFactory
-        arguments:
-            - '@service_container'
-            - '@commander_factory'
-        tags:
-            - { name: kernel.event_subscriber }
+    runner:
+        class: Aes3xs\Yodler\Runner\Runner
+        arguments: ["@recipe", "@resource_resolver", "@reporter", "@logger"]
 
-    semaphore_factory:
-        class: Aes3xs\Yodler\Deployer\SemaphoreFactory
+    reporter:
+        class: Aes3xs\Yodler\Report\Reporter
+        arguments: ["@style"]
 
-    reporter_factory:
-        class: Aes3xs\Yodler\Deployer\ReporterFactory
+    shell:
+        class: Aes3xs\Yodler\Service\Shell
+        arguments: ["@connection"]
 
-    phpseclib_client_factory:
-        class: Aes3xs\Yodler\Commander\PhpSecLibClientFactory
-        public: false
+    composer:
+        class: Aes3xs\Yodler\Service\Composer
+        arguments: ["@shell"]
 
-    ssh_extension_session_factory:
-        class: Aes3xs\Yodler\Commander\SshExtensionSessionFactory
-        public: false
+    git:
+        class: Aes3xs\Yodler\Service\Git
+        arguments: ["@shell"]
 
-    commander_factory:
-        class: Aes3xs\Yodler\Commander\CommanderFactory
-        public: false
-        arguments:
-            - '@phpseclib_client_factory'
-            - '@ssh_extension_session_factory'
+    releaser:
+        class: Aes3xs\Yodler\Service\Releaser
+        arguments: ["@shell"]
 
-    deployer:
-        class: Aes3xs\Yodler\Deployer\Deployer
-        arguments:
-            - '@heap_factory'
-            - '@logger'
+    symfony:
+        class: Aes3xs\Yodler\Service\Symfony
+        arguments: ["@shell"]

@@ -12,8 +12,8 @@
 namespace Aes3xs\Yodler\Exception;
 
 /**
- * This exception is thrown when ssh2 extension connection command was failed.
+ * This exception is thrown for skipping current action.
  */
-class SshExtensionCommandException extends \RuntimeException implements ExceptionInterface
+class SkipActionException extends \RuntimeException implements ExceptionInterface
 {
 }

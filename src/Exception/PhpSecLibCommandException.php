@@ -12,7 +12,7 @@
 namespace Aes3xs\Yodler\Exception;
 
 /**
- * This exception is thrown when phpseclib commander command was failed.
+ * This exception is thrown when phpseclib connection command was failed.
  */
 class PhpSecLibCommandException extends \RuntimeException implements ExceptionInterface
 {

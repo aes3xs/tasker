@@ -106,6 +106,13 @@ class Symfony
 
     public function runCommand($command, $arguments = [], $options = [])
     {
+        foreach ($options as $i => $value) {
+            if (is_numeric($i)) {
+                $options[$value] = null;
+                unset($options[$i]);
+            }
+        }
+
         $php = $this->getPhpPath();
         $console = $this->getConsolePath();
 
@@ -121,15 +128,9 @@ class Symfony
 
         $argumentLine = implode(' ', $arguments);
         $optionLine = '';
-        foreach ($options as $i => $value) {
-            if (is_numeric($i)) {
-                $name = $value;
-                $value = null;
-            } else {
-                $name = $i;
-            }
+        foreach ($options as $name => $value) {
             $name = false === strpos($name, '--') ? " --$name" : " $name"; // Add preceding --
-            $value = $value ? '=' . $value : '';
+            $value = null === $value ? '=' . $value : '';
             $optionLine .= $name . $value;
         }
 

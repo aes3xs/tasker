@@ -11,7 +11,7 @@
 
 namespace Aes3xs\Yodler\Service;
 
-use Aes3xs\Yodler\Commander\CommanderInterface;
+use Aes3xs\Yodler\Connection\ConnectionInterface;
 
 /**
  * Helper service to provide shortcuts for frequently used shell commands.
@@ -19,9 +19,9 @@ use Aes3xs\Yodler\Commander\CommanderInterface;
 class Shell
 {
     /**
-     * @var CommanderInterface
+     * @var ConnectionInterface
      */
-    protected $commander;
+    protected $connection;
 
     /**
      * @var bool
@@ -34,19 +34,24 @@ class Shell
     protected $user;
 
     /**
+     * @var string
+     */
+    protected $cwd;
+
+    /**
      * Constructor.
      *
-     * @param CommanderInterface $commander
+     * @param ConnectionInterface $connection
      */
-    public function __construct(CommanderInterface $commander)
+    public function __construct(ConnectionInterface $connection)
     {
-        $this->commander = $commander;
+        $this->connection = $connection;
     }
 
     /**
      * @param $user
      */
-    public function setUser($user)
+    public function setUser($user = null)
     {
         $this->user = null;
 
@@ -66,6 +71,14 @@ class Shell
         }
 
         $this->user = $user;
+    }
+
+    /**
+     * @param $path
+     */
+    public function setCwd($path = null)
+    {
+        $this->cwd = $path;
     }
 
     /**
@@ -106,7 +119,7 @@ class Shell
     protected function _execAs($command, $asUser)
     {
         $command = strtr($command, ['"' => '\\"', '\\' => '\\\\']);
-        $call = sprintf('sudo -Eu %s bash -c "%s"', $asUser, $command);
+        $call = sprintf('sudo -EHu %s bash -c "%s"', $asUser, $command);
         return $this->_exec($call);
     }
 
@@ -116,7 +129,9 @@ class Shell
      */
     protected function _exec($command)
     {
-        $result = $this->commander->exec($command);
+        $cwd = $this->cwd ? $this->escapePath($this->cwd) : null;
+        $changeDir = $cwd ? "cd $cwd; " : "";
+        $result = $this->connection->exec($changeDir . $command);
         if (false !== strpos($result, 'stdin: is not a tty')) {
             throw new \RuntimeException('stdin: is not a tty');
         }
@@ -327,7 +342,7 @@ class Shell
     {
         $tmp = tmpfile();
         fwrite($tmp, $data);
-        $this->commander->send(stream_get_meta_data($tmp)['uri'], $file);
+        $this->connection->send(stream_get_meta_data($tmp)['uri'], $file);
     }
 
     /**
@@ -339,7 +354,7 @@ class Shell
     {
         $tmp = tmpfile();
         $tmp_file = stream_get_meta_data($tmp)['uri'];
-        $this->commander->recv($file, $tmp_file);
+        $this->connection->recv($file, $tmp_file);
         $filesize = filesize($tmp_file);
         return $filesize ? fread($tmp, $filesize) : '';
     }
@@ -357,82 +372,52 @@ class Shell
 
     /**
      * @param array $paths
-     * @param null $basePath
      */
-    public function removePaths(array $paths, $basePath = null)
-    {
-        foreach ($paths as $path) {
-            $this->rm($basePath ? "$basePath/$path" : $path);
-        }
-    }
-
-    /**
-     * @param array $paths
-     * @param null $basePath
-     */
-    public function copyPaths(array $paths, $basePath = null)
+    public function copyPaths(array $paths)
     {
         foreach ($paths as $source => $targets) {
             $targets = is_array($targets) ? $targets : [$targets];
             foreach ($targets as $target) {
-                $this->copy(
-                    $basePath ? "$basePath/$source" : $source,
-                    $basePath ? "$basePath/$target" : $target
-                );
+                $this->copy($source, $target);
             }
         }
     }
 
     /**
      * @param array $paths
-     * @param null $basePath
      */
-    public function createPaths(array $paths, $basePath = null)
-    {
-        foreach ($paths as $path) {
-            $this->mkdir($basePath ? "$basePath/$path" : $path);
-        }
-    }
-
-    /**
-     * @param array $paths
-     * @param null $basePath
-     */
-    public function linkPaths(array $paths, $basePath = null)
+    public function linkPaths(array $paths)
     {
         foreach ($paths as $source => $targets) {
             $targets = is_array($targets) ? $targets : [$targets];
             foreach ($targets as $target) {
-                $this->ln(
-                    $basePath ? "$basePath/$source" : $source,
-                    $basePath ? "$basePath/$target" : $target
-                );
+                $this->ln($source, $target);
             }
         }
     }
 
     /**
      * @param array $paths
-     * @param null $basePath
      */
-    public function isWritablePaths(array $paths, $basePath = null)
+    public function checkWritable($paths)
     {
+        $paths = is_array($paths) ? $paths : [$paths];
         foreach ($paths as $path) {
-            if (!$this->isWritable($basePath ? "$basePath/$path" : $path)) {
-                throw new \RuntimeException('Path not writable: ' . ($basePath ? "$basePath/$path" : $path));
+            if (!$this->isWritable($path)) {
+                throw new \RuntimeException('Path not writable: ' . $path);
             }
         }
     }
 
     /**
      * @param array $paths
-     * @param null $basePath
      */
-    public function isReadablePaths(array $paths, $basePath = null)
+    public function checkReadable($paths)
     {
+        $paths = is_array($paths) ? $paths : [$paths];
         foreach ($paths as $path) {
-            if (!$this->isReadable($basePath ? "$basePath/$path" : $path)) {
-                throw new \RuntimeException('Path not readable: ' . ($basePath ? "$basePath/$path" : $path));
+            if (!$this->isReadable($path)) {
+                throw new \RuntimeException('Path not readable: ' . $path);
             }
         }
     }

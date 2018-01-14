@@ -11,215 +11,131 @@
 
 namespace Aes3xs\Yodler\Connection;
 
+use Aes3xs\Yodler\Exception\RuntimeException;
+use Aes3xs\Yodler\Resolver\ResourceResolver;
+use Psr\Log\LoggerInterface;
+
 /**
- * Connection definition implementation.
+ * Connection is a configurable proxy which switches different connection types.
  */
-class Connection
+class Connection implements ConnectionInterface
 {
     /**
-     * @var string
+     * @var ConnectionParameters
      */
-    protected $host;
+    protected $parameters;
 
     /**
-     * @var int
+     * @var ConnectionInterface
      */
-    protected $port;
+    protected $connection;
 
     /**
-     * @var string
+     * @var ConnectionFactory
      */
-    protected $login;
+    protected $connectionFactory;
 
     /**
-     * @var string
+     * @var ResourceResolver
      */
-    protected $password;
+    protected $resourceResolver;
 
     /**
-     * @var string
+     * @var LoggerInterface
      */
-    protected $publicKey;
-
-    /**
-     * @var string
-     */
-    protected $privateKey;
-
-    /**
-     * @var string
-     */
-    protected $passphrase;
-
-    /**
-     * @var bool
-     */
-    protected $forwarding;
+    protected $logger;
 
     /**
      * Constructor.
-     */
-    public function __construct()
-    {
-    }
-
-    /**
-     * @return string
-     */
-    public function getHost()
-    {
-        return $this->host;
-    }
-
-    /**
-     * @param string $host
      *
-     * @return Connection
+     * @param ConnectionFactory $connectionFactory
+     * @param ResourceResolver $resourceResolver
+     * @param LoggerInterface $logger
      */
-    public function setHost($host)
+    public function __construct(ConnectionFactory $connectionFactory, ResourceResolver $resourceResolver, LoggerInterface $logger)
     {
-        $this->host = $host;
-
-        return $this;
+        $this->connectionFactory = $connectionFactory;
+        $this->resourceResolver = $resourceResolver;
+        $this->logger = $logger;
     }
 
     /**
-     * @return int
-     */
-    public function getPort()
-    {
-        return $this->port;
-    }
-
-    /**
-     * @param int $port
+     * Set connection parameters.
      *
-     * @return Connection
+     * @param ConnectionParameters $parameters
      */
-    public function setPort($port)
+    public function setParameters(ConnectionParameters $parameters)
     {
-        $this->port = $port;
+        $this->parameters = $parameters;
 
-        return $this;
+        $this->connection = null;
     }
 
     /**
-     * @return string
-     */
-    public function getLogin()
-    {
-        return $this->login;
-    }
-
-    /**
-     * @param string $login
+     * Get connection parameters.
      *
-     * @return Connection
+     * @return ConnectionParameters
      */
-    public function setLogin($login)
+    public function getParameters()
     {
-        $this->login = $login;
-
-        return $this;
+        return $this->parameters;
     }
 
     /**
-     * @return string
+     * @return ConnectionInterface
      */
-    public function getPassword()
+    protected function getConnection()
     {
-        return $this->password;
+        if (!$this->connection) {
+            if (!$this->parameters) {
+                throw new RuntimeException("No connection parameters privided.");
+            }
+
+            $this->connection = $this->connectionFactory->create($this->parameters);
+        }
+
+        return $this->connection;
     }
 
     /**
-     * @param string $password
-     *
-     * @return Connection
+     * {@inheritdoc}
      */
-    public function setPassword($password)
+    public function exec($command)
     {
-        $this->password = $password;
+        $command = $this->resourceResolver->resolveString($command);
 
-        return $this;
+        $this->logger->debug('> ' . $command);
+
+        $output = $this->getConnection()->exec($command);
+
+        $this->logger->debug('< ' . $command . ': ' . $output);
+
+        return $output;
     }
 
     /**
-     * @return string
+     * {@inheritdoc}
      */
-    public function getPublicKey()
+    public function send($local, $remote)
     {
-        return $this->publicKey;
+        $local = $this->resourceResolver->resolveString($local);
+        $remote = $this->resourceResolver->resolveString($remote);
+
+        $this->logger->debug('Send: ' . $local . ' to ' . $remote);
+
+        $this->getConnection()->send($local, $remote);
     }
 
     /**
-     * @param string $publicKey
-     *
-     * @return Connection
+     * {@inheritdoc}
      */
-    public function setPublicKey($publicKey)
+    public function recv($remote, $local)
     {
-        $this->publicKey = $publicKey;
+        $remote = $this->resourceResolver->resolveString($remote);
+        $local = $this->resourceResolver->resolveString($local);
 
-        return $this;
-    }
+        $this->logger->debug('Recv: ' . $remote . ' to ' . $local);
 
-    /**
-     * @return string
-     */
-    public function getPrivateKey()
-    {
-        return $this->privateKey;
-    }
-
-    /**
-     * @param string $privateKey
-     *
-     * @return Connection
-     */
-    public function setPrivateKey($privateKey)
-    {
-        $this->privateKey = $privateKey;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPassphrase()
-    {
-        return $this->passphrase;
-    }
-
-    /**
-     * @param string $passphrase
-     *
-     * @return Connection
-     */
-    public function setPassphrase($passphrase)
-    {
-        $this->passphrase = $passphrase;
-
-        return $this;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isForwarding()
-    {
-        return $this->forwarding;
-    }
-
-    /**
-     * @param boolean $forwarding
-     *
-     * @return Connection
-     */
-    public function setForwarding($forwarding)
-    {
-        $this->forwarding = $forwarding;
-
-        return $this;
+        $this->getConnection()->recv($remote, $local);
     }
 }

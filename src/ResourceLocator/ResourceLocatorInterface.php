@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Exception;
+namespace Aes3xs\Yodler\ResourceLocator;
 
-/**
- * This exception is thrown when ssh2 extension connection command was failed.
- */
-class SshExtensionCommandException extends \RuntimeException implements ExceptionInterface
+interface ResourceLocatorInterface
 {
+    public function has($name);
+
+    public function get($name);
 }
