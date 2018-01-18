@@ -11,8 +11,8 @@
 
 namespace Aes3xs\Yodler\Tests\Service;
 
-use Aes3xs\Yodler\Commander\LocalCommander;
-use Aes3xs\Yodler\Common\ProcessFactory;
+use Aes3xs\Yodler\Connection\LocalConnection;
+use Aes3xs\Yodler\Connection\ProcessFactory;
 use Aes3xs\Yodler\Service\Releaser;
 use Aes3xs\Yodler\Service\Shell;
 use Symfony\Component\Filesystem\Filesystem;
@@ -31,7 +31,7 @@ class ReleaserTest extends \PHPUnit_Framework_TestCase
 
     protected function createReleaser($dir)
     {
-        $shell = new Shell(new LocalCommander(new Filesystem(), new ProcessFactory()));
+        $shell = new Shell(new LocalConnection(new Filesystem(), new ProcessFactory()));
         
         $releaser = new Releaser($shell);
         $releaser->setDeployPath($dir);

@@ -1,4 +1,0 @@
-deploys:
-    test:
-        scenario: \DefaultRecipe
-        connection: ~
