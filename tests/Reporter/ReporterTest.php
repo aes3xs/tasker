@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Reporter;
+namespace Aes3xs\Tasker\Tests\Reporter;
 
-use Aes3xs\Yodler\Reporter\Reporter;
+use Aes3xs\Tasker\Reporter\Reporter;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 

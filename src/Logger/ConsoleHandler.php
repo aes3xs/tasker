@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Logger;
+namespace Aes3xs\Tasker\Logger;
 
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Connection;
+namespace Aes3xs\Tasker\Tests\Connection;
 
-use Aes3xs\Yodler\Connection\ConnectionFactory;
-use Aes3xs\Yodler\Connection\LocalConnection;
-use Aes3xs\Yodler\Connection\PhpSecLibClientFactory;
-use Aes3xs\Yodler\Connection\PhpSecLibConnection;
-use Aes3xs\Yodler\Connection\ConnectionParameters;
+use Aes3xs\Tasker\Connection\ConnectionFactory;
+use Aes3xs\Tasker\Connection\LocalConnection;
+use Aes3xs\Tasker\Connection\PhpSecLibClientFactory;
+use Aes3xs\Tasker\Connection\PhpSecLibConnection;
+use Aes3xs\Tasker\Connection\ConnectionParameters;
 use phpseclib\Net\SFTP;
 
 class ConnectionFactoryTest extends \PHPUnit_Framework_TestCase

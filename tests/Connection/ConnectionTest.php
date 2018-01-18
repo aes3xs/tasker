@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Connection;
+namespace Aes3xs\Tasker\Tests\Connection;
 
-use Aes3xs\Yodler\Connection\Connection;
-use Aes3xs\Yodler\Connection\ConnectionFactory;
-use Aes3xs\Yodler\Connection\ConnectionInterface;
-use Aes3xs\Yodler\Connection\ConnectionParameters;
-use Aes3xs\Yodler\Resolver\ResourceResolver;
+use Aes3xs\Tasker\Connection\Connection;
+use Aes3xs\Tasker\Connection\ConnectionFactory;
+use Aes3xs\Tasker\Connection\ConnectionInterface;
+use Aes3xs\Tasker\Connection\ConnectionParameters;
+use Aes3xs\Tasker\Resolver\ResourceResolver;
 use Psr\Log\LoggerInterface;
 
 class ConnectionTest extends \PHPUnit_Framework_TestCase

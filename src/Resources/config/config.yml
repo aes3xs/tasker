@@ -14,7 +14,7 @@ services:
         arguments: ["@input", "@output"]
 
     application.command:
-        class: Aes3xs\Yodler\Console\Command
+        class: Aes3xs\Tasker\Console\Command
         public: false
 
     application:
@@ -25,42 +25,42 @@ services:
             - ["setAutoExit", [false]]
 
     connection.phpseclib_client_factory:
-        class: Aes3xs\Yodler\Connection\PhpSecLibClientFactory
+        class: Aes3xs\Tasker\Connection\PhpSecLibClientFactory
         public: false
 
     connection.factory:
-        class: Aes3xs\Yodler\Connection\ConnectionFactory
+        class: Aes3xs\Tasker\Connection\ConnectionFactory
         public: false
         arguments:
             - "@connection.phpseclib_client_factory"
 
     connection.parameters:
         public: false
-        class: Aes3xs\Yodler\Connection\ConnectionParameters
+        class: Aes3xs\Tasker\Connection\ConnectionParameters
 
     connection:
-        class: Aes3xs\Yodler\Connection\Connection
+        class: Aes3xs\Tasker\Connection\Connection
         arguments: ["@connection.factory", "@resource_resolver", "@logger"]
         calls:
             - ["setParameters", ["@connection.parameters"]]
 
     resource_locator.container_locator:
-        class: Aes3xs\Yodler\ResourceLocator\ContainerResourceLocator
+        class: Aes3xs\Tasker\ResourceLocator\ContainerResourceLocator
         public: false
         arguments: ["@service_container"]
 
     resource_locator.input_locator:
-        class: Aes3xs\Yodler\ResourceLocator\InputResourceLocator
+        class: Aes3xs\Tasker\ResourceLocator\InputResourceLocator
         public: false
         arguments: ["@input"]
 
     resource_locator.recipe_locator:
-        class: Aes3xs\Yodler\ResourceLocator\RecipeResourceLocator
+        class: Aes3xs\Tasker\ResourceLocator\RecipeResourceLocator
         public: false
         arguments: ["@recipe"]
 
     resource_locator.stacked_locator:
-        class: Aes3xs\Yodler\ResourceLocator\StackedResourceLocator
+        class: Aes3xs\Tasker\ResourceLocator\StackedResourceLocator
         public: false
         calls:
             - ["addLocator", ["@resource_locator.recipe_locator"]]
@@ -70,11 +70,11 @@ services:
     resource_locator: "@resource_locator.stacked_locator"
 
     resource_resolver:
-        class: Aes3xs\Yodler\Resolver\ResourceResolver
+        class: Aes3xs\Tasker\Resolver\ResourceResolver
         arguments: ["@resource_locator"]
 
     logger.console_handler:
-        class: Aes3xs\Yodler\Logger\ConsoleHandler
+        class: Aes3xs\Tasker\Logger\ConsoleHandler
         public: false
         arguments: ["@output"]
 
@@ -85,29 +85,29 @@ services:
             - [pushHandler, ["@logger.console_handler"]]
 
     runner:
-        class: Aes3xs\Yodler\Runner\Runner
+        class: Aes3xs\Tasker\Runner\Runner
         arguments: ["@recipe", "@resource_resolver", "@reporter", "@logger"]
 
     reporter:
-        class: Aes3xs\Yodler\Reporter\Reporter
+        class: Aes3xs\Tasker\Reporter\Reporter
         arguments: ["@style", "@logger"]
 
     shell:
-        class: Aes3xs\Yodler\Service\Shell
+        class: Aes3xs\Tasker\Service\Shell
         arguments: ["@connection"]
 
     composer:
-        class: Aes3xs\Yodler\Service\Composer
+        class: Aes3xs\Tasker\Service\Composer
         arguments: ["@shell"]
 
     git:
-        class: Aes3xs\Yodler\Service\Git
+        class: Aes3xs\Tasker\Service\Git
         arguments: ["@shell"]
 
     releaser:
-        class: Aes3xs\Yodler\Service\Releaser
+        class: Aes3xs\Tasker\Service\Releaser
         arguments: ["@shell"]
 
     symfony:
-        class: Aes3xs\Yodler\Service\Symfony
+        class: Aes3xs\Tasker\Service\Symfony
         arguments: ["@shell"]

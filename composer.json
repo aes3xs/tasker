@@ -1,6 +1,6 @@
 {
-    "name": "aes3xs/yodler",
-    "description": "Deploy tool",
+    "name": "aes3xs/tasker",
+    "description": "Task automation tool",
     "license": "MIT",
     "authors": [
         {
@@ -27,12 +27,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Aes3xs\\Yodler\\": "src"
+            "Aes3xs\\Tasker\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Aes3xs\\Yodler\\Tests\\": "tests"
+            "Aes3xs\\Tasker\\Tests\\": "tests"
         }
     }
 }

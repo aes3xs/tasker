@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Resolver;
+namespace Aes3xs\Tasker\Tests\Resolver;
 
-use Aes3xs\Yodler\Exception\ResourceCircularReferenceException;
-use Aes3xs\Yodler\Exception\ResourceNotFoundException;
-use Aes3xs\Yodler\Resolver\ResourceResolver;
-use Aes3xs\Yodler\ResourceLocator\ArrayResourceLocator;
+use Aes3xs\Tasker\Exception\ResourceCircularReferenceException;
+use Aes3xs\Tasker\Exception\ResourceNotFoundException;
+use Aes3xs\Tasker\Resolver\ResourceResolver;
+use Aes3xs\Tasker\ResourceLocator\ArrayResourceLocator;
 
 class ResolverTest extends \PHPUnit_Framework_TestCase
 {

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Recipe;
+namespace Aes3xs\Tasker\Recipe;
 
-use Aes3xs\Yodler\Service\Releaser;
-use Aes3xs\Yodler\Service\Shell;
-use Aes3xs\Yodler\Service\Symfony;
+use Aes3xs\Tasker\Service\Releaser;
+use Aes3xs\Tasker\Service\Shell;
+use Aes3xs\Tasker\Service\Symfony;
 
 /**
  * Example recipe.

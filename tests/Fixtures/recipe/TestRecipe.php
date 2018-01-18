@@ -1,6 +1,6 @@
 <?php
 
-class TestRecipe extends \Aes3xs\Yodler\AbstractRecipe
+class TestRecipe extends \Aes3xs\Tasker\AbstractRecipe
 {
     public static $container;
 

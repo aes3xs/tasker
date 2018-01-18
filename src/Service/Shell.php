@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Service;
+namespace Aes3xs\Tasker\Service;
 
-use Aes3xs\Yodler\Connection\ConnectionInterface;
+use Aes3xs\Tasker\Connection\ConnectionInterface;
 
 /**
  * Helper service to provide shortcuts for frequently used shell commands.

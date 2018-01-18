@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,13 +9,13 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Runner;
+namespace Aes3xs\Tasker\Runner;
 
-use Aes3xs\Yodler\AbstractRecipe;
-use Aes3xs\Yodler\Exception\ActionNotAvailableException;
-use Aes3xs\Yodler\Exception\SkipActionException;
-use Aes3xs\Yodler\Reporter\Reporter;
-use Aes3xs\Yodler\Resolver\ResourceResolver;
+use Aes3xs\Tasker\AbstractRecipe;
+use Aes3xs\Tasker\Exception\ActionNotAvailableException;
+use Aes3xs\Tasker\Exception\SkipActionException;
+use Aes3xs\Tasker\Reporter\Reporter;
+use Aes3xs\Tasker\Resolver\ResourceResolver;
 use Psr\Log\LoggerInterface;
 
 /**

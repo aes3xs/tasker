@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\ResourceLocator;
+namespace Aes3xs\Tasker\ResourceLocator;
 
-use Aes3xs\Yodler\AbstractRecipe;
-use Aes3xs\Yodler\Exception\ResourceNotFoundException;
+use Aes3xs\Tasker\AbstractRecipe;
+use Aes3xs\Tasker\Exception\ResourceNotFoundException;
 use Doctrine\Common\Inflector\Inflector;
 
 class RecipeResourceLocator implements ResourceLocatorInterface

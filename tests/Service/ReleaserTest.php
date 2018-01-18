@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Yodler package.
+ * This file is part of the Tasker package.
  *
  * (c) aes3xs <aes3xs@gmail.com>
  *
@@ -9,12 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Tests\Service;
+namespace Aes3xs\Tasker\Tests\Service;
 
-use Aes3xs\Yodler\Connection\LocalConnection;
-use Aes3xs\Yodler\Connection\ProcessFactory;
-use Aes3xs\Yodler\Service\Releaser;
-use Aes3xs\Yodler\Service\Shell;
+use Aes3xs\Tasker\Connection\LocalConnection;
+use Aes3xs\Tasker\Connection\ProcessFactory;
+use Aes3xs\Tasker\Service\Releaser;
+use Aes3xs\Tasker\Service\Shell;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ReleaserTest extends \PHPUnit_Framework_TestCase
