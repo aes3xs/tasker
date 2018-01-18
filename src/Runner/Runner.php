@@ -14,7 +14,7 @@ namespace Aes3xs\Yodler\Runner;
 use Aes3xs\Yodler\AbstractRecipe;
 use Aes3xs\Yodler\Exception\ActionNotAvailableException;
 use Aes3xs\Yodler\Exception\SkipActionException;
-use Aes3xs\Yodler\Report\Reporter;
+use Aes3xs\Yodler\Reporter\Reporter;
 use Aes3xs\Yodler\Resolver\ResourceResolver;
 use Psr\Log\LoggerInterface;
 

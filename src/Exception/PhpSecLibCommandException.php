@@ -65,7 +65,7 @@ class PhpSecLibCommandException extends \RuntimeException implements ExceptionIn
 
         $this->message = sprintf('Error occured while executing command "%s" %s',
             $this->command,
-            PHP_EOL . 'Errors: ' . PHP_EOL . implode(PHP_EOL, $this->errors)
+            PHP_EOL . 'Errors: ' . PHP_EOL . implode(PHP_EOL, $this->getErrors())
         );
     }
 
@@ -74,6 +74,6 @@ class PhpSecLibCommandException extends \RuntimeException implements ExceptionIn
      */
     public function getErrors()
     {
-        return $this->errors;
+        return array_unique($this->errors);
     }
 }

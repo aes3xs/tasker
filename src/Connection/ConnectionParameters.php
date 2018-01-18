@@ -11,7 +11,7 @@
 
 namespace Aes3xs\Yodler\Connection;
 
-use Aes3xs\Yodler\Exception\FileReadException;
+use Aes3xs\Yodler\Exception\RuntimeException;
 
 /**
  * ConnectionParameters.
@@ -168,8 +168,8 @@ class ConnectionParameters
     {
         if ($this->publicKey && file_exists($this->publicKey)) {
             $keyContent = file_get_contents($this->publicKey);
-            if ($keyContent === false) {
-                throw new FileReadException($this->publicKey);
+            if (false === $keyContent) {
+                throw new RuntimeException("Cannot read file contents: " . $this->publicKey);
             }
             return $keyContent;
         }
@@ -204,8 +204,8 @@ class ConnectionParameters
     {
         if ($this->privateKey && file_exists($this->privateKey)) {
             $keyContent = file_get_contents($this->privateKey);
-            if ($keyContent === false) {
-                throw new FileReadException($this->privateKey);
+            if (false === $keyContent) {
+                throw new RuntimeException("Cannot read file contents: " . $this->privateKey);
             }
             return $keyContent;
         }

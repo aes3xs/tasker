@@ -119,7 +119,7 @@ class ResourceResolver
             $class = $parameter->getClass() ? $parameter->getClass()->getName() : null;
 
             if ($this->resourceLocator->has($class) || $this->resourceLocator->has($name)) {
-                $value = $this->resourceLocator->has($class) ? $this->resolveResource($class) : $this->resolveResource($name);
+                $value = $this->resourceLocator->has($class) ? $this->resourceLocator->get($class) : $this->resourceLocator->get($name);
             } elseif($parameter->isDefaultValueAvailable()) {
                 $value = $parameter->getDefaultValue();
             } else {

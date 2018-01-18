@@ -9,9 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Aes3xs\Yodler\Report;
+namespace Aes3xs\Yodler\Reporter;
 
 use Aes3xs\Yodler\Exception\RuntimeException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableCell;
 use Symfony\Component\Console\Helper\TableSeparator;
@@ -23,19 +24,23 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class Reporter
 {
     /**
+     * @var SymfonyStyle
+     */
+    protected $style;
+
+    /**
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    /**
      * @var resource
      */
     protected $inSocket;
-
     /**
      * @var resource
      */
     protected $outSocket;
-
-    /**
-     * @var SymfonyStyle
-     */
-    protected $style;
 
     const DATE_FORMAT = 'Y-m-d H:i:s';
 
@@ -44,6 +49,16 @@ class Reporter
     const ACTION_STATE_RUNNING = 'Running';
     const ACTION_STATE_SUCCEED = 'Succeed';
     const ACTION_STATE_ERROR = 'Error';
+    const ACTION_STATE_UNKNOWN = 'Unknown';
+
+    const ACTION_STATES = [
+        self::ACTION_STATE_NONE,
+        self::ACTION_STATE_SKIPPED,
+        self::ACTION_STATE_RUNNING,
+        self::ACTION_STATE_SUCCEED,
+        self::ACTION_STATE_ERROR,
+        self::ACTION_STATE_UNKNOWN,
+    ];
 
     const PICS = [
         self::ACTION_STATE_NONE    => ' ',
@@ -51,11 +66,11 @@ class Reporter
         self::ACTION_STATE_RUNNING => '➤',
         self::ACTION_STATE_SUCCEED => '✔',
         self::ACTION_STATE_ERROR   => '✘',
+        self::ACTION_STATE_UNKNOWN => '❓',
     ];
 
     const ACTION_DEFAULTS = [
         'name'    => null,
-        'pic'     => '❓',
         'state'   => null,
         'start'   => null,
         'finish'  => null,
@@ -67,10 +82,12 @@ class Reporter
      * Constructor.
      *
      * @param SymfonyStyle $style
+     * @param LoggerInterface $logger
      */
-    public function __construct(SymfonyStyle $style)
+    public function __construct(SymfonyStyle $style, LoggerInterface $logger)
     {
         $this->style = $style;
+        $this->logger = $logger;
 
         $sockets = [];
         $domain = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' ? AF_INET : AF_UNIX);
@@ -83,7 +100,7 @@ class Reporter
     }
 
     /**
-     * Report about action.
+     * Reporter about action.
      *
      * @param string $actionName
      */
@@ -96,7 +113,7 @@ class Reporter
     }
 
     /**
-     * Report about action group.
+     * Reporter about action group.
      *
      * @param string $actionGroupName
      */
@@ -109,7 +126,7 @@ class Reporter
     }
 
     /**
-     * Report about running action.
+     * Reporter about running action.
      *
      * @param string $actionName
      */
@@ -123,7 +140,7 @@ class Reporter
     }
 
     /**
-     * Report about succeed action.
+     * Reporter about succeed action.
      *
      * @param string $actionName
      * @param $output
@@ -139,7 +156,7 @@ class Reporter
     }
 
     /**
-     * Report about error occured while running action.
+     * Reporter about error occured while running action.
      *
      * @param string $actionName
      * @param \Exception $e
@@ -155,7 +172,7 @@ class Reporter
     }
 
     /**
-     * Report about skipped action.
+     * Reporter about skipped action.
      *
      * @param string $actionName
      */
@@ -179,13 +196,8 @@ class Reporter
         }
     }
 
-    /**
-     * Print report.
-     */
-    public function printReport()
+    public function retrieveActions()
     {
-        $this->style->newLine();
-
         $data = "";
         while ($res = socket_recv($this->outSocket, $buf, 2048, MSG_DONTWAIT)) {
             $data .= $buf;
@@ -194,23 +206,43 @@ class Reporter
         $records = $data ? array_filter(explode(PHP_EOL, $data)) : [];
 
         if (!$records) {
-            $this->style->text("<info>No report data</info>");
-            return;
+            return [];
         }
 
         $actions = [];
-        if ($data) {
-            foreach (array_filter(explode(PHP_EOL, $data)) as $record) {
-                $recordData = json_decode($record, true);
-                if (JSON_ERROR_NONE !== json_last_error()) {
-                    $this->style->error("Error deserializing record: " . $record);
-                    continue;
-                }
-
-                $key = null === $recordData['name'] ? uniqid() : $recordData['name'];
-
-                $actions[$key] = $recordData + (isset($actions[$key]) ? $actions[$key] : self::ACTION_DEFAULTS);
+        foreach (array_filter(explode(PHP_EOL, $data)) as $record) {
+            $recordData = json_decode($record, true);
+            if (JSON_ERROR_NONE !== json_last_error()) {
+                $this->logger->warning("Error deserializing record: " . $record);
+                continue;
             }
+
+            $key = $recordData['name'];
+
+            $actionData = $recordData + (isset($actions[$key]) ? $actions[$key] : self::ACTION_DEFAULTS);
+
+            if ($key) {
+                $actions[$key] = $actionData;
+            } else {
+                $actions[] = $actionData;
+            }
+        }
+
+        return $actions;
+    }
+
+    /**
+     * Print report.
+     */
+    public function printReport()
+    {
+        $this->style->newLine();
+
+        $actions = $this->retrieveActions();
+
+        if (!$actions) {
+            $this->style->text("<info>No report data</info>");
+            return;
         }
 
         $total = 0;
@@ -238,17 +270,18 @@ class Reporter
                 $diff = $diff . 's';
             }
 
-            $action['output'] = preg_replace('/\s+/S', " ", $action['output']);
+            $output = preg_replace('/\s+/S', " ", $action['output']);
+            $state = in_array($action['state'], self::ACTION_STATES) ? $action['state'] : self::ACTION_STATE_UNKNOWN;
 
             $rows[] = [
                 'name'     => $action['name'],
-                'pic'      => array_key_exists($action['state'], self::PICS) ? self::PICS[$action['state']] : $action['pic'],
-                'state'    => $action['state'],
+                'pic'      => self::PICS[$state],
+                'state'    => $state,
                 'start'    => $start,
                 'duration' => $diff,
-                'output'   => mb_substr($action['output'], 0, 64),
+                'output'   => mb_substr($output, 0, 64),
             ];
-            $succeed = $succeed && in_array($action['state'], [Reporter::ACTION_STATE_SKIPPED, Reporter::ACTION_STATE_SUCCEED]);
+            $succeed = $succeed && in_array($state, [self::ACTION_STATE_SKIPPED, self::ACTION_STATE_SUCCEED]);
 
             $total += $diff;
         }

@@ -89,8 +89,8 @@ services:
         arguments: ["@recipe", "@resource_resolver", "@reporter", "@logger"]
 
     reporter:
-        class: Aes3xs\Yodler\Report\Reporter
-        arguments: ["@style"]
+        class: Aes3xs\Yodler\Reporter\Reporter
+        arguments: ["@style", "@logger"]
 
     shell:
         class: Aes3xs\Yodler\Service\Shell

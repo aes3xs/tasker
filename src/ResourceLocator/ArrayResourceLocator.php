@@ -12,23 +12,22 @@
 namespace Aes3xs\Yodler\ResourceLocator;
 
 use Aes3xs\Yodler\Exception\ResourceNotFoundException;
-use Symfony\Component\Console\Input\InputInterface;
 
-class InputResourceLocator implements ResourceLocatorInterface
+class ArrayResourceLocator implements ResourceLocatorInterface
 {
     /**
-     * @var InputInterface
+     * @var array
      */
-    protected $input;
+    protected $array;
 
     /**
      * Constructor.
      *
-     * @param InputInterface $input
+     * @param array $array
      */
-    public function __construct(InputInterface $input)
+    public function __construct(array $array)
     {
-        $this->input = $input;
+        $this->array = $array;
     }
 
     /**
@@ -36,12 +35,8 @@ class InputResourceLocator implements ResourceLocatorInterface
      */
     public function get($name)
     {
-        if ($this->input->hasArgument($name)) {
-            return $this->input->getArgument($name);
-        }
-
-        if ($this->input->hasOption($name)) {
-            return $this->input->getOption($name);
+        if (array_key_exists($name, $this->array)) {
+            return $this->array[$name];
         }
 
         throw new ResourceNotFoundException($name);
@@ -52,6 +47,6 @@ class InputResourceLocator implements ResourceLocatorInterface
      */
     public function has($name)
     {
-        return $this->input->hasArgument($name) || $this->input->hasOption($name);
+        return array_key_exists($name, $this->array);
     }
 }

@@ -88,7 +88,7 @@ class Connection implements ConnectionInterface
     {
         if (!$this->connection) {
             if (!$this->parameters) {
-                throw new RuntimeException("No connection parameters privided.");
+                throw new RuntimeException("No connection parameters provided.");
             }
 
             $this->connection = $this->connectionFactory->create($this->parameters);
