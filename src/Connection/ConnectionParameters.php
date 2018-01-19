@@ -26,7 +26,7 @@ class ConnectionParameters
     /**
      * @var int
      */
-    protected $port;
+    protected $port = 22;
 
     /**
      * @var string
@@ -56,7 +56,7 @@ class ConnectionParameters
     /**
      * @var bool
      */
-    protected $forwarding;
+    protected $forwarding = false;
 
     /**
      * Constructor.

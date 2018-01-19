@@ -44,7 +44,7 @@ class Symfony
     /**
      * @var bool
      */
-    protected $interaction = false;
+    protected $interactive = false;
 
     /**
      * Constructor.
@@ -97,11 +97,11 @@ class Symfony
     }
 
     /**
-     * @param $interaction
+     * @param $interactive
      */
-    public function setInteraction($interaction)
+    public function setInteractive($interactive)
     {
-        $this->interaction = $interaction;
+        $this->interactive = $interactive;
     }
 
     public function runCommand($command, $arguments = [], $options = [])
@@ -120,7 +120,7 @@ class Symfony
         if (!$this->debug) {
             $predefinedOptions['no-debug'] = null;
         }
-        if (!$this->interaction) {
+        if (!$this->interactive) {
             $predefinedOptions['no-interaction'] = null;
         }
 

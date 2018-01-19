@@ -166,9 +166,9 @@ abstract class AbstractRecipe
         return $this->getContainer()->get('runner')->getAvailableActions();
     }
 
-    protected function skipAction()
+    protected function skipAction($message = '')
     {
-        throw new SkipActionException();
+        throw new SkipActionException($message);
     }
 
     protected function get($name)

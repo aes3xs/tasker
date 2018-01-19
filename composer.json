@@ -16,6 +16,7 @@
         "symfony/expression-language": "~2.7|~3.0",
         "symfony/filesystem": "~2.7|~3.0",
         "symfony/process": "~2.7|~3.0",
+        "symfony/yaml": "~2.7|~3.0",
         "twig/twig": "~1.32",
         "doctrine/inflector": "^1.1",
         "phpseclib/phpseclib": "^2.0",

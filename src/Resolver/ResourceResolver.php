@@ -13,8 +13,10 @@ namespace Aes3xs\Tasker\Resolver;
 
 use Aes3xs\Tasker\Exception\ArgumentNotFoundException;
 use Aes3xs\Tasker\Exception\ResourceCircularReferenceException;
+use Aes3xs\Tasker\Exception\ResourceNotFoundException;
 use Aes3xs\Tasker\Exception\RuntimeException;
 use Aes3xs\Tasker\ResourceLocator\ResourceLocatorInterface;
+use Doctrine\Common\Inflector\Inflector;
 
 /**
  * Resource resolver.
@@ -38,7 +40,19 @@ class ResourceResolver
 
     public function resolveResource($name)
     {
-        $resource = $this->resourceLocator->get($name);
+        switch (true) {
+            case $this->resourceLocator->has($name):
+                $resource = $this->resourceLocator->get($name);
+                break;
+            case $this->resourceLocator->has(Inflector::camelize($name)):
+                $resource = $this->resourceLocator->get(Inflector::camelize($name));
+                break;
+            case $this->resourceLocator->has(Inflector::tableize($name)):
+                $resource = $this->resourceLocator->get(Inflector::tableize($name));
+                break;
+            default:
+                throw new ResourceNotFoundException($name);
+        }
 
         return is_callable($resource) ? $this->resolveCallback($resource) : $resource;
     }
@@ -118,12 +132,24 @@ class ResourceResolver
             $name = $parameter->getName();
             $class = $parameter->getClass() ? $parameter->getClass()->getName() : null;
 
-            if ($this->resourceLocator->has($class) || $this->resourceLocator->has($name)) {
-                $value = $this->resourceLocator->has($class) ? $this->resourceLocator->get($class) : $this->resourceLocator->get($name);
-            } elseif($parameter->isDefaultValueAvailable()) {
-                $value = $parameter->getDefaultValue();
-            } else {
-                throw new ArgumentNotFoundException($name);
+            switch (true) {
+                case $this->resourceLocator->has($class):
+                    $value = $this->resourceLocator->get($class);
+                    break;
+                case $this->resourceLocator->has($name):
+                    $value = $this->resourceLocator->get($name);
+                    break;
+                case $this->resourceLocator->has(Inflector::camelize($name)):
+                    $value = $this->resourceLocator->get(Inflector::camelize($name));
+                    break;
+                case $this->resourceLocator->has(Inflector::tableize($name)):
+                    $value = $this->resourceLocator->get(Inflector::tableize($name));
+                    break;
+                case $parameter->isDefaultValueAvailable():
+                    $value = $parameter->getDefaultValue();
+                    break;
+                default:
+                    throw new ArgumentNotFoundException($name);
             }
 
             if (is_callable($value)) {
