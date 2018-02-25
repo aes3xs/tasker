@@ -29,7 +29,7 @@ class Symfony
     /**
      * @var string
      */
-    protected $consolePath;
+    protected $consolePath = './bin/console';
 
     /**
      * @var string

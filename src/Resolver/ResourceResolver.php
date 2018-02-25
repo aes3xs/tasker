@@ -133,7 +133,7 @@ class ResourceResolver
             $class = $parameter->getClass() ? $parameter->getClass()->getName() : null;
 
             switch (true) {
-                case $this->resourceLocator->has($class):
+                case $class && $this->resourceLocator->has($class):
                     $value = $this->resourceLocator->get($class);
                     break;
                 case $this->resourceLocator->has($name):

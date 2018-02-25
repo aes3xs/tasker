@@ -13,6 +13,7 @@ namespace Aes3xs\Tasker;
 
 use Aes3xs\Tasker\Exception\RuntimeException;
 use Aes3xs\Tasker\Exception\SkipActionException;
+use Monolog\Logger;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -180,20 +181,74 @@ abstract class AbstractRecipe
     {
         $helper = new QuestionHelper();
         $question = new ConfirmationQuestion("<info>$question</info> <comment>" . ($default ? '(Y/n)' : '(y/N)') . "</comment> ", $default);
-        return $helper->ask($this->getContainer()->get('input'), $this->getContainer()->get('output'), $question);
+        $input = $this->getContainer()->get('input');
+        $output = $this->getContainer()->get('output');
+        return $helper->ask($input, $output, $question);
     }
 
     protected function askChoiceQuestion($question, array $variants, $default = null)
     {
         $helper = new QuestionHelper();
         $question = new ChoiceQuestion("<info>$question</info>", $variants, $default);
-        return $helper->ask($this->getContainer()->get('input'), $this->getContainer()->get('output'), $question);
+        $input = $this->getContainer()->get('input');
+        $output = $this->getContainer()->get('output');
+        return $helper->ask($input, $output, $question);
     }
 
     protected function askQuestion($question, $default = null)
     {
         $helper = new QuestionHelper();
         $question = new Question("<info>$question</info>", $default);
-        return $helper->ask($this->getContainer()->get('input'), $this->getContainer()->get('output'), $question);
+        $input = $this->getContainer()->get('input');
+        $output = $this->getContainer()->get('output');
+        return $helper->ask($input, $output, $question);
+    }
+
+    protected function log($level, $message, array $context = [])
+    {
+        $resolver = $this->getContainer()->get('resource_resolver');
+        $logger = $this->getContainer()->get('logger');
+
+        return $logger->log($level, $resolver->resolveString($message), $context);
+    }
+
+    protected function debug($message, array $context = [])
+    {
+        return $this->log(Logger::DEBUG, $message, $context);
+    }
+
+    protected function info($message, array $context = [])
+    {
+        return $this->log(Logger::INFO, $message, $context);
+    }
+
+    protected function notice($message, array $context = [])
+    {
+        return $this->log(Logger::NOTICE, $message, $context);
+    }
+
+    protected function warning($message, array $context = [])
+    {
+        return $this->log(Logger::WARNING, $message, $context);
+    }
+
+    protected function error($message, array $context = [])
+    {
+        return $this->log(Logger::ERROR, $message, $context);
+    }
+
+    protected function critical($message, array $context = [])
+    {
+        return $this->log(Logger::CRITICAL, $message, $context);
+    }
+
+    protected function alert($message, array $context = [])
+    {
+        return $this->log(Logger::ALERT, $message, $context);
+    }
+
+    protected function emergency($message, array $context = [])
+    {
+        return $this->log(Logger::EMERGENCY, $message, $context);
     }
 }

@@ -38,13 +38,11 @@ class RecipeResourceLocator implements ResourceLocatorInterface
     public function get($name)
     {
         if ($method = $this->findMethod($name)) {
-            $methodReflection = new \ReflectionMethod(get_class($this->recipe), $method);
-            return $methodReflection->getClosure($this->recipe)->bindTo($this->recipe, $this->recipe);
+            return [$this->recipe, $method];
         }
 
         if ($property = $this->findProperty($name)) {
-            $propertyReflection = new \ReflectionProperty(get_class($this->recipe), $property);
-            return $propertyReflection->getValue($this->recipe);
+            return $this->recipe->$property;
         }
 
         throw new ResourceNotFoundException($name);
@@ -66,8 +64,10 @@ class RecipeResourceLocator implements ResourceLocatorInterface
             if ($propertyReflection->isStatic()) {
                 continue;
             }
-            if ((class_exists($name) || interface_exists($name)) && is_object($propertyReflection->getValue()) && is_a($propertyReflection->getValue(), $name)) {
-                return $propertyReflection->getName();
+            if (class_exists($name) || interface_exists($name)) {
+                if (is_object($propertyReflection->getValue($this->recipe)) && is_a($propertyReflection->getValue($this->recipe), $name)) {
+                    return $propertyReflection->getName();
+                }
             }
             if ($propertyReflection->getName() === $name) {
                 return $name;
@@ -81,11 +81,14 @@ class RecipeResourceLocator implements ResourceLocatorInterface
     {
         $classReflection = new \ReflectionClass($this->recipe);
 
-        foreach ($classReflection->getProperties(\ReflectionMethod::IS_PUBLIC) as $methodReflection) {
+        foreach ($classReflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $methodReflection) {
             if ($methodReflection->isStatic()) {
                 continue;
             }
             if ($methodReflection->getName() === "get" . Inflector::classify($name)) {
+                return $methodReflection->getName();
+            }
+            if ($methodReflection->getName() === "is" . Inflector::classify($name)) {
                 return $methodReflection->getName();
             }
         }

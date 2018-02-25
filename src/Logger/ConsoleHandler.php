@@ -49,7 +49,9 @@ class ConsoleHandler extends AbstractProcessingHandler
      */
     public function isHandling(array $record)
     {
-        return $this->updateLevel() && parent::isHandling($record);
+        $this->updateLevel();
+
+        return parent::isHandling($record);
     }
 
     /**
@@ -57,7 +59,9 @@ class ConsoleHandler extends AbstractProcessingHandler
      */
     public function handle(array $record)
     {
-        return $this->updateLevel() && parent::handle($record);
+        $this->updateLevel();
+
+        return parent::handle($record);
     }
 
     /**

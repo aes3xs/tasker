@@ -27,6 +27,16 @@ class Releaser
     protected $deployPath;
 
     /**
+     * @var string
+     */
+    protected $releaseName;
+
+    /**
+     * @var string
+     */
+    protected $releasePath;
+
+    /**
      * Constructor.
      *
      * @param Shell $shell
@@ -58,6 +68,53 @@ class Releaser
         }
 
         return $this->deployPath;
+    }
+
+    /**
+     * Get release name
+     *
+     * @return string
+     */
+    public function getReleaseName()
+    {
+        if (!$this->releaseName) {
+            throw new \RuntimeException('No release in process, create one first.');
+        }
+
+        return $this->releaseName;
+    }
+
+    /**
+     * Set release name
+     *
+     * @param string $releaseName
+     *
+     * @return Releaser
+     */
+    public function setReleaseName($releaseName)
+    {
+        $this->releaseName = $releaseName;
+
+        return $this;
+    }
+
+    /**
+     * Get release path
+     *
+     * @return string
+     */
+    public function getReleasePath()
+    {
+        $path = $this->getDeployPath();
+        $name = $this->getReleaseName();
+
+        $releasePath = "$path/releases/$name";
+
+        if (!$this->shell->exists($releasePath)) {
+            throw new \RuntimeException('Release path not exists.');
+        }
+
+        return $this->shell->realpath($releasePath);
     }
 
     /**
@@ -122,7 +179,7 @@ class Releaser
      *
      * @param int $keep
      */
-    public function cleanup($keep = null)
+    public function cleanup($keep)
     {
         $path = $this->getDeployPath();
 
@@ -133,10 +190,6 @@ class Releaser
         $broken = array_diff($list, $releases);
         foreach ($broken as $release) {
             $this->shell->rm("$path/releases/$release");
-        }
-
-        if (null === $keep) {
-            return;
         }
 
         $outdated = array_slice($releases, $keep);
@@ -154,27 +207,33 @@ class Releaser
      */
     public function create($name = null)
     {
+        if ($this->releaseName) {
+            throw new \RuntimeException('There is already release in process.');
+        }
+
         $path = $this->getDeployPath();
 
         $name = $name ?: date('YmdHis');
+        $releasePath = "$path/releases/$name";
 
-        if ($this->shell->exists("$path/releases/$name")) {
-            throw new \RuntimeException('Path already exists: ' . "$path/releases/$name");
+        if ($this->shell->exists($releasePath)) {
+            throw new \RuntimeException('Path already exists: ' . $releasePath);
         }
 
-        $this->shell->mkdir("$path/releases/$name");
+        $this->setReleaseName($name);
+
+        $this->shell->mkdir($releasePath);
 
         return $name;
     }
 
     /**
-     * Make a release.
-     *
-     * @param $name
+     * Do a release.
      */
-    public function release($name)
+    public function release()
     {
         $path = $this->getDeployPath();
+        $name = $this->getReleaseName();
 
         $this->shell->ln("$path/releases/$name", "$path/current");
         $date = date('Y-m-d H:i:s');
@@ -221,11 +280,10 @@ class Releaser
     /**
      * Update release shares.
      *
-     * @param $name
      * @param array $sharedDirs
      * @param array $sharedFiles
      */
-    public function updateReleaseShares($name, $sharedDirs = [], $sharedFiles = [])
+    public function updateReleaseShares($sharedDirs = [], $sharedFiles = [])
     {
         $path = $this->getDeployPath();
 
@@ -237,7 +295,7 @@ class Releaser
             }
         }
 
-        $release = $this->getReleasePath($name);
+        $release = $this->getReleasePath();
 
         foreach ($sharedDirs as $dir) {
 
@@ -324,7 +382,7 @@ class Releaser
      *
      * @return string|null
      */
-    public function getCurrentPath()
+    public function getCurrentReleasePath()
     {
         $path = $this->getDeployPath();
 
@@ -336,11 +394,11 @@ class Releaser
      *
      * @return string|null
      */
-    public function getCurrentRelease()
+    public function getCurrentReleaseName()
     {
         $path = $this->getDeployPath();
 
-        $current = $this->getCurrentPath();
+        $current = $this->getCurrentReleasePath();
 
         $rplc = ['/' => '\/', '.' => '\.'];
         $pattern = strtr("$path/releases/", $rplc) . '(.+)';
@@ -358,10 +416,16 @@ class Releaser
      *
      * @return string
      */
-    public function getReleasePath($name)
+    public function getReleasePathByName($name)
     {
         $path = $this->getDeployPath();
 
-        return $this->shell->exists("$path/releases/$name") ? $this->shell->realpath("$path/releases/$name") : null;
+        $releasePath = "$path/releases/$name";
+
+        if (!$this->shell->exists($releasePath)) {
+            throw new \RuntimeException('Release path not exists.');
+        }
+
+        return $this->shell->realpath($releasePath);
     }
 }

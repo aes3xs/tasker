@@ -158,10 +158,10 @@ class Runner
             foreach ($reflectionMethods as $method) {
                 $methodName = $method->getName();
 
-                $isMagicMethod = fnmatch("__*", $methodName);
-                $isGetMethod = fnmatch("get[A-Z]*", $methodName);
+                // get*, is*, and __* methods
+                $isIgnored = 1 === preg_match('/^(get[A-Z]|is[A-Z]|__).*$/', $methodName);
 
-                if ($method->isStatic() || $isMagicMethod || $isGetMethod || $rootClass->hasMethod($methodName)) {
+                if ($method->isStatic() || $rootClass->hasMethod($methodName) || $isIgnored) {
                     continue;
                 }
 
